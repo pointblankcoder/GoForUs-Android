@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">GoForUs</string>
     <string name="title_activity_availability">Availability</string>
+    <string name="default_info_window">default info window</string>
+    <string name="custom_info_contents">custom info content</string>
+    <string name="custom_info_window">custom info window</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_hide">Hide Panel</string>
+    <string name="action_show">Show Panel</string>
+    <string name="action_anchor_enable">Enable Anchor Point</string>
+    <string name="action_anchor_disable">Disable Anchor Point</string>
 </resources>
