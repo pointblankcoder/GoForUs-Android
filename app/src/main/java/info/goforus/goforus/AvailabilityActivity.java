@@ -1,55 +1,37 @@
 package info.goforus.goforus;
 
-import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.graphics.Point;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.Image;
-import android.support.v4.app.ActivityCompat;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewManager;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.GroundOverlayOptions;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.SphericalUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import info.goforus.goforus.models.Driver;
+import info.goforus.goforus.models.DriverIndicator;
+import info.goforus.goforus.tasks.SimulateMyLocationClickTask;
 
 @SuppressWarnings("ResourceType")
 public class AvailabilityActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnMapLoadedCallback {
@@ -60,8 +42,9 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
     private double mLongitude;
     private double mLatitude;
 
-    public static final int LOCATION_PERMISSION_REQUEST = 1;
     private static final String TAG = "AvailabilityActivity";
+
+    private AvailabilityActivity self;
 
     LocationManager mLocationManager;
     SupportMapFragment mapFragment;
@@ -76,19 +59,18 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_availability);
 
-        // Enable out actionbar
+        self = this;
+
+        // Enable Top Actionbar
         setSupportActionBar((Toolbar) findViewById(R.id.main_toolbar));
 
         // AVAILABILITY SLIDE UP PANEL
         // =========================================================================================
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        // Set listeners for availability slide menu
         mLayout.addPanelSlideListener(new AvailabilityPanelSlideListener());
         mLayout.setFadeOnClickListener(new AvailabilityFadeOnClickListener(mLayout));
-        // Default AnchorPoint of the pullup menu
         mLayout.setAnchorPoint(0.45f);
-        // Add drivers to available drivers list
-        ArrayAdapter<Driver> availableDrivers = updateAvailableDriversList();
+        updateAvailableDriversListView();
 
         // GOOGLE MAPS
         // =========================================================================================
@@ -98,28 +80,24 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
         mapFragment.getMapAsync(this);
     }
 
-    private ArrayAdapter<Driver> updateAvailableDriversList() {
+    private ArrayAdapter<Driver> updateAvailableDriversListView() {
         TextView nameTV = (TextView) findViewById(R.id.name);
-        nameTV.setText("Available Drivers (" + String.valueOf(drivers.size()) + ")");
+
+        if (nameTV != null) {
+            nameTV.setText(getString(R.string.available_driver_list_title, String.valueOf(drivers.size())));
+        }
 
         ListView lv = (ListView) findViewById(R.id.driverList);
 
-        ArrayAdapter<Driver> arrayAdapter = new ArrayAdapter<Driver>(this, android.R.layout.simple_list_item_1, drivers);
+        ArrayAdapter<Driver> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, drivers);
 
-        lv.setAdapter(arrayAdapter);
+        if (lv != null) {
+            lv.setAdapter(arrayAdapter);
+        }
         return arrayAdapter;
     }
 
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -135,17 +113,23 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
         mapSettings.setMapToolbarEnabled(false);
         mapSettings.setZoomControlsEnabled(false);
 
-        // Add all drivers to the map
+
+        // Add all nearby cars to the map
         for (Driver d : drivers) {
             addCarToMap(d);
-            updatePointerToDriver(d);
+        }
+        // Assign an indicator with a nearby drivers
+        for (Driver d : drivers) {
+            d.addIndicator(new DriverIndicator(d, self, mMap, mapFragment));
         }
 
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition position) {
                 for (Driver d : drivers) {
-                    updatePointerToDriver(d);
+                    if (d.indicator != null) {
+                        d.indicator.update();
+                    }
                 }
             }
         });
@@ -164,110 +148,36 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
         );
     }
 
-    public void updatePointerToDriver(Driver d) {
-
-        RelativeLayout arrowContainer = (RelativeLayout) findViewById(R.id.arrowContainer);
-        ImageView arrowView = null;
-        try {
-            arrowView = (ImageView) findViewById(d.viewID);
-        } catch (ClassCastException e) {
-            Log.d(TAG, e.getLocalizedMessage());
-        }
-
-        if (arrowView == null) {
-            arrowView = new ImageView(this);
-            arrowView.setImageDrawable(getResources().getDrawable(R.drawable.up_arrow));
-        }
-
-        // we only want to display the arrow when the driver is not in view
-        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
-        if (!bounds.contains(d.location())) {
-
-            Projection projection = mMap.getProjection();
-            LatLng markerLocation = d.location();
-            Point screenPosition = projection.toScreenLocation(markerLocation);
-            // Create a new arrow image to display on the screen
-            // Point the arrow towards the driver
-            float heading = (float) SphericalUtil.computeHeading(mMap.getCameraPosition().target, d.location());
-
-            arrowView.setRotation(heading);
-
-            Point size = new Point(mapFragment.getView().getMeasuredWidth(), mapFragment.getView().getMeasuredHeight());
-
-            int _x = Math.min((Math.max(20, screenPosition.x)), size.x - 20);
-            int _y = Math.min((Math.max(20, screenPosition.y)), size.y - 20);
-
-
-            Log.d(TAG, "X: " + _x);
-            Log.d(TAG, "Y: " + _y);
-            arrowView.setX(_x);
-            arrowView.setY(_y);
-
-            arrowView.setPivotX(0.5f);
-            arrowView.setPivotY(0.5f);
-
-
-            ViewGroup parent = (ViewGroup) arrowView.getParent();
-            if (parent != null) {
-                parent.removeView(arrowView);
-            }
-
-            arrowContainer.addView(arrowView);
-            arrowView.setId((int) d.viewID);
-        } else {
-
-            ViewGroup parent = (ViewGroup) arrowView.getParent();
-            if (parent != null) {
-                parent.removeView(arrowView);
-            }
-        }
-    }
-
     @Override
     public void onMapLoaded() {
-        // Click on the myLocationButton to bring myLocation into center of screen
-        View view1 = mapFragment.getView();
-        View view2 = (View) view1.findViewById(1).getParent();
-        View myLocationButton = view2.findViewById(2);
-        myLocationButton.callOnClick();
+        SimulateMyLocationClickTask task = new SimulateMyLocationClickTask();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mapFragment, self);
+        } else {
+            task.execute(mapFragment, self);
+        }
     }
 
     private void attemptToEnableGPS() {
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation for why we need GPS?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // TODO:  an expanation to the user *asynchronously* -- don't bloc this thread waiting for the user's response. After the user sees the explanation, try again to request the permission.
-            }
-            // Request permission to access fine location and coarse location
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST);
+        if (PermissionChecker.requireGPS(this)) {
+            mMap.setMyLocationEnabled(true);
         } else {
-            enableGpsOnMap();
+            mMap.setMyLocationEnabled(false);
         }
-
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
     }
 
-    private void enableGpsOnMap() {
-        mMap.setMyLocationEnabled(true);
-    }
-
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case LOCATION_PERMISSION_REQUEST: {
+            case PermissionChecker.LOCATION_PERMISSION_REQUEST: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    enableGpsOnMap();
+                    mMap.setMyLocationEnabled(true);
                 } else {
-                    // We really need that location of yours, request again
-                    attemptToEnableGPS();
+                    attemptToEnableGPS(); // We really need that location of yours, request again
                 }
-                return;
             }
         }
     }

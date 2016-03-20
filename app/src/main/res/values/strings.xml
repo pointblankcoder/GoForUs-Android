@@ -10,4 +10,8 @@
     <string name="action_show">Show Panel</string>
     <string name="action_anchor_enable">Enable Anchor Point</string>
     <string name="action_anchor_disable">Disable Anchor Point</string>
+    <string name="loading">LOADING</string>
+
+    <string name="available_driver_list_title">Available Drivers (%s)</string>
+
 </resources>
