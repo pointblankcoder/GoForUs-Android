@@ -9,10 +9,12 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import info.goforus.goforus.R;
 
+@SuppressWarnings("ResourceType")
 public class SimulateMyLocationClickTask extends AsyncTask<Object, Void, Void> {
     SupportMapFragment mapFragment;
     AppCompatActivity activity;
     SlidingUpPanelLayout mainLayout;
+    View myLocationButton;
 
     @Override
     protected Void doInBackground(Object... params) {
@@ -22,11 +24,17 @@ public class SimulateMyLocationClickTask extends AsyncTask<Object, Void, Void> {
         activity = (AppCompatActivity) params[1];
         mainLayout = (SlidingUpPanelLayout) activity.findViewById(R.id.sliding_layout);
 
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        new Thread(new Runnable() {
+            public void run() {
+                while (myLocationButton == null) {
+                    View view1 = mapFragment.getView();
+                    View view2 = (view1 != null ? view1.findViewById(1) : null);
+                    View parent = (View) (view2 != null ? view1.getParent() : null);
+                    myLocationButton = (parent != null ? parent.findViewById(2) : null);
+                }
+            }
+        }).start();
+
         return null;
     }
 
@@ -36,21 +44,17 @@ public class SimulateMyLocationClickTask extends AsyncTask<Object, Void, Void> {
         // Do not stop thread here, but safe to modify the UI.
     }
 
-    @SuppressWarnings("ResourceType")
     @Override
     protected void onPostExecute(Void v) {
         // Also on UI thread, executed once doInBackground()
         // finishes.
 
+        while (myLocationButton == null && !myLocationButton.isShown()) {
+        } // wait until the location button is ready
+
+
         // Click on the myLocationButton to bring myLocation into center of screen
-        View view1 = mapFragment.getView();
-        View view2 = (view1 != null ? view1.findViewById(1) : null);
-        View parent = (View) (view2 != null ? view1.getParent() : null);
-        View myLocationButton = (parent != null ? parent.findViewById(2) : null);
-
-        if (myLocationButton != null)
-            myLocationButton.callOnClick();
-
+        myLocationButton.callOnClick();
         // show our slide panel as it's closed by default for better looking loading
         mainLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
     }

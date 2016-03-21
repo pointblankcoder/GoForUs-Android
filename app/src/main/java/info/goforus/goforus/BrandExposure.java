@@ -1,25 +1,30 @@
 package info.goforus.goforus;
 
-import android.os.AsyncTask;
-import android.os.Build;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 
-import info.goforus.goforus.tasks.BrandExposureTask;
-
-public class BrandExposure extends AppCompatActivity {
+public class BrandExposure extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_brand_exposure);
+    }
 
-        BrandExposureTask task = new BrandExposureTask();
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, this);
-        } else {
-            task.execute(this);
-        }
+        new Thread(new Runnable() {
+            public void run() {
+                while (!mApplication.isReady()) {
+                }
+
+                // Also on UI thread, executed once doInBackground()
+                // finishes.
+                Intent intent = new Intent(BrandExposure.this, AvailabilityActivity.class);
+                startActivity(intent);
+            }
+        }).start();
     }
 }

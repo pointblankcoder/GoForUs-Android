@@ -12,6 +12,9 @@
     <string name="action_anchor_disable">Disable Anchor Point</string>
     <string name="loading">LOADING</string>
 
-    <string name="available_driver_list_title">Available Drivers (%s)</string>
+    <string name="nearby_driver_list_title">Drivers Near You (%s)</string>
+    <string name="gps_turned_off">To provide a better and more accurate service, GPS is essential. Please enable your GPS location</string>
+    <string name="title_activity_request_permission">RequestPermissionActivity</string>
+    <string name="gps_is_required_alert_text">GoForUs requires GPS to be enabled.</string>
 
 </resources>

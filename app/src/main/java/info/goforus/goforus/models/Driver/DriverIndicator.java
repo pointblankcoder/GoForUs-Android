@@ -1,10 +1,9 @@
-package info.goforus.goforus.models;
+package info.goforus.goforus.models.driver;
 
 import android.app.Activity;
 import android.graphics.Point;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -68,12 +67,10 @@ public class DriverIndicator {
     }
 
     public void show() {
-        Log.d(TAG, String.format("Showing DriverIndicator(%s)", this));
         arrowView.setVisibility(View.VISIBLE);
     }
 
     public void hide() {
-        Log.d(TAG, String.format("Hiding DriverIndicator(%s)", this));
         arrowView.setVisibility(View.GONE);
     }
 

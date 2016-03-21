@@ -1,40 +1,36 @@
 package info.goforus.goforus;
 
-import android.content.pm.PackageManager;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.Arrays;
 import java.util.List;
 
-import info.goforus.goforus.models.Driver;
-import info.goforus.goforus.models.DriverIndicator;
+import info.goforus.goforus.models.driver.Driver;
+import info.goforus.goforus.models.driver.DriverIndicator;
+import info.goforus.goforus.models.driver.DriverMarker;
+import info.goforus.goforus.models.map.MapFragment;
+import info.goforus.goforus.models.map.MapWrapperLayout;
 import info.goforus.goforus.tasks.SimulateMyLocationClickTask;
 
-@SuppressWarnings("ResourceType")
-public class AvailabilityActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnMapLoadedCallback {
+public class AvailabilityActivity extends BaseActivity
+        implements OnMapReadyCallback, GoogleMap.OnMapLoadedCallback {
 
     private GoogleMap mMap;
     private SlidingUpPanelLayout mLayout;
@@ -46,8 +42,7 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
 
     private AvailabilityActivity self;
 
-    LocationManager mLocationManager;
-    SupportMapFragment mapFragment;
+    MapFragment mapFragment;
 
     List<Driver> drivers = Arrays.asList(
             new Driver("Tim Westwood", 54.7897645, -1.3481971, ""),
@@ -75,54 +70,80 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
         // GOOGLE MAPS
         // =========================================================================================
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        // Add ability to detect drag motions on the map
+        mapFragment = (MapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
     private ArrayAdapter<Driver> updateAvailableDriversListView() {
-        TextView nameTV = (TextView) findViewById(R.id.name);
-
-        if (nameTV != null) {
-            nameTV.setText(getString(R.string.available_driver_list_title, String.valueOf(drivers.size())));
+        TextView nameView = (TextView) findViewById(R.id.name);
+        if (nameView != null) {
+            nameView.setText(getString(R.string.nearby_driver_list_title, String.valueOf(drivers.size())));
         }
 
         ListView lv = (ListView) findViewById(R.id.driverList);
-
         ArrayAdapter<Driver> arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, drivers);
 
         if (lv != null) {
             lv.setAdapter(arrayAdapter);
+            lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Driver driver = (Driver) parent.getAdapter().getItem(position);
+                    if (driver != null) {
+                        driver.goTo();
+                    }
+                }
+            });
         }
         return arrayAdapter;
     }
 
 
+    @SuppressWarnings("ResourceType")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Start attempting enable GPS and set our current location
-        attemptToEnableGPS();
-        updateCurrentLocation();
+        if (true) {
+            mMap.setMyLocationEnabled(true);
+        }
 
         // Setup Map UI
-        UiSettings mapSettings = mMap.getUiSettings();
-        mapSettings.setAllGesturesEnabled(true);
-        mapSettings.setCompassEnabled(false);
-        mapSettings.setMapToolbarEnabled(false);
-        mapSettings.setZoomControlsEnabled(false);
+        UiSettings mapUISettings = mMap.getUiSettings();
+        mapUISettings.setAllGesturesEnabled(true);
+        mapUISettings.setCompassEnabled(false);
+        mapUISettings.setMapToolbarEnabled(false);
+        mapUISettings.setZoomControlsEnabled(false);
 
 
         // Add all nearby cars to the map
         for (Driver d : drivers) {
-            addCarToMap(d);
+            addDriverToMap(d);
         }
         // Assign an indicator with a nearby drivers
         for (Driver d : drivers) {
             d.addIndicator(new DriverIndicator(d, self, mMap, mapFragment));
         }
 
+        // Setup Adapters / Listeners
+        mapFragment.setOnDragListener(new MapWrapperLayout.OnDragListener() {
+            @Override
+            public void onDrag(MotionEvent motionEvent) {
+                for (Driver d : drivers) {
+                    if (d.indicator != null) {
+                        d.indicator.update();
+                    }
+                }
+            }
+        });
+        DriverMarker markerClass = new DriverMarker();
+        mMap.setInfoWindowAdapter(markerClass);
+        mMap.setOnInfoWindowClickListener(markerClass);
+        mMap.setOnInfoWindowCloseListener(markerClass);
+        mMap.setOnInfoWindowLongClickListener(markerClass);
+        mMap.setOnMarkerClickListener(markerClass);
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
             @Override
             public void onCameraChange(CameraPosition position) {
@@ -137,17 +158,6 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
         mMap.setOnMapLoadedCallback(this);
     }
 
-    private void addCarToMap(Driver driver) {
-        mMap.addMarker(new MarkerOptions()
-                        .position(driver.location())
-                        .visible(true)
-                        .anchor(0.5f, 0.5f)
-                        .title(driver.name)
-                        .snippet(driver.short_bio)
-                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
-        );
-    }
-
     @Override
     public void onMapLoaded() {
         SimulateMyLocationClickTask task = new SimulateMyLocationClickTask();
@@ -159,59 +169,8 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
         }
     }
 
-    private void attemptToEnableGPS() {
-        if (PermissionChecker.requireGPS(this)) {
-            mMap.setMyLocationEnabled(true);
-        } else {
-            mMap.setMyLocationEnabled(false);
-        }
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PermissionChecker.LOCATION_PERMISSION_REQUEST: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mMap.setMyLocationEnabled(true);
-                } else {
-                    attemptToEnableGPS(); // We really need that location of yours, request again
-                }
-            }
-        }
-    }
-
-    private void updateCurrentLocation() {
-        Criteria criteria = new Criteria();
-        String provider = mLocationManager.getBestProvider(criteria, true);
-        Location location = mLocationManager.getLastKnownLocation(provider);
-        if (location == null) {
-            mLocationManager.requestLocationUpdates(provider, 1000, 0, this);
-        } else {
-            mLatitude = location.getLatitude();
-            mLongitude = location.getLongitude();
-        }
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        //remove location callback
-        mLocationManager.removeUpdates(this);
-        mLatitude = location.getLatitude();
-        mLongitude = location.getLongitude();
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
+    private void addDriverToMap(Driver driver) {
+        driver.addToMap(this, mMap);
     }
 
     @Override
@@ -250,15 +209,5 @@ public class AvailabilityActivity extends AppCompatActivity implements OnMapRead
             }
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (mLayout != null &&
-                (mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED || mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
-            mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-        } else {
-            super.onBackPressed();
-        }
     }
 }
