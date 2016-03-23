@@ -14,7 +14,6 @@ import info.goforus.goforus.R;
 public class SimulateMyLocationClickTask extends AsyncTask<Object, Void, View> {
     SupportMapFragment mapFragment;
     BaseActivity activity;
-    SlidingUpPanelLayout mainLayout;
     View myLocationButton;
     boolean readyToClick;
 
@@ -24,7 +23,6 @@ public class SimulateMyLocationClickTask extends AsyncTask<Object, Void, View> {
         // Safe to stop execution here.
         mapFragment = (SupportMapFragment) params[0];
         activity = (BaseActivity) params[1];
-        mainLayout = (SlidingUpPanelLayout) activity.findViewById(R.id.sliding_layout);
 
         while (myLocationButton == null) {
             View view1 = mapFragment.getView();

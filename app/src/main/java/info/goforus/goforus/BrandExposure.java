@@ -29,6 +29,7 @@ public class BrandExposure extends BaseActivity {
                     intent = new Intent(BrandExposure.this, LoginActivity.class);
                 }
                 startActivity(intent);
+                finish();
             }
         }).start();
     }

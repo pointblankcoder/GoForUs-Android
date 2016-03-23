@@ -17,6 +17,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import java.util.Arrays;
 import java.util.List;
 
+import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.models.driver.Driver;
 import info.goforus.goforus.models.driver.DriverIndicator;
 import info.goforus.goforus.models.driver.DriverMarker;
@@ -112,6 +113,9 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                 d.indicator.removeIndicator();
             }
         }
+
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.mApplication.stopLocationUpdates();
     }
 
     @Override
@@ -122,6 +126,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         } else {
             task.execute(this, getActivity());
         }
+        BaseActivity activity = (BaseActivity) getActivity();
+        activity.mApplication.startLocationUpdates();
     }
 
     private void addDriverToMap(Driver driver) {

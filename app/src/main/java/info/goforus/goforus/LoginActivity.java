@@ -200,6 +200,7 @@ public class LoginActivity extends BaseActivity {
             mPassword = password;
         }
 
+        @SuppressWarnings("ObjectEqualsNull")
         @Override
         protected Boolean doInBackground(Void... params) {
             JSONObject response = null;
@@ -211,22 +212,27 @@ public class LoginActivity extends BaseActivity {
                 JSONObject baseJson = new JSONObject();
                 JSONObject customerData = new JSONObject();
 
-                customerData.put("password", mEmail);
                 customerData.put("email", mEmail);
+                customerData.put("password", mPassword);
 
                 baseJson.put("customer", customerData);
 
                 //String basicAuthDetails = "lockout:a9f300913337fc15e951a1c14807b41e7cc56813e9531386b4579106df75c15c4db3e65d18ded4d44d6974f832af9faa4b83752cecb7e2d6f7bfbfdf96c6e1d0";
-                //response = resty.json(String.format("http://%s@dev.goforus.info/api/v1/login", basicAuthDetails), put(content(baseJson))).object();
+                //response = resty.json(String.format("http://%s@dev.goforus.info/api/v1/login", basicAuthDetails), put(content(baseJson))).object();update
                 response = resty.json("http://dev.goforus.info/api/v1/login", put(content(baseJson))).object();
 
                 Log.d("Attempt Login", response.toString());
 
-                if (response.get("error") == null) {
+                if (!response.has("error")) {
                     mExternalId = (Integer) response.get("id");
                     mEmail = (String) response.get("email");
-                    mPhoneNumber = (String) response.get("phone_number");
-                    mName = (String) response.get("name");
+
+                    if(!response.get("mobile_number").equals(null))
+                        mPhoneNumber = (String) response.get("mobile_number");
+
+                    if(!response.get("name").equals(null))
+                        mName = (String) response.get("name");
+
                     mAuthenticationToken = (String) response.get("authentication_token");
                     return true;
                 } else {
@@ -254,6 +260,7 @@ public class LoginActivity extends BaseActivity {
 
                 Intent intent = new Intent(LoginActivity.this, NavigationActivity.class);
                 startActivity(intent);
+                finish();
             } else {
                 showProgress(false);
                 try {

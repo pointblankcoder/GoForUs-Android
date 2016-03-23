@@ -8,6 +8,10 @@ import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.GpsStatus;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
@@ -23,7 +27,9 @@ import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.orm.SugarApp;
 
-public class Application extends SugarApp implements GpsStatus.Listener {
+import info.goforus.goforus.models.api.Api;
+
+public class Application extends SugarApp implements GpsStatus.Listener, LocationListener {
     static final int LOCATION_PERMISSION_REQUEST = 0;
     static final int REQUEST_CHECK_GPS_SETTINGS = 1;
 
@@ -32,9 +38,6 @@ public class Application extends SugarApp implements GpsStatus.Listener {
 
     public boolean hasGpsPermission = true;
     private Activity mCurrentActivity = null;
-
-    public boolean loggedIn = false;
-
 
     public Activity getCurrentActivity() {
         return mCurrentActivity;
@@ -144,6 +147,39 @@ public class Application extends SugarApp implements GpsStatus.Listener {
         builder.create().show();
     }
 
+    @SuppressWarnings("ResourceType")
+    public void startLocationUpdates(){
+        Log.d("Application", "sub to location updates");
+        locationManager.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 5 * 1000, 0.00001f, this);
+    }
+
+    @SuppressWarnings("ResourceType")
+    public void stopLocationUpdates(){
+        Log.d("Application", "unsub to location updates");
+        locationManager.removeUpdates(this);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.d("Application", String.format("we have a new location (%s)", location));
+        Api.updateMyLocation(location.getLatitude(), location.getLongitude());
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
     @Override
     public void onGpsStatusChanged(int event) {
         switch (event) {
@@ -166,4 +202,4 @@ public class Application extends SugarApp implements GpsStatus.Listener {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
     }
-}
+    }

@@ -27,7 +27,7 @@
             android:name="DOMAIN_PACKAGE_NAME"
             android:value="info.goforus.goforus" />
 
-        <activity android:name=".BrandExposure">
+        <activity android:name=".BrandExposure" android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

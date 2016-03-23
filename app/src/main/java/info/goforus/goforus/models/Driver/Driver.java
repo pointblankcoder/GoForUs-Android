@@ -61,8 +61,6 @@ public class Driver extends SugarRecord {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(marker.latlng, 15);
             marker.map.animateCamera(cameraUpdate);
             marker.showInfoWindow();
-            SlidingUpPanelLayout mainLayout = (SlidingUpPanelLayout) marker.activity.findViewById(R.id.sliding_layout);
-            mainLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         }
     }
 
