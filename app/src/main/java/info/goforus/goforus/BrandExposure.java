@@ -3,6 +3,8 @@ package info.goforus.goforus;
 import android.content.Intent;
 import android.os.Bundle;
 
+import info.goforus.goforus.models.account.Account;
+
 public class BrandExposure extends BaseActivity {
 
     @Override
@@ -20,9 +22,12 @@ public class BrandExposure extends BaseActivity {
                 while (!mApplication.isReady()) {
                 }
 
-                // Also on UI thread, executed once doInBackground()
-                // finishes.
-                Intent intent = new Intent(BrandExposure.this, AvailabilityActivity.class);
+                Intent intent;
+                if (Account.currentAccount() != null) {
+                    intent = new Intent(BrandExposure.this, NavigationActivity.class);
+                }else {
+                    intent = new Intent(BrandExposure.this, LoginActivity.class);
+                }
                 startActivity(intent);
             }
         }).start();

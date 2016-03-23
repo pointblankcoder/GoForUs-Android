@@ -33,6 +33,8 @@ public class Application extends SugarApp implements GpsStatus.Listener {
     public boolean hasGpsPermission = true;
     private Activity mCurrentActivity = null;
 
+    public boolean loggedIn = false;
+
 
     public Activity getCurrentActivity() {
         return mCurrentActivity;

@@ -1,9 +1,13 @@
 package info.goforus.goforus.models.driver;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Point;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -31,7 +35,7 @@ public class DriverIndicator {
     private static final Float anchorX = 0.5f;
     private static final Float anchorY = 0.5f;
 
-    public DriverIndicator(Driver _driver, AppCompatActivity activity, GoogleMap map, SupportMapFragment _mapFragment) {
+    public DriverIndicator(Driver _driver, Activity activity, GoogleMap map, SupportMapFragment _mapFragment) {
         mActivity = activity;
         driver = _driver;
         mMap = map;
@@ -93,13 +97,21 @@ public class DriverIndicator {
                 //noinspection ConstantConditions
                 width = mapFragment.getView().getMeasuredWidth();
                 height = mapFragment.getView().getMeasuredHeight();
+
             } catch (NullPointerException e) {
                 e.fillInStackTrace();
             }
             Point size = new Point(width, height);
 
+            int[] actionBarHeightAttr = new int[]{R.attr.actionBarSize};
+            int indexOfAttrActionBarHeight = 0;
+            TypedArray a = mActivity.obtainStyledAttributes(actionBarHeightAttr);
+            int actionBarHeight = a.getDimensionPixelSize(indexOfAttrActionBarHeight, -1);
+
+
+
             int _x = Math.min((Math.max(20, screenPosition.x)), size.x - 20);
-            int _y = Math.min((Math.max(20, screenPosition.y)), size.y - 20);
+            int _y = Math.min((Math.max((actionBarHeight + 20), screenPosition.y)), size.y - (-actionBarHeight + 20));
             arrowView.setX(_x);
             arrowView.setY(_y);
 
