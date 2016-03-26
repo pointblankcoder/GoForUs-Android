@@ -18,6 +18,8 @@ import us.monoid.json.JSONObject;
 
 public class Driver extends SugarRecord implements Comparable<Driver> {
     private static final String TAG = "Driver";
+    public static final float markerAnchorY = 0.5f;
+    public static final float markerAnchorX = 0.5f;
     public Integer externalId;
     public String name;
     public String email;
@@ -58,7 +60,7 @@ public class Driver extends SugarRecord implements Comparable<Driver> {
         marker = map.addMarker(new MarkerOptions()
                         .position(location())
                         .visible(true)
-                        .anchor(0.5f, 0.5f)
+                        .anchor(markerAnchorX, markerAnchorY)
                         .title(name)
                         .snippet(short_bio)
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.car_medium))

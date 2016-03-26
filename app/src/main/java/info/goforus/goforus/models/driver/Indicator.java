@@ -1,13 +1,7 @@
 package info.goforus.goforus.models.driver;
 
-import android.app.Activity;
-import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.Point;
-import android.os.Build;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.text.SpannableStringBuilder;
@@ -20,11 +14,10 @@ import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.maps.android.SphericalUtil;
-import com.orm.dsl.NotNull;
-
-import java.io.Serializable;
+import com.nineoldandroids.view.ViewHelper;
 
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.R;
@@ -41,8 +34,6 @@ public class Indicator implements View.OnClickListener{
     protected int viewId;
 
     private static final String TAG = "Indicator";
-    private static final Float anchorX = 0.5f;
-    private static final Float anchorY = 0.5f;
 
     public Indicator(Driver _driver, BaseActivity activity, GoogleMap map, SupportMapFragment _mapFragment) {
         mActivity = activity;
@@ -95,43 +86,58 @@ public class Indicator implements View.OnClickListener{
         arrowView.setVisibility(View.GONE);
     }
 
+    // Run on background thread to take away computation from the UI thread
     public void update() {
-        // we only want to display the arrow when the driver is not in view
-        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+        final Projection projection = mMap.getProjection();
+        final LatLngBounds bounds = projection.getVisibleRegion().latLngBounds;
+        final LatLng driverLocation = mDriver.location();
+        final int arrowViewHeight = arrowView.getHeight();
+        final int arrowViewWidth = arrowView.getWidth();
+        final int actionBarSize  = mActivity.getActionBarSize();
+        final LatLng mapCenter = mMap.getCameraPosition().target;
 
-        if (!bounds.contains(mDriver.location())) {
-            Projection projection = mMap.getProjection();
-            Point screenPosition = projection.toScreenLocation(mDriver.location());
+        new Thread(new Runnable() {
+            public void run() {
+                // we only want to display the arrow when the driver is not in view
 
-            // Point the arrow towards the driver
-            float heading = (float) SphericalUtil.computeHeading(mMap.getCameraPosition().target, mDriver.location());
-            arrowView.setRotation(heading);
+                if (!bounds.contains(driverLocation)) {
+                    Point driverPositionOnScreen = projection.toScreenLocation(driverLocation);
+                    Point topRightXY = projection.toScreenLocation(bounds.northeast);
+                    Point bottomLeftXY = projection.toScreenLocation(bounds.southwest);
 
-            // Default out border screen width to be 400x400 just in case we blow up on getting screen width/height
-            int width = 400;
-            int height = 400;
+                    // Visible top of map, actionbar size, middle point(pivot) of the arrow, arrow padding
+                    float minY = (topRightXY.y + actionBarSize + (arrowViewHeight / 2));
+                    float maxY = (bottomLeftXY.y) - ( arrowViewHeight/ 2);
+                    float targetY = driverPositionOnScreen.y + (actionBarSize - (arrowViewHeight / 2));
 
-            try {
-                //noinspection ConstantConditions
-                width = mapFragment.getView().getMeasuredWidth();
-                height = mapFragment.getView().getMeasuredHeight();
+                    final float y = ScrollUtils.getFloat(targetY, minY, maxY);
 
-            } catch (NullPointerException e) {
-                e.fillInStackTrace();
+                    float minX = bottomLeftXY.x + (arrowViewWidth / 2);
+                    float maxX = topRightXY.x - (arrowViewWidth + (arrowViewWidth / 2));
+                    float targetX = driverPositionOnScreen.x - (arrowViewWidth / 2);
+                    final float x = ScrollUtils.getFloat(targetX, minX, maxX);
+                    final float heading = (float) SphericalUtil.computeHeading(mapCenter, driverLocation);
+
+                    mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ViewHelper.setY(arrowView, y);
+                            ViewHelper.setX(arrowView, x);
+                            // Point the arrow towards the driver
+                            arrowView.setRotation(heading);
+
+                            show();
+                        }
+                    });
+                } else {
+                    mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            hide();
+                        }
+                    });
+                }
             }
-
-            Point size = new Point(width, height);
-            int _x = Math.min((Math.max(20, screenPosition.x)), size.x - 20);
-            int _y = Math.min((Math.max((mActivity.getActionBarSize()+ 20), screenPosition.y)), size.y - (-mActivity.getActionBarSize() + 20));
-            arrowView.setX(_x);
-            arrowView.setY(_y);
-
-            arrowView.setPivotX(anchorX);
-            arrowView.setPivotY(anchorY);
-
-            show();
-        } else {
-            hide();
-        }
+        }).start();
     }
 }
