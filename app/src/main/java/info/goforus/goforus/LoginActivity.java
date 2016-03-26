@@ -171,7 +171,6 @@ public class LoginActivity extends BaseActivity implements Api.ApiLoginListener 
 
     @Override
     public void onResponse(final JSONObject response) {
-
         if (response.has("error")) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -183,9 +182,11 @@ public class LoginActivity extends BaseActivity implements Api.ApiLoginListener 
                         if (error.has("password")) {
                             mPasswordView.setError(error.getString("password"));
                             mPasswordView.requestFocus();
-                        } else {
+                        } else if (error.has("email")) {
                             mEmailView.setError(error.getString("email"));
                             mEmailView.requestFocus();
+                        } else if (error.has("base")) {
+                            // TODO: Add base errors
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();

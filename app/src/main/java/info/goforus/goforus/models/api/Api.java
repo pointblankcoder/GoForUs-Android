@@ -1,25 +1,27 @@
 package info.goforus.goforus.models.api;
 
-import android.content.Intent;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.util.Log;
+
+import com.orm.dsl.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import info.goforus.goforus.models.account.Account;
-
 import info.goforus.goforus.models.driver.Driver;
 import info.goforus.goforus.tasks.DriverUpdatesTask;
+
 import us.monoid.json.*;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
-import us.monoid.web.JSONResource;
 import us.monoid.web.Resty;
 
 import static us.monoid.web.Resty.*;
 
+// TODO: Add catch all for loss of internet connection (UnknownHostException)
 public class Api {
     public static final String BaseURI = "http://dev.goforus.info/api/v1/";
     public static final String loginURI = BaseURI + "login";
@@ -28,9 +30,8 @@ public class Api {
     public static final String updateLocationURI = BaseURI + "location/update";
     public static final Resty resty = new Resty();
 
-    private Intent mNearbyDriversService;
-
     private final static String TAG = "API";
+    private static final int ATTEMPT_COUNT_LIMIT = 3;
 
     /* ============================ Listeners ============================ */
     private List<ApiUpdateListener> mListeners = new ArrayList<>();
@@ -38,7 +39,7 @@ public class Api {
     public interface ApiUpdateListener {
         void onNearbyDriversUpdate(List<Driver> drivers);
 
-        void onLogOut(boolean success);
+        void onLogOut(JSONObject success);
 
         void onLogIn(JSONObject response);
     }
@@ -46,6 +47,15 @@ public class Api {
     public interface ApiLoginListener {
         void onResponse(JSONObject response);
     }
+
+    public interface ApiLogoutListener {
+        void onResponse(JSONObject response);
+    }
+
+    public interface ApiNearbyDriversListener {
+        void onResponse(JSONObject response);
+    }
+
     public void addApiUpdateListener(ApiUpdateListener listener) {
         mListeners.add(listener);
     }
@@ -67,6 +77,7 @@ public class Api {
         }
     }
 
+
     public void stopDriverUpdates() {
         if (mNearbyDriversTask != null) {
             Log.d(TAG, "stopping driver updates");
@@ -79,66 +90,125 @@ public class Api {
 
 
     /* ============================ Api Calls ============================ */
-    public void logIn(final String email, final String password) {
+
+    /* Start: Login */
+    private int loginAttemptCount = 0;
+
+    public JSONObject attemptLogin(@NotNull final String email, @NotNull final String password) throws ApiAttemptCountExceededException {
+        try {
+            JSONObject baseJson = new JSONObject();
+            JSONObject customerData = new JSONObject();
+
+            customerData.put("email", email);
+            customerData.put("password", password);
+            baseJson.put("customer", customerData);
+
+            JSONObject response = resty.json(loginURI, put(content(baseJson))).object();
+            return response;
+
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+            if (loginAttemptCount > ATTEMPT_COUNT_LIMIT) {
+                loginAttemptCount = 0;
+                throw new ApiAttemptCountExceededException("login attempt limit exceeded");
+            } else {
+                loginAttemptCount += 1;
+                return attemptLogin(email, password);
+            }
+        }
+    }
+
+
+    public void logIn(@NotNull final String email, @NotNull final String password) {
         new Thread(new Runnable() {
             public void run() {
+                JSONObject response;
+
                 try {
-                    JSONObject baseJson = new JSONObject();
-                    JSONObject customerData = new JSONObject();
+                    response = attemptLogin(email, password);
+                } catch (ApiAttemptCountExceededException e) {
+                    response = errorToJson(e.getMessage());
+                }
 
-                    customerData.put("email", email);
-                    customerData.put("password", password);
-                    baseJson.put("customer", customerData);
-
-                    JSONObject response = resty.json(loginURI + tokenParams(), put(content(baseJson))).object();
-                    for (ApiUpdateListener listener : mListeners) {
-                        listener.onLogIn(response);
-                    }
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
+                for (ApiUpdateListener listener : mListeners) {
+                    listener.onLogIn(response);
                 }
             }
         }).start();
     }
+
 
     public void logIn(final String email, final String password, final ApiLoginListener listener) {
         new Thread(new Runnable() {
             public void run() {
+                JSONObject response;
+
                 try {
-                    JSONObject baseJson = new JSONObject();
-                    JSONObject customerData = new JSONObject();
-
-                    customerData.put("email", email);
-                    customerData.put("password", password);
-                    baseJson.put("customer", customerData);
-
-                    JSONObject response = resty.json(loginURI, put(content(baseJson))).object();
-                    listener.onResponse(response);
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
+                    response = attemptLogin(email, password);
+                } catch (ApiAttemptCountExceededException e) {
+                    response = errorToJson(e.getMessage());
                 }
+
+                listener.onResponse(response);
             }
         }).start();
     }
+    /* Stop: Login */
+
+
+
+    /* Start: Logout */
+    private int logoutAttemptCount = 0;
+    public JSONObject attemptLogOut() throws ApiAttemptCountExceededException {
+        try {
+            return resty.json(logoutURI + tokenParams(), put(content(""))).object();
+        } catch (JSONException | IOException e) {
+            if (logoutAttemptCount > ATTEMPT_COUNT_LIMIT) {
+                logoutAttemptCount = 0;
+                throw new ApiAttemptCountExceededException("login attempt limit exceeded");
+            } else {
+                logoutAttemptCount += 1;
+                return attemptLogOut();
+            }
+        }
+    }
+
 
     public void logOut() {
         new Thread(new Runnable() {
             public void run() {
+                JSONObject response;
                 try {
-                    resty.json(logoutURI + tokenParams(), put(content("")));
-                    for (ApiUpdateListener listener : mListeners) {
-                        listener.onLogOut(true);
-                    }
-                } catch (IOException e) {
-                    for (ApiUpdateListener listener : mListeners) {
-                        listener.onLogOut(false);
-                    }
-                    e.printStackTrace();
+                     response = attemptLogOut();
+                } catch (ApiAttemptCountExceededException e) {
+                    response = errorToJson(e.getMessage());
+                }
+
+                for (ApiUpdateListener listener : mListeners) {
+                    listener.onLogOut(response);
                 }
             }
         }).start();
     }
 
+
+    public void logOut(final ApiLogoutListener listener) {
+        new Thread(new Runnable() {
+            public void run() {
+                JSONObject response;
+                try {
+                    response = attemptLogOut();
+                } catch (ApiAttemptCountExceededException e) {
+                    response = errorToJson(e.getMessage());
+                }
+                listener.onResponse(response);
+            }
+        }).start();
+    }
+    /* Stop: Logout */
+
+
+    /* Start: Nearby Drivers */
     public void getNearbyDrivers(final double lat, final double lng) {
         new Thread(new Runnable() {
             public void run() {
@@ -163,7 +233,10 @@ public class Api {
             }
         }).start();
     }
+    /* Stop: Nearby Drivers */
 
+
+    /* Start: Update current location*/
     public void updateMyLocation(final double lat, final double lng) {
         new Thread(new Runnable() {
             public void run() {
@@ -179,8 +252,36 @@ public class Api {
             }
         }).start();
     }
+    /* Stop: Update current location*/
 
-    public String tokenParams() {
+
+
+    /* =========================== Helpers =======================  */
+    private String tokenParams() {
         return String.format("?customer_email=%s&customer_token=%s", Account.currentAccount().email, Account.currentAccount().apiToken);
+    }
+
+    @Nullable
+    private JSONObject errorToJson(@NotNull String errorMessage) {
+        try {
+            JSONObject baseJson = new JSONObject();
+            return baseJson.put("error", new JSONObject().put("base", errorMessage));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+    /* =========================== Exceptions =======================  */
+    private class ApiAttemptCountExceededException extends Exception {
+
+        public ApiAttemptCountExceededException() {
+        }
+
+        public ApiAttemptCountExceededException(String detailMessage) {
+            super(detailMessage);
+        }
     }
 }

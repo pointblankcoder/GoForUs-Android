@@ -16,7 +16,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 import java.util.ArrayList;
@@ -39,9 +38,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     private View mOriginalView;
     private MapWrapperLayout mMapWrapperLayout;
     private BaseActivity mActivity;
-
     private GoogleMap mMap;
-
     public List<Driver> currentlyDisplayedDrivers;
 
     /* ======================== Fragment Overrides =================== */
@@ -56,10 +53,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         // Init Google Map
         getMapAsync(this);
 
-        // Setup an empty displayed drivers array
         currentlyDisplayedDrivers = new ArrayList<>();
-
-        // Set our caller activity
         mActivity = (BaseActivity) getActivity();
 
         return mMapWrapperLayout;
@@ -260,18 +254,10 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     }
 
     @Override
-    public void onLogOut(boolean success) {
-        if (success) {
-            Intent intent = new Intent(mActivity, LoginActivity.class);
-            startActivity(intent);
-            mActivity.finish();
-            Account.currentAccount().delete();
-        } else {
-        }
+    public void onLogOut(JSONObject response) {
     }
 
     @Override
     public void onLogIn(JSONObject response) {
     }
-
 }

@@ -1,13 +1,11 @@
 package info.goforus.goforus;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -18,12 +16,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-import java.io.Serializable;
-
 import info.goforus.goforus.models.account.Account;
+import info.goforus.goforus.models.api.Api;
+import us.monoid.json.JSONObject;
 
 public class NavigationActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, Api.ApiLogoutListener {
     private ActionBarDrawerToggle mDrawerToggle;
 
     public NavigationActivity(){}
@@ -100,7 +98,7 @@ public class NavigationActivity extends BaseActivity
 
         switch (id) {
             case R.id.action_logout:
-                mApplication.mApi.logOut();
+                mApplication.mApi.logOut(this);
                 break;
         }
 
@@ -156,5 +154,18 @@ public class NavigationActivity extends BaseActivity
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    /* =================== Api Callbacks ================= */
+    @Override
+    public void onResponse(JSONObject response) {
+        if (response.has("error")) {
+            // TODO: Add responsive error messages
+        } else {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            Account.currentAccount().delete();
+        }
     }
 }
