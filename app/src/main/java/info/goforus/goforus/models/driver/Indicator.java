@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -25,11 +26,12 @@ import com.orm.dsl.NotNull;
 
 import java.io.Serializable;
 
+import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.R;
 import info.goforus.goforus.ViewIdGenerator;
 
 public class Indicator implements View.OnClickListener{
-    private Activity mActivity;
+    private BaseActivity mActivity;
     private GoogleMap mMap;
     private SupportMapFragment mapFragment;
     private RelativeLayout arrowContainer;
@@ -42,7 +44,7 @@ public class Indicator implements View.OnClickListener{
     private static final Float anchorX = 0.5f;
     private static final Float anchorY = 0.5f;
 
-    public Indicator(Driver _driver, Activity activity, GoogleMap map, SupportMapFragment _mapFragment) {
+    public Indicator(Driver _driver, BaseActivity activity, GoogleMap map, SupportMapFragment _mapFragment) {
         mActivity = activity;
         mDriver = _driver;
         mMap = map;
@@ -117,18 +119,10 @@ public class Indicator implements View.OnClickListener{
             } catch (NullPointerException e) {
                 e.fillInStackTrace();
             }
+
             Point size = new Point(width, height);
-
-            int[] actionBarHeightAttr = new int[]{R.attr.actionBarSize};
-            int indexOfAttrActionBarHeight = 0;
-            TypedArray a = mActivity.obtainStyledAttributes(actionBarHeightAttr);
-            int actionBarHeight = a.getDimensionPixelSize(indexOfAttrActionBarHeight, -1);
-            a.recycle();
-
-
-
             int _x = Math.min((Math.max(20, screenPosition.x)), size.x - 20);
-            int _y = Math.min((Math.max((actionBarHeight + 20), screenPosition.y)), size.y - (-actionBarHeight + 20));
+            int _y = Math.min((Math.max((mActivity.getActionBarSize()+ 20), screenPosition.y)), size.y - (-mActivity.getActionBarSize() + 20));
             arrowView.setX(_x);
             arrowView.setY(_y);
 

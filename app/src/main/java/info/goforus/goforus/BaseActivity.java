@@ -74,7 +74,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /* ============================ Layout Related =========================== */
-    protected int getActionBarSize() {
+    public int getActionBarSize() {
         TypedValue typedValue = new TypedValue();
         int[] textSizeAttr = new int[]{R.attr.actionBarSize};
         int indexOfAttrTextSize = 0;
