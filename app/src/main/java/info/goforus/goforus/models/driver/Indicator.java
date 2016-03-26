@@ -21,6 +21,7 @@ import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.maps.android.SphericalUtil;
+import com.orm.dsl.NotNull;
 
 import java.io.Serializable;
 
@@ -104,9 +105,10 @@ public class Indicator implements View.OnClickListener{
             float heading = (float) SphericalUtil.computeHeading(mMap.getCameraPosition().target, mDriver.location());
             arrowView.setRotation(heading);
 
-            // Default out border screen width to be 400x400 just incase we blow up on getting screen width/height
+            // Default out border screen width to be 400x400 just in case we blow up on getting screen width/height
             int width = 400;
             int height = 400;
+
             try {
                 //noinspection ConstantConditions
                 width = mapFragment.getView().getMeasuredWidth();
@@ -121,6 +123,7 @@ public class Indicator implements View.OnClickListener{
             int indexOfAttrActionBarHeight = 0;
             TypedArray a = mActivity.obtainStyledAttributes(actionBarHeightAttr);
             int actionBarHeight = a.getDimensionPixelSize(indexOfAttrActionBarHeight, -1);
+            a.recycle();
 
 
 
