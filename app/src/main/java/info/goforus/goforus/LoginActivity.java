@@ -6,12 +6,9 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 
-import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -23,19 +20,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import info.goforus.goforus.models.account.Account;
+import info.goforus.goforus.models.api.Api;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
-import us.monoid.web.Resty;
-
-import static us.monoid.web.Resty.*;
-
-public class LoginActivity extends BaseActivity {
-
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
-    private UserLoginTask mAuthTask = null;
+public class LoginActivity extends BaseActivity implements Api.ApiLoginListener {
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -77,10 +66,6 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
@@ -118,8 +103,7 @@ public class LoginActivity extends BaseActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
+            Application.mApi.logIn(email, password, this);
         }
     }
 
@@ -185,101 +169,40 @@ public class LoginActivity extends BaseActivity {
         super.onStop();
     }
 
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    @Override
+    public void onResponse(final JSONObject response) {
 
-        private String mEmail;
-        private String mPassword;
-        private JSONObject mError;
-        private Integer mExternalId;
-        private String mPhoneNumber;
-        private String mName;
-        private String mAuthenticationToken;
+        if (response.has("error")) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        showProgress(false);
+                        final JSONObject error = response.getJSONObject("error");
 
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
-        }
-
-        @SuppressWarnings("ObjectEqualsNull")
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            JSONObject response = null;
-            if(mEmail.equals("shoutsid@gmail.com"))
-                return true;
-
-            try {
-                Resty resty = new Resty();
-                JSONObject baseJson = new JSONObject();
-                JSONObject customerData = new JSONObject();
-
-                customerData.put("email", mEmail);
-                customerData.put("password", mPassword);
-
-                baseJson.put("customer", customerData);
-
-                //String basicAuthDetails = "lockout:a9f300913337fc15e951a1c14807b41e7cc56813e9531386b4579106df75c15c4db3e65d18ded4d44d6974f832af9faa4b83752cecb7e2d6f7bfbfdf96c6e1d0";
-                //response = resty.json(String.format("http://%s@dev.goforus.info/api/v1/login", basicAuthDetails), put(content(baseJson))).object();update
-                response = resty.json("http://dev.goforus.info/api/v1/login", put(content(baseJson))).object();
-
-                Log.d("Attempt Login", response.toString());
-
-                if (!response.has("error")) {
-                    mExternalId = (Integer) response.get("id");
-                    mEmail = (String) response.get("email");
-
-                    if(!response.get("mobile_number").equals(null))
-                        mPhoneNumber = (String) response.get("mobile_number");
-
-                    if(!response.get("name").equals(null))
-                        mName = (String) response.get("name");
-
-                    mAuthenticationToken = (String) response.get("authentication_token");
-                    return true;
-                } else {
-                    mError = (JSONObject) response.get("error");
-                    return false;
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-
-            if (success) {
-                if (Account.currentAccount() != null) {
-                    Account.currentAccount().delete();
-                }
-
-                Account account = new Account(mExternalId, mName, mEmail, mPassword, mPhoneNumber, mAuthenticationToken);
-                account.save();
-
-                Intent intent = new Intent(LoginActivity.this, NavigationActivity.class);
-                startActivity(intent);
-                finish();
-            } else {
-                showProgress(false);
-                try {
-                    if (mError != null) {
-                        if (mError.get("password") != null) {
-                            mPasswordView.setError(mError.get("password").toString());
+                        if (error.has("password")) {
+                            mPasswordView.setError(error.getString("password"));
                             mPasswordView.requestFocus();
+                        } else {
+                            mEmailView.setError(error.getString("email"));
+                            mEmailView.requestFocus();
                         }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
-            }
-        }
+            });
+        } else {
+            Account currentAccount = Account.currentAccount();
+            if (currentAccount != null)
+                currentAccount.delete();
 
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
+            currentAccount = new Account(response);
+            currentAccount.save();
+
+            Intent intent = new Intent(LoginActivity.this, NavigationActivity.class);
+            startActivity(intent);
+            finish();
         }
     }
 }

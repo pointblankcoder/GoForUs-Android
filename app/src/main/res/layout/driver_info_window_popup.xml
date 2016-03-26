@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp">
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_outline"
+        android:columnCount="12"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:rowCount="5">
+
+        <!-- ROW 1 -->
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_column="0"
+            android:layout_columnSpan="12"
+            android:layout_gravity="center_horizontal"
+            android:layout_row="0"
+            android:src="@mipmap/ic_launcher" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_column="0"
+            android:layout_columnSpan="12"
+            android:layout_gravity="fill"
+            android:layout_row="1"
+            android:gravity="center_vertical|center_horizontal"
+            android:text="Driver Name Here"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="20dp"
+            android:textStyle="bold" />
+
+        <!-- ROW 2 -->
+        <LinearLayout
+            android:layout_column="0"
+            android:layout_columnSpan="12"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_row="2">
+
+            <ImageView
+                android:id="@+id/rating1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:src="@android:drawable/btn_star_big_on" />
+
+            <ImageView
+                android:id="@+id/rating2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:src="@android:drawable/btn_star_big_on" />
+
+            <ImageView
+                android:id="@+id/rating3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:src="@android:drawable/btn_star_big_on" />
+
+            <ImageView
+                android:id="@+id/rating4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:src="@android:drawable/btn_star_big_on" />
+
+            <ImageView
+                android:id="@+id/rating5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:src="@android:drawable/btn_star_big_on" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/orderBtn"
+            android:layout_column="0"
+            android:layout_columnSpan="12"
+            android:layout_gravity="fill"
+            android:layout_marginTop="20dp"
+            android:layout_row="3"
+            android:text="Order"
+            android:textColor="#ffffff"
+            android:backgroundTint="@color/colorCTA"
+            android:background="@color/colorCTA" />
+
+    </GridLayout>
+</FrameLayout>

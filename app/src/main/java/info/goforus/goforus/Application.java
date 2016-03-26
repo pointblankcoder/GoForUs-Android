@@ -26,17 +26,25 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.orm.SugarApp;
+import com.orm.SugarContext;
 
+import info.goforus.goforus.models.account.Account;
 import info.goforus.goforus.models.api.Api;
 
 public class Application extends SugarApp implements GpsStatus.Listener, LocationListener {
     static final int LOCATION_PERMISSION_REQUEST = 0;
     static final int REQUEST_CHECK_GPS_SETTINGS = 1;
 
+    static final String TAG = "Application";
+
+    public static final Api mApi = new Api();
+
     public static GoogleApiClient googleApiClient;
     public android.location.LocationManager locationManager;
 
     public boolean hasGpsPermission = true;
+
+    /* Current activity */
     private Activity mCurrentActivity = null;
 
     public Activity getCurrentActivity() {
@@ -68,7 +76,7 @@ public class Application extends SugarApp implements GpsStatus.Listener, Locatio
         return !locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
     }
 
-    protected void requireGps() {
+    public void requireGps() {
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(mCurrentActivity)
                     .addApi(LocationServices.API)
@@ -148,47 +156,68 @@ public class Application extends SugarApp implements GpsStatus.Listener, Locatio
     }
 
     @SuppressWarnings("ResourceType")
-    public void startLocationUpdates(){
-        Log.d("Application", "sub to location updates");
-        locationManager.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 5 * 1000, 0.00001f, this);
+    public void startLocationUpdates() {
+        Log.d(TAG, "sub to location updates");
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0, this);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0, this);
+
+        Location lastKnownLoc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (lastKnownLoc == null)
+            lastKnownLoc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        if (lastKnownLoc != null) {
+            Log.d(TAG, "Updating our last known location");
+            mApi.updateMyLocation(lastKnownLoc.getLatitude(), lastKnownLoc.getLongitude());
+            if (Account.currentAccount() != null) {
+                Account.currentAccount().updateLocation(lastKnownLoc.getLatitude(), lastKnownLoc.getLongitude());
+            }
+        }
     }
 
     @SuppressWarnings("ResourceType")
-    public void stopLocationUpdates(){
-        Log.d("Application", "unsub to location updates");
+    public void stopLocationUpdates() {
+        Log.d(TAG, "unsub to location updates");
         locationManager.removeUpdates(this);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        Log.d("Application", String.format("we have a new location (%s)", location));
-        Api.updateMyLocation(location.getLatitude(), location.getLongitude());
+        Account account = Account.currentAccount();
+        // Only update if we need too
+        if (account != null && account.lat != location.getLatitude() && account.lng != location.getLongitude()) {
+            Log.d(TAG, String.format("we have a new location (%s)", location));
+            mApi.updateMyLocation(location.getLatitude(), location.getLongitude());
+            Account.currentAccount().updateLocation(location.getLatitude(), location.getLongitude());
+        }
+
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-
+        Log.d(TAG, String.format("Network status has changed to (%s)", status));
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-
+        Log.d(TAG, String.format("Network network provider enabled (%s)", provider));
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-
+        Log.d(TAG, String.format("Network network provider disabled (%s)", provider));
     }
 
     @Override
     public void onGpsStatusChanged(int event) {
         switch (event) {
             case GpsStatus.GPS_EVENT_STARTED:
+                Log.d(TAG, String.format("GPS status has started (%s)", event));
                 break;
             case GpsStatus.GPS_EVENT_STOPPED:
-                if (mCurrentActivity != null) {
+                Log.d(TAG, String.format("GPS status has stopped (%s)", event));
+                //if (mCurrentActivity != null) {
                     requireGps();
-                }
+                //}
                 break;
             case GpsStatus.GPS_EVENT_FIRST_FIX:
                 break;
@@ -202,4 +231,4 @@ public class Application extends SugarApp implements GpsStatus.Listener, Locatio
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
     }
-    }
+}

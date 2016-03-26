@@ -1,41 +1,38 @@
 package info.goforus.goforus;
 
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.io.Serializable;
+
 import info.goforus.goforus.models.account.Account;
-import info.goforus.goforus.models.api.Api;
-import info.goforus.goforus.models.map.MapFragment;
 
 public class NavigationActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    private FragmentManager mFragmentManager;
     private ActionBarDrawerToggle mDrawerToggle;
+
+    public NavigationActivity(){}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
-        mFragmentManager = getSupportFragmentManager();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -61,8 +58,9 @@ public class NavigationActivity extends BaseActivity
 
         // Setup default fragment
         try {
-            Fragment fragment = (Fragment) MapFragment.class.newInstance();
-            mFragmentManager.beginTransaction().replace(R.id.content, fragment).commit();
+            Fragment fragment = MapFragment.class.newInstance();
+
+            getSupportFragmentManager().beginTransaction().replace(R.id.content, fragment).commit();
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -102,10 +100,7 @@ public class NavigationActivity extends BaseActivity
 
         switch (id) {
             case R.id.action_logout:
-                Api.logOut();
-                Intent intent = new Intent(this, LoginActivity.class);
-                startActivity(intent);
-                finish();
+                mApplication.mApi.logOut();
                 break;
         }
 
@@ -138,7 +133,7 @@ public class NavigationActivity extends BaseActivity
         }
 
         // Insert the fragment by replacing any existing fragment
-        mFragmentManager.beginTransaction().replace(R.id.content, fragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.content, fragment).commit();
 
         // Highlight the selected item has been done by NavigationView
         item.setChecked(true);

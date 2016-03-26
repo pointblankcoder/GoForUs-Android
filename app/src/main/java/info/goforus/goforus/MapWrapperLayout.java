@@ -1,4 +1,4 @@
-package info.goforus.goforus.models.map;
+package info.goforus.goforus;
 
 import android.content.Context;
 import android.view.MotionEvent;

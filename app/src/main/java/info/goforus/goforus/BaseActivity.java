@@ -2,13 +2,15 @@ package info.goforus.goforus;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.TypedValue;
 
 import com.google.android.gms.location.LocationSettingsStates;
 
-public class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
     public Application mApplication;
 
     /* =========================== Class Overrides =========================== */
@@ -69,5 +71,16 @@ public class BaseActivity extends AppCompatActivity {
         if (this.equals(currActivity)) {
             mApplication.setCurrentActivity(null);
         }
+    }
+
+    /* ============================ Layout Related =========================== */
+    protected int getActionBarSize() {
+        TypedValue typedValue = new TypedValue();
+        int[] textSizeAttr = new int[]{R.attr.actionBarSize};
+        int indexOfAttrTextSize = 0;
+        TypedArray a = obtainStyledAttributes(typedValue.data, textSizeAttr);
+        int actionBarSize = a.getDimensionPixelSize(indexOfAttrTextSize, -1);
+        a.recycle();
+        return actionBarSize;
     }
 }
