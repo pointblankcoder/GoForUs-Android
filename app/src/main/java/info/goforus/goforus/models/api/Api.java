@@ -37,8 +37,6 @@ public class Api {
     private List<ApiUpdateListener> mListeners = new ArrayList<>();
 
     public interface ApiUpdateListener {
-        void onNearbyDriversUpdate(List<Driver> drivers);
-
         void onLogOut(JSONObject success);
 
         void onLogIn(JSONObject response);
@@ -53,7 +51,7 @@ public class Api {
     }
 
     public interface ApiNearbyDriversListener {
-        void onResponse(JSONObject response);
+        void onResponse(JSONArray response);
     }
 
     public void addApiUpdateListener(ApiUpdateListener listener) {
@@ -68,9 +66,9 @@ public class Api {
     Runnable mNearbyDriversTask;
     Handler mTaskHandler = new Handler();
 
-    public void startDriverUpdates() {
+    public void startDriverUpdates(ApiNearbyDriversListener listener) {
         if (mNearbyDriversTask == null) {
-            mNearbyDriversTask = new DriverUpdatesTask(mTaskHandler, 4000);
+            mNearbyDriversTask = new DriverUpdatesTask(mTaskHandler, 4000, listener);
             mTaskHandler.post(mNearbyDriversTask);
         } else {
             Log.d(TAG, "tried to start driver updates when it's already working. Please stop updates before starting to start this again via Api.stopDriverUpdates(Activity, Int)");
@@ -209,26 +207,35 @@ public class Api {
 
 
     /* Start: Nearby Drivers */
-    public void getNearbyDrivers(final double lat, final double lng) {
+    private int nearbyDriversAttemptCount = 0;
+    public JSONArray attemptGetNearbyDriver(final double lat, final double lng) throws ApiAttemptCountExceededException {
+        try {
+            String latLngParams = String.format("&lat=%s&lng=%s", lat, lng);
+            JSONArray drivers = resty.json(nearbyDriversURI + tokenParams() + latLngParams).array();
+            Log.d(TAG, String.format("Got drivers JSON (%s)", drivers));
+            return drivers;
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+            if (nearbyDriversAttemptCount > ATTEMPT_COUNT_LIMIT) {
+                logoutAttemptCount = 0;
+                throw new ApiAttemptCountExceededException("get nearby drivers attempt limit exceeded");
+            } else {
+                nearbyDriversAttemptCount += 1;
+                return attemptGetNearbyDriver(lat, lng);
+            }
+        }
+    }
+
+    public void getNearbyDrivers(final double lat, final double lng, final ApiNearbyDriversListener listener) {
         new Thread(new Runnable() {
             public void run() {
-                List<Driver> drivers = new ArrayList<Driver>();
-                try {
-                    String latLngParams = String.format("&lat=%s&lng=%s", lat, lng);
-                    JSONArray driversArray = (JSONArray) resty.json(nearbyDriversURI + tokenParams() + latLngParams).array();
-                    Log.d(TAG, String.format("Got drivers JSON (%s)", driversArray));
-
-                    for (int i = 0; i < driversArray.length(); i++) {
-                        JSONObject driverObject = driversArray.getJSONObject(i);
-                        drivers.add(new Driver(driverObject));
-                    }
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
-                }
-
                 Log.d(TAG, String.format("sending drivers to all listeners (%s)", mListeners));
-                for (ApiUpdateListener listener : mListeners) {
-                    listener.onNearbyDriversUpdate(drivers);
+                try {
+                    JSONArray drivers = attemptGetNearbyDriver(lat, lng);
+                    listener.onResponse(drivers);
+
+                } catch (ApiAttemptCountExceededException e) {
+                    e.printStackTrace();
                 }
             }
         }).start();

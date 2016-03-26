@@ -21,18 +21,20 @@ import com.google.android.gms.maps.model.Marker;
 import java.util.ArrayList;
 import java.util.List;
 
-import info.goforus.goforus.models.account.Account;
 import info.goforus.goforus.models.api.Api;
 import info.goforus.goforus.models.driver.Driver;
 import info.goforus.goforus.models.driver.DriverIndicator;
 import info.goforus.goforus.models.driver.DriverInfoWindowAdapter;
 import info.goforus.goforus.tasks.SimulateMyLocationClickTask;
+import us.monoid.json.JSONArray;
+import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
 public class MapFragment extends SupportMapFragment implements OnMapReadyCallback,
-        GoogleMap.OnMapLoadedCallback, Api.ApiUpdateListener, MapWrapperLayout.OnDragListener,
+        GoogleMap.OnMapLoadedCallback, MapWrapperLayout.OnDragListener,
         GoogleMap.OnCameraChangeListener, GoogleMap.OnInfoWindowClickListener,
-        GoogleMap.OnInfoWindowCloseListener, GoogleMap.OnInfoWindowLongClickListener, GoogleMap.OnMarkerClickListener {
+        GoogleMap.OnInfoWindowCloseListener, GoogleMap.OnInfoWindowLongClickListener, GoogleMap.OnMarkerClickListener,
+        Api.ApiNearbyDriversListener {
 
     private static final String TAG = "MapFragment";
     private View mOriginalView;
@@ -62,8 +64,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     @Override
     public void onStart() {
         // Start Collecting Driver Updates Periodically
-        Application.mApi.addApiUpdateListener(this);
-        Application.mApi.startDriverUpdates();
+        Application.mApi.startDriverUpdates(this);
         mActivity.mApplication.requireGps();
 
         Log.d(TAG, "Map has loaded, starting location updates");
@@ -75,7 +76,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     @Override
     public void onStop() {
         // Stop Collecting Driver Updates Periodically
-        Application.mApi.removeApiUpdateListener(this);
         Application.mApi.stopDriverUpdates();
         super.onStop();
     }
@@ -89,7 +89,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         }
 
         mActivity.mApplication.stopLocationUpdates();
-        Application.mApi.removeApiUpdateListener(this);
         Application.mApi.stopDriverUpdates();
         super.onDestroy();
     }
@@ -205,7 +204,26 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     /* ========================= API Callbacks =================== */
     @Override
-    public void onNearbyDriversUpdate(final List<Driver> drivers) {
+    public void onResponse(JSONArray response) {
+        // Create the array of drivers from json response
+        ArrayList<Driver> drivers = new ArrayList<>();
+        for (int i = 0; i < response.length(); i++) {
+            JSONObject driverObject = null;
+            try {
+                driverObject = response.getJSONObject(i);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            if (driverObject != null) {
+                drivers.add(new Driver(driverObject));
+            }
+        }
+        addDriversToMap(drivers);
+    }
+
+    /* ========================= Methods =================== */
+    public void addDriversToMap(final ArrayList<Driver> drivers) {
         final BaseActivity _activity = mActivity;
         mActivity.runOnUiThread(
                 new Runnable() {
@@ -251,13 +269,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                     }
                 }
         );
-    }
 
-    @Override
-    public void onLogOut(JSONObject response) {
-    }
-
-    @Override
-    public void onLogIn(JSONObject response) {
     }
 }

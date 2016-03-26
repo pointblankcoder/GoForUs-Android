@@ -5,16 +5,20 @@ import android.util.Log;
 
 import info.goforus.goforus.Application;
 import info.goforus.goforus.models.account.Account;
+import info.goforus.goforus.models.api.Api;
 
 public class DriverUpdatesTask implements Runnable {
     private static final String TAG = "DriverUpdatesTask";
 
     private static Handler mHandler;
     private static int mInterval;
+    private final Api.ApiNearbyDriversListener mListener;
 
-    public DriverUpdatesTask(Handler handler, int intervalTimeInMilliseconds) {
+    public DriverUpdatesTask(Handler handler, int intervalTimeInMilliseconds,
+                             Api.ApiNearbyDriversListener listener) {
         mHandler = handler;
         mInterval = intervalTimeInMilliseconds;
+        mListener = listener;
     }
 
     @Override
@@ -26,7 +30,7 @@ public class DriverUpdatesTask implements Runnable {
         if (account != null) {
             Log.d(TAG, "getting nearby drivers");
             try {
-                Application.mApi.getNearbyDrivers(account.lat, account.lng);
+                Application.mApi.getNearbyDrivers(account.lat, account.lng, mListener);
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
             }
