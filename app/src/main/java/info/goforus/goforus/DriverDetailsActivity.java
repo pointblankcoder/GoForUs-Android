@@ -16,13 +16,13 @@ import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.nineoldandroids.view.ViewHelper;
 import com.nineoldandroids.view.ViewPropertyAnimator;
 
-import info.goforus.goforus.models.driver.DriverInformation;
+import info.goforus.goforus.models.driver.Information;
 
 public class DriverDetailsActivity extends BaseActivity implements ObservableScrollViewCallbacks {
     private static final String TAG = "DriverDetailsActivity";
     private static final float MAX_TEXT_SCALE_DELTA = 0.3f;
 
-    public static DriverInformation mDriver;
+    public static Information mDriver;
     private ObservableScrollView mScrollView;
     private int mActionBarSize;
     private boolean mFabIsShown;
@@ -113,10 +113,8 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
     public void addRating() {
         for (int i = 0; i < mDriver.rating; i++ ){
             ImageView star = new ImageView(this);
-            star.setBackground(ContextCompat.getDrawable(this, android.R.drawable.btn_star_big_on));
+            star.setBackground(ContextCompat.getDrawable(this, R.drawable.star));
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(mRatingContainer.getLayoutParams());
-            params.height = getResources().getDimensionPixelSize(R.dimen.rating_star_height);
-            params.width = getResources().getDimensionPixelSize(R.dimen.rating_star_width);
             star.setLayoutParams(params);
             mRatingContainer.addView(star);
         }

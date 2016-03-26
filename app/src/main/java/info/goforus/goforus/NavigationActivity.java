@@ -39,7 +39,7 @@ public class NavigationActivity extends BaseActivity
             messageFab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                    Snackbar.make(view, "You have 0 new message (In Development)", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 }
             });
@@ -117,7 +117,11 @@ public class NavigationActivity extends BaseActivity
         if (id == R.id.nav_map) {
             fragmentClass = MapFragment.class;
         } else if (id == R.id.nav_inbox) {
+            Snackbar.make(getWindow().getDecorView(), "Inbox/Messages are in currently development", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
         } else if (id == R.id.nav_settings) {
+            Snackbar.make(getWindow().getDecorView(), "Settings are not complete", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
         }
 
         if (fragmentClass != null) {
@@ -128,13 +132,12 @@ public class NavigationActivity extends BaseActivity
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
+            // Insert the fragment by replacing any existing fragment
+            getSupportFragmentManager().beginTransaction().replace(R.id.content, fragment).commit();
+
+            // Highlight the selected item has been done by NavigationView
+            item.setChecked(true);
         }
-
-        // Insert the fragment by replacing any existing fragment
-        getSupportFragmentManager().beginTransaction().replace(R.id.content, fragment).commit();
-
-        // Highlight the selected item has been done by NavigationView
-        item.setChecked(true);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer != null) {

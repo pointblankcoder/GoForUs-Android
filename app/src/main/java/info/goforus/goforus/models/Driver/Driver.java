@@ -1,9 +1,5 @@
 package info.goforus.goforus.models.driver;
 
-
-import android.app.Activity;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -15,7 +11,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.orm.SugarRecord;
 
-import java.io.Serializable;
 import java.util.List;
 
 import info.goforus.goforus.R;
@@ -33,7 +28,7 @@ public class Driver extends SugarRecord implements Comparable<Driver> {
     public Integer rating = 5;
 
 
-    public DriverIndicator indicator;
+    public Indicator indicator;
     public Marker marker;
     public GoogleMap map;
 
@@ -66,7 +61,7 @@ public class Driver extends SugarRecord implements Comparable<Driver> {
                         .anchor(0.5f, 0.5f)
                         .title(name)
                         .snippet(short_bio)
-                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.car_medium))
         );
         this.map = map;
     }
@@ -74,9 +69,24 @@ public class Driver extends SugarRecord implements Comparable<Driver> {
     public void updatePositionOnMap(){
         if(map != null){
             marker.setPosition(location());
-            if (marker.isInfoWindowShown()) {
-                goTo();
-            }
+        }
+    }
+
+    public void goToWithInfoWindow() {
+        if (marker != null) {
+            // TODO: Add actual calculation based on the info window height
+            LatLng latLngPositionWithInfoWindow = new LatLng(marker.getPosition().latitude + 0.0022f, marker.getPosition().longitude);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLngPositionWithInfoWindow, 15);
+            map.animateCamera(cameraUpdate, 1, new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+            marker.showInfoWindow();
         }
     }
 
@@ -92,13 +102,27 @@ public class Driver extends SugarRecord implements Comparable<Driver> {
                 public void onCancel() {
                 }
             });
-            marker.showInfoWindow();
+        }
+    }
+
+    public void goTo(int animationTime) {
+        if (marker != null) {
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15);
+            map.animateCamera(cameraUpdate, animationTime, new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
         }
     }
 
     /* ================== Class Conversions  =======================*/
-    public DriverInformation toDriverInformation(){
-        return new DriverInformation(this);
+    public Information toDriverInformation(){
+        return new Information(this);
     }
 
     /* =================== Custom Lookups/Comparators =============== */

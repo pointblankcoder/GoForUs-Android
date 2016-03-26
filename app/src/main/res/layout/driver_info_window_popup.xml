@@ -2,18 +2,15 @@
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="20dp"
-    android:paddingRight="20dp">
+    android:layout_height="match_parent">
 
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_outline"
         android:columnCount="12"
         android:orientation="horizontal"
-        android:padding="10dp"
-        android:rowCount="5">
+        android:rowCount="5"
+        android:background="@drawable/custom_info_bubble">
 
         <!-- ROW 1 -->
         <ImageView
@@ -51,35 +48,35 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:src="@android:drawable/btn_star_big_on" />
+                android:src="@drawable/star" />
 
             <ImageView
                 android:id="@+id/rating2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:src="@android:drawable/btn_star_big_on" />
+                android:src="@drawable/star" />
 
             <ImageView
                 android:id="@+id/rating3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:src="@android:drawable/btn_star_big_on" />
+                android:src="@drawable/star" />
 
             <ImageView
                 android:id="@+id/rating4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:src="@android:drawable/btn_star_big_on" />
+                android:src="@drawable/star" />
 
             <ImageView
                 android:id="@+id/rating5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:src="@android:drawable/btn_star_big_on" />
+                android:src="@drawable/star" />
         </LinearLayout>
 
         <Button
@@ -89,6 +86,8 @@
             android:layout_gravity="fill"
             android:layout_marginTop="20dp"
             android:layout_row="3"
+            android:layout_marginRight="10dp"
+            android:layout_margin="10dp"
             android:text="Order"
             android:textColor="#ffffff"
             android:backgroundTint="@color/colorCTA"

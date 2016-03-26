@@ -2,8 +2,6 @@ package info.goforus.goforus;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,21 +9,24 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import info.goforus.goforus.models.account.Account;
 import info.goforus.goforus.models.api.Api;
 import info.goforus.goforus.models.driver.Driver;
-import info.goforus.goforus.models.driver.DriverIndicator;
-import info.goforus.goforus.models.driver.DriverInfoWindowAdapter;
-import info.goforus.goforus.tasks.SimulateMyLocationClickTask;
+import info.goforus.goforus.models.driver.Indicator;
+import info.goforus.goforus.models.driver.InfoWindowAdapter;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
@@ -103,6 +104,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         return mOriginalView;
     }
 
+
     /* ======================== Google Map Related =================== */
     @Override
     public void onCameraChange(CameraPosition position) {
@@ -113,15 +115,10 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         }
     }
 
-
     @SuppressWarnings("ResourceType")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        if (true) {
-            mMap.setMyLocationEnabled(true);
-        }
 
         // Setup Map UI
         UiSettings mapUISettings = mMap.getUiSettings();
@@ -130,7 +127,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         mapUISettings.setMapToolbarEnabled(false);
         mapUISettings.setZoomControlsEnabled(false);
 
-        mMap.setInfoWindowAdapter(new DriverInfoWindowAdapter(mActivity));
+        mMap.setInfoWindowAdapter(new InfoWindowAdapter(mActivity));
         mMap.setOnInfoWindowClickListener(this);
         mMap.setOnInfoWindowCloseListener(this);
         mMap.setOnInfoWindowLongClickListener(this);
@@ -145,12 +142,21 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     @Override
     public void onMapLoaded() {
-        SimulateMyLocationClickTask task = new SimulateMyLocationClickTask();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, this, mActivity);
-        } else {
-            task.execute(this, mActivity);
-        }
+        Account account = Account.currentAccount();
+        LatLng latLng = new LatLng(account.lat, account.lng);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
+        mMap.animateCamera(cameraUpdate, 1000, new GoogleMap.CancelableCallback() {
+            @Override
+            public void onFinish() {
+                /*
+                 TODO if the user is a first time user, start a helper flow to guide them through how to order a driver for delivery
+                */
+            }
+
+            @Override
+            public void onCancel() {
+            }
+        });
     }
 
     /* ======================== Marker Listeners =================== */
@@ -178,14 +184,17 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     @Override
     public void onInfoWindowLongClick(Marker marker) {
-        //Toast.makeText(activity, "Info Window long click", Toast.LENGTH_SHORT).show();
+        // TODO: when in Order placement mode, long press should act as placing EXACT pickup point
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public boolean onMarkerClick(Marker marker) {
         Log.d(TAG, "marker was clicked, updated currently selected");
         currentDriverSelected = Driver.findByDriverMarker(currentlyDisplayedDrivers, marker);
-        return false;
+        currentDriverSelected.goToWithInfoWindow();
+
+        return true; // disable default behavior
     }
 
     /* ======================== Map Wrapper Listeners =================== */
@@ -242,6 +251,9 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                                 _d.lng = d.lng;
                                 if (_d.marker != null) {
                                     _d.updatePositionOnMap();
+                                    if (_d.marker.isInfoWindowShown()) {
+                                        _d.goToWithInfoWindow();
+                                    }
                                 }
 
                                 if (_d.indicator != null)
@@ -253,7 +265,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                                 Log.d(TAG, String.format("our activity is (%s)", _activity));
                                 // Add to map
                                 d.addToMap(mMap);
-                                d.indicator = new DriverIndicator(d, _activity, mMap, MapFragment.this);
+                                d.indicator = new Indicator(d, _activity, mMap, MapFragment.this);
                                 d.indicator.update();
                                 newDisplayedDrivers.add(d);
                             }

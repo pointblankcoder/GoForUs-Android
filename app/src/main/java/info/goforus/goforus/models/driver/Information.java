@@ -3,7 +3,7 @@ package info.goforus.goforus.models.driver;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class DriverInformation implements Parcelable {
+public class Information implements Parcelable {
     public Integer externalId;
     public String name;
     public String email;
@@ -13,7 +13,7 @@ public class DriverInformation implements Parcelable {
     public String mobile_number;
     public Integer rating;
 
-    DriverInformation(Driver driver){
+    Information(Driver driver){
         this.externalId = driver.externalId;
         this.name = driver.name;
         this.email = driver.email;
@@ -25,7 +25,7 @@ public class DriverInformation implements Parcelable {
     }
 
     /* ===================== Parceable ======================= */
-    protected DriverInformation(Parcel in) {
+    protected Information(Parcel in) {
         externalId = in.readByte() == 0x00 ? null : in.readInt();
         rating = in.readByte() == 0x00 ? null : in.readInt();
         name = in.readString();
@@ -65,15 +65,15 @@ public class DriverInformation implements Parcelable {
     }
 
     @SuppressWarnings("unused")
-    public static final Parcelable.Creator<DriverInformation> CREATOR = new Parcelable.Creator<DriverInformation>() {
+    public static final Parcelable.Creator<Information> CREATOR = new Parcelable.Creator<Information>() {
         @Override
-        public DriverInformation createFromParcel(Parcel in) {
-            return new DriverInformation(in);
+        public Information createFromParcel(Parcel in) {
+            return new Information(in);
         }
 
         @Override
-        public DriverInformation[] newArray(int size) {
-            return new DriverInformation[size];
+        public Information[] newArray(int size) {
+            return new Information[size];
         }
     };
 }

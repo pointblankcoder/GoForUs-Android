@@ -3,18 +3,18 @@ package info.goforus.goforus.models.driver;
 import android.view.View;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.R;
 
-public class DriverInfoWindowAdapter implements InfoWindowAdapter {
+public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
-    private static final String TAG = "DriverInfoWindowAdapter";
+    private static final String TAG = "InfoWindowAdapter";
     private final View mWindow;
 
-    public DriverInfoWindowAdapter(BaseActivity activity) {
+    public InfoWindowAdapter(BaseActivity activity) {
         this.mWindow = activity.getLayoutInflater().inflate(R.layout.driver_info_window_popup, null);
     }
 
