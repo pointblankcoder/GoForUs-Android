@@ -1,6 +1,5 @@
-package info.goforus.goforus.models.driver;
+package info.goforus.goforus.models.drivers;
 
-import android.graphics.Matrix;
 import android.graphics.Point;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -19,14 +18,19 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.maps.android.SphericalUtil;
 import com.nineoldandroids.view.ViewHelper;
 
+import org.parceler.Parcel;
+
+import java.util.List;
+
 import info.goforus.goforus.BaseActivity;
+import info.goforus.goforus.MapFragment;
 import info.goforus.goforus.R;
 import info.goforus.goforus.ViewIdGenerator;
 
 public class Indicator implements View.OnClickListener{
     private BaseActivity mActivity;
     private GoogleMap mMap;
-    private SupportMapFragment mapFragment;
+    private MapFragment mapFragment;
     private RelativeLayout arrowContainer;
     private ImageView arrowView;
 
@@ -35,7 +39,9 @@ public class Indicator implements View.OnClickListener{
 
     private static final String TAG = "Indicator";
 
-    public Indicator(Driver _driver, BaseActivity activity, GoogleMap map, SupportMapFragment _mapFragment) {
+    public Indicator(){}
+
+    public Indicator(Driver _driver, BaseActivity activity, GoogleMap map, MapFragment _mapFragment) {
         mActivity = activity;
         mDriver = _driver;
         mMap = map;
@@ -75,6 +81,10 @@ public class Indicator implements View.OnClickListener{
     }
 
     public void addIndicator() {
+        /* TODO:
+            addInArray been called, this = android.widget.RelativeLayout{42112af0 V.E..... ......ID 0,0-540,922 #7f0d00a2 app:id/arrowContainer}call stack =
+                                                               java.lang.Throwable: addInArray
+         */
         arrowContainer.addView(arrowView);
     }
 

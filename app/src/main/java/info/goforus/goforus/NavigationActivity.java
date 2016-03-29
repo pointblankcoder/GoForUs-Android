@@ -5,7 +5,8 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -15,55 +16,104 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import info.goforus.goforus.models.account.Account;
-import info.goforus.goforus.models.api.Api;
+import org.parceler.Parcels;
+
+import info.goforus.goforus.apis.listeners.LogoutResponseListener;
+import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.models.conversations.Conversation;
+import info.goforus.goforus.models.conversations.DataDistributor;
 import us.monoid.json.JSONObject;
 
 public class NavigationActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, Api.ApiLogoutListener {
+        implements NavigationView.OnNavigationItemSelectedListener, LogoutResponseListener,
+        FragmentManager.OnBackStackChangedListener {
     private ActionBarDrawerToggle mDrawerToggle;
+    private FloatingActionButton mMessageFab;
+    private Toolbar mToolbar;
 
-    public NavigationActivity(){}
+    InboxFragment inboxFragment;
+    MapFragment mapFragment;
+    MessagesFragment messagesFragment;
+    private FragmentManager mFragmentManager;
+    private DrawerLayout mDrawer;
+    private NavigationView mNavigationView;
+
+    public NavigationActivity() {
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        DataDistributor.getInstance().startDistribution();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        DataDistributor.getInstance().stopDistribution();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
 
-        FloatingActionButton messageFab = (FloatingActionButton) findViewById(R.id.messageFab);
-        if (messageFab != null) {
-            messageFab.setOnClickListener(new View.OnClickListener() {
+        mMessageFab = (FloatingActionButton) findViewById(R.id.messageFab);
+        if (mMessageFab != null) {
+            final int[] clickCount = {0};
+            mMessageFab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Snackbar.make(view, "You have 0 new message (In Development)", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
+                    clickCount[0]++;
+                    if (clickCount[0] >= 2) {
+                        showInboxFragment();
+                        clickCount[0] = 0;
+                    } else {
+                        // TODO: Apply this only if new user/has the setting for tips/hints
+                        Toast.makeText(
+                                NavigationActivity.this,
+                                String.format("You have %s new messages.\nDouble tap to open your inbox", Conversation.totalUnreadMessagesCount()),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
                 }
             });
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle =
-                new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                new ActionBarDrawerToggle(this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawerToggle.syncState();
-        drawer.addDrawerListener(mDrawerToggle);
+        mDrawer.addDrawerListener(mDrawerToggle);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
+        mNavigationView.setNavigationItemSelectedListener(this);
 
-        // Setup default fragment
-        try {
-            Fragment fragment = MapFragment.class.newInstance();
+        // only create fragments if they haven't been instantiated already
+        mFragmentManager = getSupportFragmentManager();
+        mFragmentManager.addOnBackStackChangedListener(this);
 
-            getSupportFragmentManager().beginTransaction().replace(R.id.content, fragment).commit();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        mapFragment = (MapFragment) mFragmentManager.findFragmentByTag("Map");
+        inboxFragment = (InboxFragment) mFragmentManager.findFragmentByTag("Inbox");
+        messagesFragment = (MessagesFragment) mFragmentManager.findFragmentByTag("Messages");
+        if (mapFragment == null)
+            mapFragment = new MapFragment();
+        if (inboxFragment == null)
+            inboxFragment = new InboxFragment();
+        if (messagesFragment == null)
+            messagesFragment = new MessagesFragment();
+
+        showMapFragment();
+    }
+
+    @Override
+    public void onBackStackChanged() {
     }
 
     @Override
@@ -72,7 +122,16 @@ public class NavigationActivity extends BaseActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+
+            if (messagesFragment.isVisible()) {
+                showInboxFragment();
+
+            } else if (inboxFragment.isVisible()) {
+                showMapFragment();
+
+            } else if (mapFragment.isVisible()) {
+                super.onBackPressed();
+            }
         }
     }
 
@@ -98,46 +157,28 @@ public class NavigationActivity extends BaseActivity
 
         switch (id) {
             case R.id.action_logout:
-                mApplication.mApi.logOut(this);
+                Utils.SessionsApi.logOut(this);
                 break;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        Fragment fragment = null;
-        Class fragmentClass = null;
-
         if (id == R.id.nav_map) {
-            fragmentClass = MapFragment.class;
+            showMapFragment();
         } else if (id == R.id.nav_inbox) {
-            Snackbar.make(getWindow().getDecorView(), "Inbox/Messages are in currently development", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
+            showInboxFragment();
         } else if (id == R.id.nav_settings) {
             Snackbar.make(getWindow().getDecorView(), "Settings are not complete", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
 
-        if (fragmentClass != null) {
-            try {
-                fragment = (Fragment) fragmentClass.newInstance();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-            // Insert the fragment by replacing any existing fragment
-            getSupportFragmentManager().beginTransaction().replace(R.id.content, fragment).commit();
-
-            // Highlight the selected item has been done by NavigationView
-            item.setChecked(true);
-        }
+        item.setChecked(true);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer != null) {
@@ -159,9 +200,90 @@ public class NavigationActivity extends BaseActivity
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
+    /* =================== Fragment Management =========== */
+
+    public void showInboxFragment() {
+        FragmentTransaction ft = mFragmentManager.beginTransaction();
+
+        if (inboxFragment.isAdded()) {
+            ft.show(inboxFragment);
+        } else {
+            ft.add(R.id.content, inboxFragment, "Inbox");
+        }
+        if (messagesFragment.isAdded()) {
+            ft.hide(messagesFragment);
+        }
+        if (mapFragment.isAdded()) {
+            ft.hide(mapFragment);
+        }
+
+        if (mMessageFab.isShown()) {
+            mMessageFab.hide();
+        }
+
+        mNavigationView.setCheckedItem(R.id.nav_inbox);
+        setTitle(getString(R.string.inbox_fragment_title, Conversation.totalUnreadMessagesCount()));
+        ft.commit();
+    }
+
+    public void showMessagesFragment(Conversation conversation) {
+        FragmentTransaction ft = mFragmentManager.beginTransaction();
+
+        if (messagesFragment.isAdded()) {
+            ft.show(messagesFragment);
+            MessagesFragment.mConversation = conversation;
+        } else {
+            Bundle bundle = new Bundle();
+            bundle.putParcelable("Conversation", Parcels.wrap(conversation));
+            messagesFragment.setArguments(bundle);
+            ft.add(R.id.content, messagesFragment, "Conversation");
+        }
+
+        if (inboxFragment.isAdded()) {
+            ft.hide(inboxFragment);
+        }
+        if (mapFragment.isAdded()) {
+            ft.hide(mapFragment);
+        }
+
+        if (mMessageFab.isShown()) {
+            mMessageFab.hide();
+        }
+
+        mNavigationView.setCheckedItem(R.id.nav_inbox);
+        setTitle(getString(R.string.messages_fragment_title));
+        ft.commit();
+    }
+
+
+    private void showMapFragment() {
+        FragmentTransaction ft = mFragmentManager.beginTransaction();
+
+        if (mapFragment.isAdded()) {
+            ft.show(mapFragment);
+        } else {
+            ft.add(R.id.content, mapFragment, "Map");
+        }
+        if (inboxFragment.isAdded()) {
+            ft.hide(inboxFragment);
+        }
+        if (messagesFragment.isAdded()) {
+            ft.hide(messagesFragment);
+        }
+
+        if (!mMessageFab.isShown()) {
+            mMessageFab.show();
+        }
+
+        mNavigationView.setCheckedItem(R.id.nav_map);
+        setTitle(getString(R.string.map_fragment_title));
+        ft.commit();
+    }
+
+
     /* =================== Api Callbacks ================= */
     @Override
-    public void onResponse(JSONObject response) {
+    public void onLogoutResponse(JSONObject response) {
         if (response.has("error")) {
             // TODO: Add responsive error messages
         } else {

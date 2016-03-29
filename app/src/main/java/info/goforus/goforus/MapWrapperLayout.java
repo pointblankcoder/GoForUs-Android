@@ -1,6 +1,7 @@
 package info.goforus.goforus;
 
 import android.content.Context;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 
@@ -14,6 +15,14 @@ public class MapWrapperLayout extends FrameLayout {
 
     public MapWrapperLayout(Context context) {
         super(context);
+    }
+
+    public MapWrapperLayout(Context context, AttributeSet attributeSet) {
+        super(context, attributeSet);
+    }
+
+    public MapWrapperLayout(Context context, AttributeSet attributeSet, int defStyle) {
+        super(context, attributeSet, defStyle);
     }
 
     @Override

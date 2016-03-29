@@ -1,4 +1,4 @@
-package info.goforus.goforus.models.driver;
+package info.goforus.goforus.models.drivers;
 
 import android.view.View;
 import android.widget.TextView;

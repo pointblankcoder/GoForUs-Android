@@ -1,38 +1,57 @@
-package info.goforus.goforus.models.driver;
+package info.goforus.goforus.models.drivers;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.orm.SugarRecord;
 
 import java.util.List;
 
+import info.goforus.goforus.Application;
 import info.goforus.goforus.R;
 import us.monoid.json.JSONObject;
 
-public class Driver extends SugarRecord implements Comparable<Driver> {
+public class Driver extends Model implements Comparable<Driver> {
     private static final String TAG = "Driver";
     public static final float markerAnchorY = 0.5f;
     public static final float markerAnchorX = 0.5f;
+
+
+    @Column(name = "externalId", index = true)
     public Integer externalId;
+    @Column(name = "name")
     public String name;
+    @Column(name = "email")
     public String email;
+    @Column(name = "lat")
     public double lat;
+    @Column(name = "lng")
     public double lng;
-    public String short_bio;
-    public String mobile_number;
+    @Column(name = "mobileNumber")
+    public String mobileNumber;
+    @Column(name = "rating")
     public Integer rating = 5;
 
 
     public Indicator indicator;
     public Marker marker;
     public GoogleMap map;
+
+    public Driver(){}
 
     public Driver(JSONObject driverObject) {
         try {
@@ -41,7 +60,7 @@ public class Driver extends SugarRecord implements Comparable<Driver> {
             this.email = driverObject.get("email").toString();
             this.lat = Double.parseDouble(driverObject.get("lat").toString());
             this.lng = Double.parseDouble(driverObject.get("lng").toString());
-            this.mobile_number = driverObject.get("mobile_number").toString();
+            this.mobileNumber = driverObject.get("mobile_number").toString();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -57,15 +76,21 @@ public class Driver extends SugarRecord implements Comparable<Driver> {
     }
 
     public void addToMap(GoogleMap map) {
+        this.map = map;
+        Drawable car = ActivityCompat.getDrawable(Application.getInstance(), R.drawable.car_medium);
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(car.getIntrinsicWidth(), car.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        car.setBounds(0, 0, car.getIntrinsicWidth(), car.getIntrinsicHeight());
+        car.draw(canvas);
+
         marker = map.addMarker(new MarkerOptions()
                         .position(location())
                         .visible(true)
+                        .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
                         .anchor(markerAnchorX, markerAnchorY)
                         .title(name)
-                        .snippet(short_bio)
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.car_medium))
         );
-        this.map = map;
     }
 
     public void updatePositionOnMap(){

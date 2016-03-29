@@ -19,12 +19,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import info.goforus.goforus.models.account.Account;
-import info.goforus.goforus.models.api.Api;
+import info.goforus.goforus.apis.listeners.LoginResponseListener;
+import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.apis.Utils;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
-public class LoginActivity extends BaseActivity implements Api.ApiLoginListener {
+public class LoginActivity extends BaseActivity implements LoginResponseListener {
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -103,7 +104,7 @@ public class LoginActivity extends BaseActivity implements Api.ApiLoginListener 
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            Application.mApi.logIn(email, password, this);
+            Utils.SessionsApi.logIn(email, password, this);
         }
     }
 
@@ -170,7 +171,7 @@ public class LoginActivity extends BaseActivity implements Api.ApiLoginListener 
     }
 
     @Override
-    public void onResponse(final JSONObject response) {
+    public void onLoginResponse(final JSONObject response) {
         if (response.has("error")) {
             runOnUiThread(new Runnable() {
                 @Override

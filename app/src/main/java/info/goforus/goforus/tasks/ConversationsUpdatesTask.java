@@ -3,31 +3,37 @@ package info.goforus.goforus.tasks;
 import android.os.Handler;
 import com.orhanobut.logger.Logger;
 
+import java.util.List;
+
 import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.apis.listeners.InboxResponseListener;
 import info.goforus.goforus.apis.listeners.NearbyDriversResponseListener;
 import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.models.conversations.Conversation;
+import us.monoid.json.JSONArray;
 
-public class DriverUpdatesTask implements Runnable {
-    private static final String TAG = "DriverUpdatesTask";
+public class ConversationsUpdatesTask implements Runnable {
+    private static final String TAG = "ConversationsUpdatesTask";
 
     private static Handler mHandler;
     private static int mInterval;
-    private final NearbyDriversResponseListener mListener;
 
-    public DriverUpdatesTask(Handler handler, int intervalTimeInMilliseconds,
-                             NearbyDriversResponseListener listener) {
+    public ConversationsUpdatesTask(Handler handler, int intervalTimeInMilliseconds) {
         mHandler = handler;
         mInterval = intervalTimeInMilliseconds;
-        mListener = listener;
     }
 
     @Override
     public void run(){
         Account account = Account.currentAccount();
         if (account != null) {
-            Logger.d("getting nearby drivers");
             try {
-                Utils.LocationApi.getNearbyDrivers(account.lat, account.lng, mListener);
+                Utils.ConversationsApi.getInbox(new InboxResponseListener() {
+                    @Override
+                    public void onInboxResponse(JSONArray response) {
+                       Conversation.findOrCreateAllFromJson(response);
+                    }
+                });
             } catch (Exception e) {
                 Logger.e(e.toString());
             }

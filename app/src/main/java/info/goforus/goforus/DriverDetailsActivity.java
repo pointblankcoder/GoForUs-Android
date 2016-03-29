@@ -16,7 +16,9 @@ import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.nineoldandroids.view.ViewHelper;
 import com.nineoldandroids.view.ViewPropertyAnimator;
 
-import info.goforus.goforus.models.driver.Information;
+import org.parceler.Parcels;
+
+import info.goforus.goforus.models.drivers.Information;
 
 public class DriverDetailsActivity extends BaseActivity implements ObservableScrollViewCallbacks {
     private static final String TAG = "DriverDetailsActivity";
@@ -35,7 +37,7 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driver_details);
-        mDriver = getIntent().getParcelableExtra("Driver");
+        mDriver = Parcels.unwrap(getIntent().getParcelableExtra("Information"));
 
 
         // Toolbar
