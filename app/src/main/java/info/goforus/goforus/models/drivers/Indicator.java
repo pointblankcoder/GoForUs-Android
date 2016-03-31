@@ -17,14 +17,13 @@ import com.nineoldandroids.view.ViewHelper;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.greenrobot.eventbus.util.AsyncExecutor;
 
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.MapFragment;
 import info.goforus.goforus.R;
 import info.goforus.goforus.ViewIdGenerator;
-import info.goforus.goforus.event_results.CalculateIndicatorUpdate;
 import info.goforus.goforus.event_results.IndicatorUpdateResult;
+import info.goforus.goforus.tasks.UpdateIndicatorTask;
 
 public class Indicator implements View.OnClickListener {
     private BaseActivity mActivity;
@@ -98,35 +97,9 @@ public class Indicator implements View.OnClickListener {
     }
 
     public void update(){
-        final Projection projection = mMap.getProjection();
-        final LatLngBounds bounds = projection.getVisibleRegion().latLngBounds;
-        final LatLng driverLocation = mDriver.location();
-        final int arrowViewHeight = arrowView.getHeight();
-        final int arrowViewWidth = arrowView.getWidth();
-        final int actionBarSize  = mActivity.getActionBarSize();
-        final LatLng mapCenter = mMap.getCameraPosition().target;
-
-        if (bounds.contains(driverLocation)) {
-            hide();
-        } else {
-            AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
-                @Override
-                public void run() throws Exception {
-                    EventBus.getDefault().post(new CalculateIndicatorUpdate(
-                            projection, bounds, driverLocation, arrowViewHeight,
-                            arrowViewWidth, actionBarSize, mapCenter
-                    ));
-                }
-            });
-        }
+        new UpdateIndicatorTask(mMap, mDriver, arrowView, mActivity).execute();
     }
 
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    public void onCalculatedResult(CalculateIndicatorUpdate update){
-        EventBus.getDefault().post(new IndicatorUpdateResult(update.x, update.y, update.heading));
-    }
-
-    // Run on background thread to take away computation from the UI thread
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onUpdateResult(IndicatorUpdateResult result) {
         ViewHelper.setY(arrowView, result.y);

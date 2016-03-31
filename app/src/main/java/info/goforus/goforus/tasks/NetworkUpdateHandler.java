@@ -41,6 +41,7 @@ public class NetworkUpdateHandler {
 
                     EventBus.getDefault().post(new NetworkUpdateResult(activeNetwork, Application.isConnected));
 
+                    mHandler.removeCallbacks(task);
                     mHandler.postDelayed(task, REPEAT_TIME);
                 }
             });

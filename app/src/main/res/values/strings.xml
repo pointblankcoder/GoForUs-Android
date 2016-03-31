@@ -135,5 +135,6 @@
     <string name="message_item_sent">Sent</string>
     <string name="message_item_delivered">Delivered</string>
     <string name="message_item_read">Read</string>
+    <string name="message_item_seen">Seen</string>
 
 </resources>

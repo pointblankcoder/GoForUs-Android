@@ -30,7 +30,8 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
     private boolean mFabIsShown;
     private View mBriefView;
     private View mBackgroundImageView;
-    private View mFab;
+    private View mFabContact;
+    private View mFabOrder;
     private LinearLayout mRatingContainer;
 
     @Override
@@ -38,6 +39,7 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driver_details);
         mDriver = Parcels.unwrap(getIntent().getParcelableExtra("Information"));
+        setTitle(mDriver.email);
 
 
         // Toolbar
@@ -59,14 +61,23 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
         View mContentSpacerView = findViewById(R.id.contentSpacer);
         mContentSpacerView.getLayoutParams().height = mFlexibleSpaceImageHeight;
 
-        setTitle(null);
+        setTitle(mDriver.email);
 
-        // FAB
-        mFab = findViewById(R.id.fab);
-        mFab.setOnClickListener(new View.OnClickListener() {
+        // FABs
+        mFabContact = findViewById(R.id.fabContact);
+        mFabOrder = findViewById(R.id.fabOrder);
+
+        mFabContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(DriverDetailsActivity.this, "FAB is clicked", Toast.LENGTH_SHORT).show();
+                Toast.makeText(DriverDetailsActivity.this, "Contact Fab Clicked", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        mFabOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(DriverDetailsActivity.this, "Order Fab Clicked", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -80,7 +91,7 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
         });
 
 
-        addRating();
+        //addRating();
     }
 
     @Override
@@ -102,12 +113,14 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
             ViewHelper.setTranslationY(mBackgroundImageView, -(mBackgroundImageView.getHeight() - maxBackground));
         }
 
-        // Translate OrderFab
-        ViewHelper.setTranslationY(mFab, ((mBriefView.getY() + mBriefView.getHeight()) - (mFab.getHeight() / 2)));
 
         // Translate Rating Bar (Based on Driver Brief positioning)
-        ViewHelper.setTranslationY(mRatingContainer, ((mBriefView.getY()) - (mRatingContainer.getHeight() / 2)));
 
+        // Translate FABs
+        ViewHelper.setTranslationY(mFabContact, ((mBriefView.getY() + mBriefView.getHeight() / 2) - (mFabContact.getHeight() / 2)));
+        ViewHelper.setTranslationY(mFabOrder, mFabContact.getY());
+
+        //ViewHelper.setTranslationY(mRatingContainer, ((mBriefView.getY() + mBriefView.getHeight()) - (mRatingContainer.getHeight() / 2)));
 
         showFab();
     }
@@ -132,8 +145,10 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
 
     private void showFab() {
         if (!mFabIsShown) {
-            ViewPropertyAnimator.animate(mFab).cancel();
-            ViewPropertyAnimator.animate(mFab).scaleX(1).scaleY(1).setDuration(200).start();
+            ViewPropertyAnimator.animate(mFabContact).cancel();
+            ViewPropertyAnimator.animate(mFabOrder).cancel();
+            ViewPropertyAnimator.animate(mFabContact).scaleX(1).scaleY(1).setDuration(200).start();
+            ViewPropertyAnimator.animate(mFabOrder).scaleX(1).scaleY(1).setDuration(200).start();
             mFabIsShown = true;
         }
     }

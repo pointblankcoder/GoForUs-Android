@@ -31,6 +31,7 @@ import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.event_results.MessageSentResult;
+import info.goforus.goforus.tasks.MessagesUpdateHandler;
 
 public class MessagesFragment extends Fragment {
     private EditText etMessage;
@@ -57,6 +58,7 @@ public class MessagesFragment extends Fragment {
     }
 
     List<Message> waitingForConfirmation = new ArrayList<>();
+
     @Override
     public void onStart() {
         super.onStart();
@@ -88,8 +90,10 @@ public class MessagesFragment extends Fragment {
                     message.isMe = true;
                     message.body = data;
                     message.waitingForConfirmation = true;
-                    mAdapter.add(message);
+                    message.shouldAnimateIn = true;
                     waitingForConfirmation.add(message);
+                    mAdapter.add(message);
+
                     // TODO show some indicator that we are sending the message
                     btSend.setEnabled(false);
                     etMessage.setEnabled(false);
@@ -106,7 +110,6 @@ public class MessagesFragment extends Fragment {
             }
         });
 
-        //mHandler.postDelayed(connectivityCheck, 1);
     }
 
     @Override
@@ -117,16 +120,20 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
         EventBus.getDefault().register(this);
+        MessagesUpdateHandler.getInstance().startUpdates(mConversation);
     }
 
     @Override
     public void onPause() {
         super.onPause();
         EventBus.getDefault().unregister(this);
+        MessagesUpdateHandler.getInstance().stopUpdates();
     }
 
+    // This is where we show the fragment again from an on click,
+    // TODO: think of a better way around handing the ListView new data from outside of the fragment
+    // without hooking into the show() hide() methods of the Fragme
     @Override
     public void onHiddenChanged(boolean hidden) {
         if (!hidden) {
@@ -135,40 +142,6 @@ public class MessagesFragment extends Fragment {
             mAdapter.notifyDataSetChanged();
         }
     }
-
-    // TODO: Have a look at this, am I calculating the time difference correctly?
-    //       This should not be fired from the receiving message anymore as we only receive messages
-    //       that are now, consider seperating out into a seperate class and use Eventbus to sent
-    //       an event to the UI notifying us that the connection is dropping.
-    Runnable connectivityCheck = new Runnable() {
-        @Override
-        public void run() {
-            // Ignore first run time
-            if (lastConnectionTime > 0) {
-                int timeWithoutConnectionLimit = 10;
-                long currentTime = new Date().getTime();
-                long timeSinceLastUpdate = (currentTime - lastConnectionTime);
-                if (timeSinceLastUpdate > timeWithoutConnectionLimit) {
-                    // Let's show a connectivity message
-
-                    if (!connectivityLayout.isShown()) {
-                        YoYo.with(Techniques.FadeInDown).
-                                duration(1000).
-                                playOn(connectivityLayout);
-                    }
-                    connectivityLayout.setVisibility(View.VISIBLE);
-                } else {
-                    if (connectivityLayout.isShown()) {
-                        YoYo.with(Techniques.FadeInUp).
-                                duration(600).
-                                playOn(connectivityLayout);
-                    }
-                    connectivityLayout.setVisibility(View.INVISIBLE);
-                }
-            }
-            mHandler.postDelayed(connectivityCheck, 2000);
-        }
-    };
 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -195,24 +168,22 @@ public class MessagesFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessagesUpdate(MessagesFromApiResult result) {
-        lastConnectionTime = new Date().getTime();
         if (result.getConversation().externalId == mConversation.externalId && result.getMessages().size() > 0) {
-            confirmWaitingMessages(result.getMessages());
+            List<Message> messages = result.getMessages();
 
-            mAdapter.addAll(result.getMessages());
-            mAdapter.notifyDataSetChanged();
-        }
-    }
-
-    public void confirmWaitingMessages(List<Message> newMessages){
-        for(Message waitingMessage : waitingForConfirmation){
-            for(Message newMessage : newMessages) {
-                if(!newMessage.isMe)
-                    break;
-                if(waitingMessage.body.equals(newMessage.body))
-                    mAdapter.remove(waitingMessage);
-                    break;
+            for (Message newMessage : messages) {
+                for (Message waitingMessage : waitingForConfirmation) {
+                    if (waitingMessage.body.equals(newMessage.body)) {
+                        waitingForConfirmation.remove(waitingMessage);
+                        mAdapter.remove(waitingMessage);
+                        mAdapter.notifyDataSetChanged();
+                        break;
+                    }
+                }
             }
+
+            mAdapter.addAll(messages);
+            mAdapter.notifyDataSetChanged();
         }
     }
 }

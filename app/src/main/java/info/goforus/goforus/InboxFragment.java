@@ -72,7 +72,7 @@ public class InboxFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onConversationsUpdate(ConversationsFromApiResult result) {
-        if(result.getConversations().size() > mAdapter.getCount()) {
+        if(result.getConversations().size() > 0) {
             mAdapter.addAll(result.getConversations());
             mAdapter.notifyDataSetChanged();
         }

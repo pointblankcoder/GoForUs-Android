@@ -35,8 +35,9 @@ public class Message extends Model {
     @Column(name = "notificationSent")
     public boolean notificationSent = false;
 
-    // Used for in Memory object for the Message Adapter to know if a message has been received back from the server
+    // Used for in Memory object for the Message Adapter animations and confirmation of received messages
     public boolean waitingForConfirmation = false;
+    public boolean shouldAnimateIn = false;
 
     public Message() {
         super();

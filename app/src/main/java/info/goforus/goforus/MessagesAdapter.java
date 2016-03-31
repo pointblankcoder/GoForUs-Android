@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.nineoldandroids.animation.Animator;
+import com.orhanobut.logger.Logger;
 
 import java.util.List;
 
@@ -32,8 +33,8 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         boolean isMe;
         boolean readBySender;
         boolean readByReceiver;
-        boolean waitingForConfirmation;
         TextView status;
+        View view;
     }
 
     public MessagesAdapter(Context context, ListView listView, List<Message> messages) {
@@ -43,45 +44,17 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
     }
 
     @Override
-    public void remove(Message message){
-        View view = getViewByPosition(getPosition(message), mListView);
-        final boolean[] ended = {false};
-        YoYo.with(Techniques.Tada)
-                .duration(700)
-                .withListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        ended[0] = true;
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-                    }
-                })
-                .playOn(view);
-
-        super.remove(message);
-    }
-
-    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Message message = getItem(position);
 
-        ViewHolder viewHolder;
+        final ViewHolder viewHolder;
 
         if (convertView == null) {
             viewHolder = new ViewHolder();
             LayoutInflater inflater = LayoutInflater.from(getContext());
             convertView = inflater.inflate(R.layout.item_message, parent, false);
 
+            viewHolder.view = convertView;
             viewHolder.imageOther = (ImageView) convertView.findViewById(R.id.ivProfileOther);
             viewHolder.imageMe = (ImageView) convertView.findViewById(R.id.ivProfileMe);
             viewHolder.body = (TextView) convertView.findViewById(R.id.tvBody);
@@ -89,13 +62,6 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
-        }
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            convertView.setBackgroundColor(mContext.getResources().getColor(R.color.white, mContext.getTheme()));
-        } else {
-            convertView.setBackgroundColor(mContext.getResources().getColor(R.color.white));
         }
 
         if (message.isMe) {
@@ -110,20 +76,16 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
                 if (message.waitingForConfirmation)
                     viewHolder.status.setText(R.string.message_item_sent);
                 else
+                    if (message.readByReceiver)
+                        viewHolder.status.setText(R.string.message_item_seen);
+                    else
                     viewHolder.status.setText(R.string.message_item_delivered);
 
             } else {
                 viewHolder.status.setVisibility(View.GONE);
             }
 
-            // Set background color if we are waiting for confirmation
-            if (message.waitingForConfirmation) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    convertView.setBackgroundColor(mContext.getResources().getColor(R.color.colorGreyOut, mContext.getTheme()));
-                } else {
-                    convertView.setBackgroundColor(mContext.getResources().getColor(R.color.colorGreyOut));
-                }
-            }
+
         } else {
             viewHolder.imageOther.setVisibility(View.VISIBLE);
             viewHolder.imageMe.setVisibility(View.GONE);
@@ -131,24 +93,33 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
             viewHolder.status.setVisibility(View.GONE);
         }
 
-        viewHolder.waitingForConfirmation = message.waitingForConfirmation;
         viewHolder.isMe = message.isMe;
         viewHolder.readByReceiver = message.readByReceiver;
         viewHolder.readBySender = message.readBySender;
         viewHolder.body.setText(message.body);
 
-        return convertView;
-    }
 
-    public View getViewByPosition(int pos, ListView listView) {
-        final int firstListItemPosition = listView.getFirstVisiblePosition();
-        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
+        if (message.shouldAnimateIn){
+            YoYo.with(Techniques.FadeInUp)
+                    .duration(500)
+                    .withListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+                        }
 
-        if (pos < firstListItemPosition || pos > lastListItemPosition ) {
-            return listView.getAdapter().getView(pos, null, listView);
-        } else {
-            final int childIndex = pos - firstListItemPosition;
-            return listView.getChildAt(childIndex);
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                        }
+
+                        @Override
+                        public void onAnimationCancel(Animator animation) {}
+
+                        @Override
+                        public void onAnimationRepeat(Animator animation) {}
+                    })
+                    .playOn(viewHolder.view);
         }
+
+        return convertView;
     }
 }

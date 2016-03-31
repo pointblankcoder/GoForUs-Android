@@ -82,6 +82,11 @@ public class NavigationActivity extends BaseActivity
             mapFragment = (MapFragment) mFragmentManager.getFragment(savedInstanceState, "Map");
             inboxFragment = (InboxFragment) mFragmentManager.getFragment(savedInstanceState, "Inbox");
             messagesFragment = (MessagesFragment) mFragmentManager.getFragment(savedInstanceState, "Messages");
+            if(savedInstanceState.getBoolean("mMessageFabShown")){
+                mMessageFab.show();
+            } else {
+                mMessageFab.hide();
+            }
         }
         if (mapFragment == null)
             mapFragment = new MapFragment();
@@ -117,6 +122,8 @@ public class NavigationActivity extends BaseActivity
             sfm.putFragment(savedInstanceState, "Inbox", sfm.findFragmentByTag("Inbox"));
         if (messagesFragment.isAdded())
             sfm.putFragment(savedInstanceState, "Messages", sfm.findFragmentByTag("Messages"));
+
+        savedInstanceState.putBoolean("mMessageFabShown", mMessageFab.isShown());
 
         super.onSaveInstanceState(savedInstanceState);
     }

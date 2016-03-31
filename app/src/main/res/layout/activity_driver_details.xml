@@ -63,7 +63,7 @@
                     android:paddingLeft="@dimen/activity_horizontal_margin"
                     android:paddingRight="@dimen/activity_horizontal_margin"
                     android:paddingTop="@dimen/activity_vertical_margin"
-                    android:text="@string/large_text" />
+                    android:text="@string/lorem" />
             </LinearLayout>
 
         </com.github.ksoichiro.android.observablescrollview.ObservableScrollView>
@@ -104,12 +104,20 @@
         app:theme="@style/Widget.AppCompat.Toolbar" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/fabContact"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
+        android:layout_gravity="left"
+        android:src="@drawable/email_open_outline"
+        app:fabSize="normal"
+        android:scaleType="center" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabOrder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
         android:src="@drawable/check_circle_outline"
         app:fabSize="normal"
         android:scaleType="center" />
 </FrameLayout>
-

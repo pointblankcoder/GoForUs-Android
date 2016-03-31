@@ -17,9 +17,9 @@ public class MessagesFromApiResult {
     public MessagesFromApiResult(JSONArray json, Conversation conversation){
         mConversation = conversation;
         if(json != null) {
-            List<Message> messages = Message.findOrCreateAllFromJson(json, conversation);
-            if (messages.size() > 0) {
-                EventBus.getDefault().post(new MessagesUpdateServiceResult(conversation, messages));
+            mMessages = Message.findOrCreateAllFromJson(json, conversation);
+            if (mMessages.size() > 0) {
+                EventBus.getDefault().post(new MessagesUpdateServiceResult(conversation, mMessages));
             }
         }
     }
