@@ -1,12 +1,13 @@
-package info.goforus.goforus.services;
+package info.goforus.goforus.services.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-public class ConversationsAlarmReceiver extends BroadcastReceiver {
-    public static final int REQUEST_CODE = 2555;
-    public static final String ACTION = "info.goforus.goforus.services.ConversationsService";
+import info.goforus.goforus.services.ConversationsUpdateService;
+
+public class ConversationsUpdateReceiver extends BroadcastReceiver {
+    public static final String ACTION = "info.goforus.goforus.services.ConversationsUpdateService";
 
     // Triggered by the Alarm periodically (starts the service to run task)
     @Override

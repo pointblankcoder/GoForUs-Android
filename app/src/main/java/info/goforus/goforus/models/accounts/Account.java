@@ -4,12 +4,17 @@ import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
+import com.google.android.gms.maps.model.LatLng;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import org.parceler.Parcel;
 
 import java.util.List;
 
 import info.goforus.goforus.models.conversations.Conversation;
+import info.goforus.goforus.models.conversations.Message;
+import info.goforus.goforus.event_results.LocationUpdateServiceResult;
 import us.monoid.json.JSONObject;
 
 @Parcel(analyze = Account.class, value = Parcel.Serialization.BEAN)
@@ -18,7 +23,7 @@ public class Account extends Model {
     private static final String TAG = "Account";
 
     @Column(name = "externalId", index = true, unique = true)
-    Integer externalId;
+    public Integer externalId;
     @Column(name = "name")
     public String name;
     @Column(name = "email")
@@ -34,6 +39,7 @@ public class Account extends Model {
 
     public Account() {
         super();
+        EventBus.getDefault().register(this);
     }
 
     public Account(JSONObject accountObject) {
@@ -58,8 +64,24 @@ public class Account extends Model {
         return new Select().from(Account.class).orderBy("id DESC").executeSingle();
     }
 
+    // order our conversations by the ones with the most recent messages within them
+    public List<Conversation> conversationsOrderedByRecentMessages() {
+        return new Select().from(Conversation.class).as("conversations").
+                innerJoin(Message.class).on("Messages.Conversation = conversations.id").
+                where("conversations.Account = ?", getId()).groupBy("conversations.id").
+                orderBy("Messages.externalId").execute();
+    }
+
     public List<Conversation> conversations() {
         return getMany(Conversation.class, "Account");
+    }
+
+    public int conversationsCount() {
+        return new Select().from(Conversation.class).where("Account = ?", getId()).count();
+    }
+
+    public LatLng location(){
+        return new LatLng(lat, lng);
     }
 
     public void updateLocation(double lat, double lng) {
@@ -67,4 +89,16 @@ public class Account extends Model {
         this.lng = lng;
         this.save();
     }
+
+    public boolean hasLocation(){
+        return lat != 0 && lng != 0;
+    }
+
+    @Subscribe
+    public void onLocationUpdate(LocationUpdateServiceResult result) {
+        if(result.getAccountId() == externalId) {
+            updateLocation(result.getLocation().latitude, result.getLocation().longitude);
+        }
+    }
+
 }

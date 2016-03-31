@@ -1,6 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.neenbedankt.android-apt'
 
+apt {
+    arguments {
+        eventBusIndex "info.goforus.goforus.EventBusIndex"
+    }
+}
 
 android {
     compileSdkVersion 23
@@ -55,4 +60,7 @@ dependencies {
 
     // Development related
     compile 'com.github.orhanobut:logger:1.12'
+
+    compile 'org.greenrobot:eventbus:3.0.0'
+    apt 'org.greenrobot:eventbus-annotation-processor:3.0.1'
 }

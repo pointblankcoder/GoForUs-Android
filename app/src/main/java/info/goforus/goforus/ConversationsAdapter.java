@@ -1,21 +1,21 @@
 package info.goforus.goforus;
 
-import android.app.Fragment;
 import android.content.Context;
-import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import org.greenrobot.eventbus.util.AsyncExecutor;
 
 import java.util.List;
 
+import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.models.conversations.Conversation;
-import info.goforus.goforus.models.conversations.DataDistributor;
+import info.goforus.goforus.models.conversations.Message;
 
-public class ConversationsAdapter extends ArrayAdapter<Conversation> implements DataDistributor.ConversationsUpdates {
+public class ConversationsAdapter extends ArrayAdapter<Conversation> {
     private final NavigationActivity mContext;
 
     // View lookup cache
@@ -26,7 +26,6 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> implements 
     public ConversationsAdapter(Context context, List<Conversation> conversations) {
         super(context, 0, conversations);
         mContext = (NavigationActivity) context;
-        DataDistributor.getInstance().addListener(this);
     }
 
     @Override
@@ -46,29 +45,30 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> implements 
         }
 
         convertView.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
+                AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
+                    @Override
+                    public void run() throws Exception {
+                        for(Message m : conversation.messages()) {
+                            if(!m.readByReceiver) {
+                                Utils.MessagesApi.markRead(conversation, m);
+                                m.readByReceiver = true;
+                                m.save();
+                            }
+                        }
+                    }
+                });
+
                 mContext.showMessagesFragment(conversation);
             }
         });
 
         // Populate the data into the template view using the data object
-        viewHolder.subject.setText(conversation.subject);
+        viewHolder.subject.setText(String.format("%s (%s)",conversation.subject, conversation.unreadMessageCount()));
 
         // Return the completed view to render on screen
         return convertView;
-    }
-
-
-    @Override
-    public void onConversationsUpdate(final List<Conversation> conversations) {
-        mContext.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                clear();
-                addAll(conversations);
-                notifyDataSetChanged();
-            }
-        });
     }
 }

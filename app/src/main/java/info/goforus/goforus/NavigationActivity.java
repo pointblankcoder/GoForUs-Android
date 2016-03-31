@@ -18,18 +18,22 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.parceler.Parcels;
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import info.goforus.goforus.apis.listeners.LogoutResponseListener;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.models.conversations.Conversation;
-import info.goforus.goforus.models.conversations.DataDistributor;
+import info.goforus.goforus.event_results.NewMessagesResult;
 import us.monoid.json.JSONObject;
 
 public class NavigationActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, LogoutResponseListener,
-        FragmentManager.OnBackStackChangedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, LogoutResponseListener {
     private ActionBarDrawerToggle mDrawerToggle;
     private FloatingActionButton mMessageFab;
     private Toolbar mToolbar;
@@ -45,18 +49,6 @@ public class NavigationActivity extends BaseActivity
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        DataDistributor.getInstance().startDistribution();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        DataDistributor.getInstance().stopDistribution();
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
@@ -66,22 +58,10 @@ public class NavigationActivity extends BaseActivity
 
         mMessageFab = (FloatingActionButton) findViewById(R.id.messageFab);
         if (mMessageFab != null) {
-            final int[] clickCount = {0};
             mMessageFab.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    clickCount[0]++;
-                    if (clickCount[0] >= 2) {
-                        showInboxFragment();
-                        clickCount[0] = 0;
-                    } else {
-                        // TODO: Apply this only if new user/has the setting for tips/hints
-                        Toast.makeText(
-                                NavigationActivity.this,
-                                String.format("You have %s new messages.\nDouble tap to open your inbox", Conversation.totalUnreadMessagesCount()),
-                                Toast.LENGTH_LONG
-                        ).show();
-                    }
+                    showInboxFragment();
                 }
             });
         }
@@ -97,11 +77,12 @@ public class NavigationActivity extends BaseActivity
 
         // only create fragments if they haven't been instantiated already
         mFragmentManager = getSupportFragmentManager();
-        mFragmentManager.addOnBackStackChangedListener(this);
 
-        mapFragment = (MapFragment) mFragmentManager.findFragmentByTag("Map");
-        inboxFragment = (InboxFragment) mFragmentManager.findFragmentByTag("Inbox");
-        messagesFragment = (MessagesFragment) mFragmentManager.findFragmentByTag("Messages");
+        if (savedInstanceState != null) {
+            mapFragment = (MapFragment) mFragmentManager.getFragment(savedInstanceState, "Map");
+            inboxFragment = (InboxFragment) mFragmentManager.getFragment(savedInstanceState, "Inbox");
+            messagesFragment = (MessagesFragment) mFragmentManager.getFragment(savedInstanceState, "Messages");
+        }
         if (mapFragment == null)
             mapFragment = new MapFragment();
         if (inboxFragment == null)
@@ -109,11 +90,35 @@ public class NavigationActivity extends BaseActivity
         if (messagesFragment == null)
             messagesFragment = new MessagesFragment();
 
-        showMapFragment();
+        if (savedInstanceState == null)
+            showMapFragment();
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
     }
 
     @Override
-    public void onBackStackChanged() {
+    public void onPause() {
+        super.onPause();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        FragmentManager sfm = getSupportFragmentManager();
+
+        if (mapFragment.isAdded())
+            sfm.putFragment(savedInstanceState, "Map", sfm.findFragmentByTag("Map"));
+        if (inboxFragment.isAdded())
+            sfm.putFragment(savedInstanceState, "Inbox", sfm.findFragmentByTag("Inbox"));
+        if (messagesFragment.isAdded())
+            sfm.putFragment(savedInstanceState, "Messages", sfm.findFragmentByTag("Messages"));
+
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -122,7 +127,6 @@ public class NavigationActivity extends BaseActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-
             if (messagesFragment.isVisible()) {
                 showInboxFragment();
 
@@ -228,15 +232,12 @@ public class NavigationActivity extends BaseActivity
 
     public void showMessagesFragment(Conversation conversation) {
         FragmentTransaction ft = mFragmentManager.beginTransaction();
+        MessagesFragment.mConversation = conversation;
 
         if (messagesFragment.isAdded()) {
             ft.show(messagesFragment);
-            MessagesFragment.mConversation = conversation;
         } else {
-            Bundle bundle = new Bundle();
-            bundle.putParcelable("Conversation", Parcels.wrap(conversation));
-            messagesFragment.setArguments(bundle);
-            ft.add(R.id.content, messagesFragment, "Conversation");
+            ft.add(R.id.content, messagesFragment, "Messages");
         }
 
         if (inboxFragment.isAdded()) {
@@ -282,6 +283,21 @@ public class NavigationActivity extends BaseActivity
 
 
     /* =================== Api Callbacks ================= */
+    int lastMessageCount = 0;
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void notifyNewMessage(NewMessagesResult result) {
+        lastMessageCount = result.getNewMessages().size();
+        Toast.makeText(
+                NavigationActivity.this,
+                String.format("You have %s new messages.", lastMessageCount),
+                Toast.LENGTH_LONG
+        ).show();
+        YoYo.with(Techniques.Shake)
+                .duration(2000)
+                .playOn(mMessageFab);
+    }
+
     @Override
     public void onLogoutResponse(JSONObject response) {
         if (response.has("error")) {

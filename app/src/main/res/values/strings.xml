@@ -129,5 +129,11 @@
     <string name="messages_fragment_title">Message</string>
     <string name="inbox_fragment_title">Inbox (%s)</string>
     <string name="map_fragment_title">Map</string>
+    <string name="standard_failure_response">Something went wrong, please try again later.</string>
+    <string name="message_sent">message was sent successully</string>
+    <string name="losing_connection">Losing Connection - hang tight!</string>
+    <string name="message_item_sent">Sent</string>
+    <string name="message_item_delivered">Delivered</string>
+    <string name="message_item_read">Read</string>
 
 </resources>

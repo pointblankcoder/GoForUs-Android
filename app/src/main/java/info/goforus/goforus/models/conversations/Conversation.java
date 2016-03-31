@@ -10,7 +10,6 @@ import org.parceler.Parcel;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import info.goforus.goforus.models.accounts.Account;
@@ -44,7 +43,6 @@ public class Conversation extends Model {
         }
     }
 
-
     @SuppressWarnings("unused") // This is used internally for
     private void setId(Parcel in) {
         try {
@@ -56,7 +54,9 @@ public class Conversation extends Model {
         }
     }
 
-
+    public static Conversation last(){
+        return new Select().from(Conversation.class).orderBy("externalId DESC").executeSingle();
+    }
 
     // Finds existing Message based on remoteId or creates new user and returns
     public static Conversation findOrCreateFromJson(JSONObject json) {
@@ -70,7 +70,7 @@ public class Conversation extends Model {
 
         Conversation existingConversation =
                 new Select().from(Conversation.class).where("externalId = ?", externalId).executeSingle();
-        if (existingConversation!= null) {
+        if (existingConversation != null) {
             return existingConversation;
         } else {
             Conversation conversation = new Conversation(json);
@@ -79,19 +79,14 @@ public class Conversation extends Model {
         }
     }
 
-    public static List<Conversation> findOrCreateAllFromJson(JSONArray response){
+    public static List<Conversation> findOrCreateAllFromJson(JSONArray response) {
         List<Conversation> conversations = new ArrayList<>();
 
         for (int i = 0; i < response.length(); i++) {
             try {
                 JSONObject conversationJson = response.getJSONObject(i);
                 Conversation conversation = Conversation.findOrCreateFromJson(conversationJson);
-                JSONArray messages = conversationJson.getJSONArray("messages");
                 conversations.add(conversation);
-
-                for (int i2 = 0; i2 < messages.length(); i2++) {
-                    Message.findOrCreateFromJson(messages.getJSONObject(i2), conversation);
-                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -103,11 +98,23 @@ public class Conversation extends Model {
         return new Select().from(Message.class).where("Conversation = ?", getId()).orderBy("externalId ASC").execute();
     }
 
+    public int messagesCount(){
+        return new Select().from(Message.class).where("Conversation = ?", getId()).count();
+    }
+
+    public Message lastMessage() {
+        return new Select().from(Message.class).where("Conversation = ?", getId()).orderBy("id DESC").executeSingle();
+    }
+
+    public int unreadMessageCount(){
+        return new Select().from(Message.class).where("Conversation = ? AND readByReceiver = ? AND isMe = ?", getId(), false, false).count();
+    }
+
     public static int totalUnreadMessagesCount() {
         int count = 0;
         for (Conversation c : Account.currentAccount().conversations()) {
             for (Message m : c.messages()) {
-                if (m.isUnread)
+                if (!m.readByReceiver && !m.isMe)
                     count++;
             }
         }

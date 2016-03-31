@@ -5,18 +5,15 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
 
-import com.google.android.gms.location.LocationSettingsStates;
-
 import info.goforus.goforus.settings.Gps;
 import info.goforus.goforus.settings.PermissionsHandler;
-import info.goforus.goforus.tasks.LocationUpdatesTask;
 
 public abstract class BaseActivity extends AppCompatActivity {
     public Application mApplication = Application.getInstance();
-    private LocationUpdatesTask mLocationUpdatesTask;
 
     /* =========================== Class Overrides =========================== */
     @Override
@@ -26,11 +23,6 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         if (!Gps.turnedOn()) {
             PermissionsHandler.checkGpsPermissions(this);
-        } else {
-            if (mLocationUpdatesTask == null)
-                mLocationUpdatesTask = new LocationUpdatesTask();
-            if (!mLocationUpdatesTask.running)
-                mLocationUpdatesTask.start();
         }
     }
 
@@ -54,14 +46,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         clearReferences();
-        if (mLocationUpdatesTask != null && mLocationUpdatesTask.running)
-            mLocationUpdatesTask.stop();
         super.onDestroy();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);
+        //final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);
 
         switch (requestCode) {
             case PermissionsHandler.GPS_PERMISSIONS_REQUEST:
@@ -70,7 +60,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                         // All is good, let's continue
                         break;
                     case Activity.RESULT_CANCELED:
-                        PermissionsHandler.getInstance().alertUserGpsIsRequired(this);
+                        PermissionsHandler.alertUserGpsIsRequired(this);
                         break;
                     default:
                         break;
@@ -81,7 +71,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PermissionsHandler.GPS_PERMISSIONS_REQUEST: {
                 // If request is cancelled, the result arrays are empty.
@@ -91,7 +81,6 @@ public abstract class BaseActivity extends AppCompatActivity {
                 } else {
                     PermissionsHandler.alertUserGpsIsRequired(this);
                 }
-                return;
             }
         }
     }

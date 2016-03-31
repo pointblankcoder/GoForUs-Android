@@ -8,5 +8,6 @@
     <color name="colorCTA">#b9c300</color>
     <color name="white">#fff</color>
 
-    <color name="colorAlizarin">#e74c3c</color>
+    <color name="colorGreyOut">#212121</color>
+    <color name="orange">#ff4500</color>
 </resources>

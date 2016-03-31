@@ -93,12 +93,6 @@ public class Driver extends Model implements Comparable<Driver> {
         );
     }
 
-    public void updatePositionOnMap(){
-        if(map != null){
-            marker.setPosition(location());
-        }
-    }
-
     public void goToWithInfoWindow() {
         if (marker != null) {
             // TODO: Add actual calculation based on the info window height
@@ -121,7 +115,6 @@ public class Driver extends Model implements Comparable<Driver> {
         if (marker != null) {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15);
             map.animateCamera(cameraUpdate, 1, new GoogleMap.CancelableCallback() {
-                @Override
                 public void onFinish() {
                 }
 
@@ -179,7 +172,7 @@ public class Driver extends Model implements Comparable<Driver> {
                 return list.indexOf(object);
             }
         }
-        return null;
+        return -1;
     }
 
 
@@ -187,5 +180,11 @@ public class Driver extends Model implements Comparable<Driver> {
     public int compareTo(@NonNull Driver another) {
         return this.externalId.compareTo(another.externalId);
 
+    }
+
+    public void updatePositionOnMap() {
+        if(map != null){
+            marker.setPosition(new LatLng(lat, lng));
+        }
     }
 }

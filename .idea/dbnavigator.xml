@@ -23,11 +23,7 @@
     <autoscroll-to-editor value="false" />
     <autoscroll-from-editor value="true" />
     <show-object-properties value="true" />
-    <loaded-nodes>
-      <connection connection-id="d0266c0c-0741-48fd-a5ac-828590993f15">
-        <schema name="main" object-types="table" />
-      </connection>
-    </loaded-nodes>
+    <loaded-nodes />
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="d0266c0c-0741-48fd-a5ac-828590993f15">
@@ -35,12 +31,12 @@
     </connection>
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
-    <filter-list connection-id="d0266c0c-0741-48fd-a5ac-828590993f15" dataset="main.CONVERSATION" active-filter-id="EMPTY_FILTER" />
     <filter-list connection-id="d0266c0c-0741-48fd-a5ac-828590993f15" dataset="main.ACCOUNT" active-filter-id="">
       <filter id="ff742966-fd55-403e-b931-5a095e244b48" name="All Accounts" temporary="false" custom-name="false" type="basic" join-type="AND">
         <condition column="ID" operator="=" value="" active="true" />
       </filter>
     </filter-list>
+    <filter-list connection-id="d0266c0c-0741-48fd-a5ac-828590993f15" dataset="main.CONVERSATION" active-filter-id="EMPTY_FILTER" />
     <filter-list connection-id="d0266c0c-0741-48fd-a5ac-828590993f15" dataset="main.DRIVER" active-filter-id="EMPTY_FILTER" />
     <filter-list connection-id="d0266c0c-0741-48fd-a5ac-828590993f15" dataset="main.MESSAGE" active-filter-id="EMPTY_FILTER" />
   </component>

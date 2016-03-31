@@ -19,9 +19,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import info.goforus.goforus.apis.listeners.LoginResponseListener;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.event_results.LocationUpdateServiceResult;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
@@ -170,6 +175,20 @@ public class LoginActivity extends BaseActivity implements LoginResponseListener
         super.onStop();
     }
 
+
+    @Override
+    public void onResume() {
+        EventBus.getDefault().register(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        EventBus.getDefault().unregister(this);
+        super.onPause();
+    }
+
+
     @Override
     public void onLoginResponse(final JSONObject response) {
         if (response.has("error")) {
@@ -201,11 +220,15 @@ public class LoginActivity extends BaseActivity implements LoginResponseListener
 
             currentAccount = new Account(response);
             currentAccount.save();
+        }
+    }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onLocationUpdated(LocationUpdateServiceResult result) {
+        if (Account.currentAccount().hasLocation()) {
             Intent intent = new Intent(LoginActivity.this, NavigationActivity.class);
             startActivity(intent);
             finish();
         }
     }
 }
-

@@ -3,8 +3,6 @@ package info.goforus.goforus;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -13,35 +11,33 @@ import android.view.ViewGroup;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.orhanobut.logger.Logger;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import info.goforus.goforus.apis.listeners.NearbyDriversResponseListener;
+import info.goforus.goforus.event_results.DriverUpdateResult;
 import info.goforus.goforus.models.accounts.Account;
-import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.drivers.Indicator;
 import info.goforus.goforus.models.drivers.InfoWindowAdapter;
-import us.monoid.json.JSONArray;
-import us.monoid.json.JSONException;
-import us.monoid.json.JSONObject;
+import info.goforus.goforus.tasks.DriversUpdateHandler;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback,
-        GoogleMap.OnMapLoadedCallback, MapWrapperLayout.OnDragListener,
+public class MapFragment extends SupportMapFragment implements OnMapReadyCallback,
+        GoogleMap.OnMapLoadedCallback, MapWrapperLayout.GestureListener,
         GoogleMap.OnCameraChangeListener, GoogleMap.OnInfoWindowClickListener,
-        GoogleMap.OnInfoWindowCloseListener, GoogleMap.OnInfoWindowLongClickListener, GoogleMap.OnMarkerClickListener,
-        NearbyDriversResponseListener {
+        GoogleMap.OnInfoWindowCloseListener, GoogleMap.OnInfoWindowLongClickListener, GoogleMap.OnMarkerClickListener {
 
     public static final String TAG = "MapFragment";
     private View mOriginalView;
@@ -49,56 +45,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
     private BaseActivity mActivity;
     private GoogleMap mMap;
     public List<Driver> currentlyDisplayedDrivers = new ArrayList<>();
-    private MapView mapView;
+    private boolean firstLoad = true;
 
 
     /* ======================== Fragment Overrides =================== */
     @Override
-    public void onCreate(Bundle savedInstanceState){
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mOriginalView = super.onCreateView(inflater, container, savedInstanceState);
-        mActivity = (BaseActivity) getActivity();
-        return inflater.inflate(R.layout.fragment_map, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState){
-        mapView = (MapView) view.findViewById(R.id.map);
-        mMapWrapperLayout = (MapWrapperLayout) view.findViewById(R.id.map_wrapper);
-
-        mapView.onCreate(savedInstanceState);
-        mapView.onResume();
-        mapView.getMapAsync(this);
-    }
-
-    @Override
-    public void onStart() {
-        // Start Collecting Driver Updates Periodically
-        Utils.startDriverUpdates(this);
-        if(!isHidden()) {
-            hideAllDrivers(false);
-        }
-        super.onStart();
-    }
-
-    @Override
-    public void onHiddenChanged(boolean hidden){
-        hideAllDrivers(hidden);
-    }
-
-    @Override
-    public void onStop() {
-        // Stop Collecting Driver Updates
-        Utils.stopDriverUpdates();
-
-        hideAllDrivers(true);
-
-        super.onStop();
     }
 
     @Override
@@ -108,8 +62,60 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
                 d.indicator.removeIndicator();
             }
         }
-        Utils.stopDriverUpdates();
         super.onDestroy();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mOriginalView = super.onCreateView(inflater, container, savedInstanceState);
+
+        // Assign our maps surround layout to so we can track screen gestures
+        mMapWrapperLayout = new MapWrapperLayout(getActivity());
+        mMapWrapperLayout.addView(mOriginalView);
+        // Init Google Map
+        getMapAsync(this);
+
+        mActivity = (BaseActivity) getActivity();
+        return mMapWrapperLayout;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!isHidden()) {
+            hideAllDrivers(false);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        hideAllDrivers(true);
+        super.onStop();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        EventBus.getDefault().register(this);
+        updateIndicators();
+        DriversUpdateHandler.getInstance().startUpdates();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        EventBus.getDefault().unregister(this);
+        DriversUpdateHandler.getInstance().stopUpdates();
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        hideAllDrivers(hidden);
     }
 
     @Override
@@ -131,11 +137,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
     /* ======================== Google Map Related =================== */
     @Override
     public void onCameraChange(CameraPosition position) {
-        for (Driver d : currentlyDisplayedDrivers) {
-            if (d.indicator != null) {
-                d.indicator.update();
-            }
-        }
+        updateIndicators();
     }
 
     @SuppressWarnings("ResourceType")
@@ -159,26 +161,30 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
         mMap.setOnMapLoadedCallback(this);
 
         // listen to dragging motion
-        mMapWrapperLayout.setOnDragListener(this);
+        mMapWrapperLayout.setGestureListener(this);
     }
 
     @Override
     public void onMapLoaded() {
-        Account account = Account.currentAccount();
-        LatLng latLng = new LatLng(account.lat, account.lng);
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
-        mMap.animateCamera(cameraUpdate, 1000, new GoogleMap.CancelableCallback() {
-            @Override
-            public void onFinish() {
+        if (firstLoad) {
+            Account account = Account.currentAccount();
+            LatLng latLng = new LatLng(account.lat, account.lng);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
+            mMap.animateCamera(cameraUpdate, 1000, new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
                 /*
                  TODO if the user is a first time user, start a helper flow to guide them through how to order a driver for delivery
                 */
-            }
+                }
 
-            @Override
-            public void onCancel() {
-            }
-        });
+                @Override
+                public void onCancel() {
+                }
+            });
+            firstLoad = false;
+        }
+        updateIndicators();
     }
 
     /* ======================== Marker Listeners =================== */
@@ -219,6 +225,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onDrag(MotionEvent event) {
+        updateIndicators();
+    }
+
+    @Override
+    public void onFling() {
+        updateIndicators();
+    }
+
+    public void updateIndicators(){
         for (Driver d : currentlyDisplayedDrivers) {
             if (d.indicator != null) {
                 d.indicator.update();
@@ -226,31 +241,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    /* ========================= API Callbacks =================== */
-    @Override
-    public void onResponse(JSONArray response) {
-        if (mMap == null){
-            return;
-        }
-        // Create the array of drivers from json response
-        ArrayList<Driver> drivers = new ArrayList<>();
-        for (int i = 0; i < response.length(); i++) {
-            JSONObject driverObject = null;
-            try {
-                driverObject = response.getJSONObject(i);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            if (driverObject != null) {
-                drivers.add(new Driver(driverObject));
-            }
-        }
-        addDriversToMap(drivers);
-    }
-
     /* =================== Helpers =================== */
-
     public void hideAllDrivers(boolean hide) {
         for (Driver d : currentlyDisplayedDrivers) {
             if (d.indicator != null) {
@@ -263,61 +254,39 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    public void addDriversToMap(final ArrayList<Driver> drivers) {
-        final BaseActivity _activity = mActivity;
-        mActivity.runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        Logger.i("Adding nearby drivers (%s) to map", drivers.size());
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDriversUpdate(DriverUpdateResult result) {
+        Driver d = result.getDriver();
 
-                        List<Driver> newDisplayedDrivers = new ArrayList<Driver>();
-                        for (Driver d : drivers) {
-                            if (Driver.containsId(currentlyDisplayedDrivers, d.externalId)) {
-                                // Just update the position of the current driver
-                                int index = Driver.getIndexOfDriverFrom(currentlyDisplayedDrivers, d.externalId);
-                                Driver _d = currentlyDisplayedDrivers.get(index);
+        if (Driver.containsId(currentlyDisplayedDrivers, d.externalId)) {
+            // Just update the position of the current driver
+            int index = Driver.getIndexOfDriverFrom(currentlyDisplayedDrivers, d.externalId);
+            // -1 represents a not found driver in the array
+            if (index != -1) {
+                Driver displayedDriverWithSameExternalId = currentlyDisplayedDrivers.get(index);
 
-                                // No need to continue we didn't move
-                                if (_d.lat == d.lat && _d.lng == d.lng) {
-                                    Logger.i("we already have %s displayed in the same location", _d);
-                                    newDisplayedDrivers.add(_d);
-                                    currentlyDisplayedDrivers.remove(_d);
-                                    break;
-                                }
+                // No need to continue we didn't move
+                if (displayedDriverWithSameExternalId.lat == d.lat && displayedDriverWithSameExternalId.lng == d.lng) {
+                    Logger.i("we already have %s displayed in the same location", displayedDriverWithSameExternalId);
+                    return;
+                }
 
-                                _d.lat = d.lat;
-                                _d.lng = d.lng;
-                                if (_d.marker != null) {
-                                    _d.updatePositionOnMap();
-                                    if (_d.marker.isInfoWindowShown()) {
-                                        _d.goToWithInfoWindow();
-                                    }
-                                }
+                displayedDriverWithSameExternalId.lat = d.lat;
+                displayedDriverWithSameExternalId.lng = d.lng;
+                displayedDriverWithSameExternalId.updatePositionOnMap();
 
-                                if (_d.indicator != null)
-                                    _d.indicator.update();
-                                newDisplayedDrivers.add(_d);
-                                currentlyDisplayedDrivers.remove(_d);
-                            } else {
-                                // Add to map
-                                d.addToMap(mMap);
-                                d.indicator = new Indicator(d, _activity, mMap, MapFragment.this);
-                                d.indicator.update();
-                                newDisplayedDrivers.add(d);
-                            }
-                        }
-
-                        // Clear drivers that are not in range anymore
-                        for (Driver d : currentlyDisplayedDrivers) {
-                            d.indicator.removeIndicator();
-                            d.marker.remove();
-                        }
-
-                        currentlyDisplayedDrivers = newDisplayedDrivers;
+                if (displayedDriverWithSameExternalId.marker != null) {
+                    if (displayedDriverWithSameExternalId.marker.isInfoWindowShown()) {
+                        displayedDriverWithSameExternalId.goToWithInfoWindow();
                     }
                 }
-        );
-
+            }
+        } else {
+            // Add to map
+            d.addToMap(mMap);
+            d.indicator = new Indicator(d, mActivity, mMap, MapFragment.this);
+            d.indicator.update();
+            currentlyDisplayedDrivers.add(d);
+        }
     }
 }

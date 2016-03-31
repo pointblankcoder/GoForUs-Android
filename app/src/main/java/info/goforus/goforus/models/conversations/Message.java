@@ -2,47 +2,58 @@ package info.goforus.goforus.models.conversations;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.orhanobut.logger.Logger;
 
 import org.parceler.Parcel;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
+import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
 @Parcel(Parcel.Serialization.BEAN)
+@Table(name = "Messages")
 public class Message extends Model {
 
-    @Column(name = "externalId", index = true, unique=  true)
+    @Column(name = "externalId", index = true, unique = true)
     public int externalId;
     @Column(name = "isMe", index = true)
     public boolean isMe;
-    @Column(name = "isUnread", index = true)
-    public boolean isUnread;
+    @Column(name = "readByReceiver", index = true)
+    public boolean readByReceiver;
+    @Column(name = "readBySender", index = true)
+    public boolean readBySender;
     @Column(name = "body")
     public String body;
     @Column(name = "Conversation")
     public Conversation conversation;
     @Column(name = "notificationSent")
-    public boolean noticiationSent = false;
+    public boolean notificationSent = false;
 
-    public Message(){
+    // Used for in Memory object for the Message Adapter to know if a message has been received back from the server
+    public boolean waitingForConfirmation = false;
+
+    public Message() {
         super();
     }
 
-    public Message(JSONObject message, Conversation conversation){
+    public Message(JSONObject message, Conversation conversation) {
         super();
         try {
             this.externalId = message.getInt("id");
-            this.isMe       = message.getBoolean("is_me");
-            this.isUnread   = message.getBoolean("is_unread");
-            this.body       = message.getString("body");
+            this.isMe = message.getBoolean("is_me");
+            this.readBySender = message.getBoolean("is_read_by_sender");
+            this.readByReceiver = message.getBoolean("is_read_by_receiver");
+            this.body = message.getString("body");
             this.conversation = conversation;
 
         } catch (JSONException e) {
-            e.printStackTrace();
+            Logger.e(e.toString());
         }
     }
 
@@ -77,5 +88,20 @@ public class Message extends Model {
             message.save();
             return message;
         }
+    }
+
+    public static List<Message> findOrCreateAllFromJson(JSONArray response, Conversation conversation) {
+        List<Message> messages = new ArrayList<>();
+
+        for (int i = 0; i < response.length(); i++) {
+            try {
+                JSONObject messageJSON = response.getJSONObject(i);
+                Message message = findOrCreateFromJson(messageJSON, conversation);
+                messages.add(message);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return messages;
     }
 }

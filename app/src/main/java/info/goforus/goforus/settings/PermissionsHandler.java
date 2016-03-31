@@ -8,6 +8,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 
+import info.goforus.goforus.Application;
 import info.goforus.goforus.R;
 
 public class PermissionsHandler {
@@ -28,6 +29,7 @@ public class PermissionsHandler {
 
     public static void gpsPermissionGranted(){
         permissionsHandler.GpsPermission = true;
+        Application.getInstance().LocationUpdateHandler.turnUpdatesOn();
     }
 
     public static void checkGpsPermissions(Activity activity) {

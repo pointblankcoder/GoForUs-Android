@@ -40,7 +40,6 @@
             android:name=".NavigationActivity"
             android:label="@string/title_activity_navigation"
             android:theme="@style/AppTheme" />
-        <!-- Services -->
 
         <activity
             android:name=".DriverDetailsActivity"
@@ -52,13 +51,32 @@
                 android:value="info.goforus.goforus.NavigationActivity" />
         </activity>
 
+        <!-- Services -->
         <receiver
-            android:name=".services.ConversationsAlarmReceiver"
+            android:name=".services.receivers.NotificationsUpdateReceiver"
             android:process=":remote"/>
+        <service
+            android:name=".services.NotificationsUpdateService"
+            android:exported="false" />
 
+        <receiver
+            android:name=".services.receivers.ConversationsUpdateReceiver" />
         <service
             android:name=".services.ConversationsUpdateService"
             android:exported="false" />
+
+        <receiver
+            android:name=".services.receivers.LocationUpdateReceiver" />
+        <service
+            android:name=".services.LocationUpdateService"
+            android:exported="false" />
+
+        <receiver
+            android:name=".services.receivers.DriversUpdateReceiver" />
+        <service
+            android:name=".services.DriversUpdateService"
+            android:exported="false" />
+
 
         <!-- Google Related -->
         <meta-data
