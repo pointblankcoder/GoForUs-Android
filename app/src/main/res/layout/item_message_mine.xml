@@ -5,59 +5,82 @@
     android:layout_height="fill_parent">
 
     <RelativeLayout
+        android:id="@+id/itemWrapper"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:background="@android:color/transparent">
-
-        <TextView
-            android:id="@+id/tvStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/ivProfile"
-            android:layout_alignTop="@+id/ivProfile"
-            android:textSize="14sp"
-            tools:text="sent" />
+        android:background="@android:color/transparent"
+        android:gravity="center_vertical">
 
         <FrameLayout
-            android:id="@+id/relativeLayout"
+            android:id="@+id/textContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/ivProfile"
-            android:layout_toStartOf="@+id/ivProfile"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
+            android:layout_toLeftOf="@+id/profileContainer"
+            android:layout_toStartOf="@+id/profileContainer"
 
-            android:minHeight="48dp"
-            android:background="@drawable/message_box_mine">
+            android:background="@drawable/message_box_mine"
+            android:minHeight="48dp">
 
             <TextView
                 android:id="@+id/tvBody"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end|center_vertical"
-                android:paddingLeft="8dp"
-                android:paddingStart="8dp"
-                android:paddingRight="8dp"
                 android:paddingEnd="8dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingStart="8dp"
                 android:textSize="16sp"
                 tools:text="foobarm" />
+
         </FrameLayout>
 
 
-        <ImageView
-            android:id="@+id/ivProfile"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignBottom="@+id/relativeLayout"
+        <RelativeLayout
+            android:id="@+id/profileContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignBottom="@id/textContainer"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true">
+
+            <ImageView
+                android:id="@+id/ivProfile"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:src="@drawable/ic_account_circle_black_48dp" />
+
+        </RelativeLayout>
+
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignLeft="@+id/profileContainer"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:src="@drawable/ic_account_circle_black_48dp" />
+            android:layout_alignStart="@+id/profileContainer"
+            android:layout_below="@+id/profileContainer"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp">
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="48dp"
+                android:layout_height="20dp"
+                android:focusable="false"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                tools:text="sent" />
+        </RelativeLayout>
     </RelativeLayout>
 </FrameLayout>

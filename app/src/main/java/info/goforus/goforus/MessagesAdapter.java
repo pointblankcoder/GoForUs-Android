@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -70,7 +69,6 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         }
 
         if (message.isMe) {
-            viewHolder.body.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
             viewHolder.status.setVisibility(View.VISIBLE);
             viewHolder.status.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
 
@@ -89,7 +87,6 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
 
 
         } else {
-            viewHolder.body.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
             viewHolder.status.setVisibility(View.GONE);
         }
 
@@ -133,8 +130,8 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
     @Override
     public int getItemViewType(int position) {
         if(mMessages.get(position).isMe){
-            return 1;  // our layout
+            return MY_ROW_TYPE;  // our layout
         }
-        return 0; // their layout
+        return THEIR_ROW_TYPE; // their layout
     }
 }

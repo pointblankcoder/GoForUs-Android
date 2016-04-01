@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 
 import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
@@ -153,7 +154,7 @@ public class MessagesFragment extends Fragment {
             AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
                 @Override
                 public void run() throws Exception {
-                    Utils.MessagesApi.getMessages(mConversation);
+                    Utils.MessagesApi.getMessagesSince(mConversation, mConversation.lastMessage().externalId);
                 }
             });
         } else {
