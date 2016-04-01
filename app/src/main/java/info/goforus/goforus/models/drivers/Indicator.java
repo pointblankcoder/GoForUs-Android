@@ -56,7 +56,7 @@ public class Indicator implements View.OnClickListener {
         viewId = ViewIdGenerator.generateViewId();
 
         ImageView _arrowView = new ImageView(mActivity);
-        _arrowView.setImageDrawable(ContextCompat.getDrawable(mActivity, R.drawable.driver_indicator));
+        _arrowView.setImageDrawable(ContextCompat.getDrawable(mActivity, R.drawable.ic_navigation_black_36dp));
         _arrowView.setId(viewId);
         _arrowView.setOnClickListener(this);
 

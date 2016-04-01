@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -15,6 +17,8 @@ import com.github.ksoichiro.android.observablescrollview.ScrollState;
 import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.nineoldandroids.view.ViewHelper;
 import com.nineoldandroids.view.ViewPropertyAnimator;
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.ViewHolder;
 
 import org.parceler.Parcels;
 
@@ -33,6 +37,7 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
     private View mFabContact;
     private View mFabOrder;
     private LinearLayout mRatingContainer;
+    private DialogPlus contactDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +51,7 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back_white_24dp);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         mActionBarSize = getActionBarSize();
@@ -63,6 +69,16 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
 
         setTitle(mDriver.email);
 
+
+        // Dialogs
+        contactDialog = DialogPlus.newDialog(this)
+                .setContentHolder(new ViewHolder(R.layout.dialog_contact_driver_content))
+                .setFooter(R.layout.dialog_contact_driver_footer)
+                .setGravity(Gravity.CENTER)
+                .setCancelable(true)
+                .create();
+
+
         // FABs
         mFabContact = findViewById(R.id.fabContact);
         mFabOrder = findViewById(R.id.fabOrder);
@@ -70,7 +86,7 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
         mFabContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(DriverDetailsActivity.this, "Contact Fab Clicked", Toast.LENGTH_SHORT).show();
+                contactDialog.show();
             }
         });
 
@@ -89,10 +105,19 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
                 mScrollView.scrollTo(0, 0);
             }
         });
-
-
-        //addRating();
     }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        final int id = item.getItemId();
+        if (id == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
 
     @Override
     public void onScrollChanged(int scrollY, boolean firstScroll, boolean dragging) {
@@ -114,29 +139,15 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
         }
 
 
-        // Translate Rating Bar (Based on Driver Brief positioning)
-
         // Translate FABs
         ViewHelper.setTranslationY(mFabContact, ((mBriefView.getY() + mBriefView.getHeight() / 2) - (mFabContact.getHeight() / 2)));
         ViewHelper.setTranslationY(mFabOrder, mFabContact.getY());
-
-        //ViewHelper.setTranslationY(mRatingContainer, ((mBriefView.getY() + mBriefView.getHeight()) - (mRatingContainer.getHeight() / 2)));
-
         showFab();
-    }
-
-    public void addRating() {
-        for (int i = 0; i < mDriver.rating; i++ ){
-            ImageView star = new ImageView(this);
-            star.setBackground(ContextCompat.getDrawable(this, R.drawable.star));
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(mRatingContainer.getLayoutParams());
-            star.setLayoutParams(params);
-            mRatingContainer.addView(star);
-        }
     }
 
     @Override
     public void onDownMotionEvent() {
+
     }
 
     @Override

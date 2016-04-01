@@ -151,6 +151,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         mapUISettings.setCompassEnabled(false);
         mapUISettings.setMapToolbarEnabled(false);
         mapUISettings.setZoomControlsEnabled(false);
+        mapUISettings.setRotateGesturesEnabled(false);
 
         mMap.setInfoWindowAdapter(new InfoWindowAdapter(mActivity));
         mMap.setOnInfoWindowClickListener(this);

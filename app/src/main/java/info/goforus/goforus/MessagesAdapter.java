@@ -1,34 +1,30 @@
 package info.goforus.goforus;
 
 import android.content.Context;
-import android.os.Build;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.nineoldandroids.animation.Animator;
-import com.orhanobut.logger.Logger;
 
 import java.util.List;
 
-import info.goforus.goforus.apis.Messages;
 import info.goforus.goforus.models.conversations.Message;
 
 public class MessagesAdapter extends ArrayAdapter<Message> {
+    private final List<Message> mMessages;
     private ListView mListView;
     private NavigationActivity mContext;
 
     private static class ViewHolder {
-        ImageView imageOther;
-        ImageView imageMe;
+        int rowType;
         TextView body;
         boolean isMe;
         boolean readBySender;
@@ -41,22 +37,31 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         super(context, 0, messages);
         mListView = listView;
         mContext = (NavigationActivity) context;
+        mMessages = messages;
     }
+
+    static final int MY_ROW_TYPE = 1;
+    static final int THEIR_ROW_TYPE = 0;
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Message message = getItem(position);
 
         final ViewHolder viewHolder;
+        int rowType = getItemViewType(position);
 
         if (convertView == null) {
             viewHolder = new ViewHolder();
             LayoutInflater inflater = LayoutInflater.from(getContext());
-            convertView = inflater.inflate(R.layout.item_message, parent, false);
 
+            if (rowType == MY_ROW_TYPE) {
+                convertView = inflater.inflate(R.layout.item_message_mine, parent, false);
+            } else {
+                convertView = inflater.inflate(R.layout.item_message_theirs, parent, false);
+            }
+
+            viewHolder.rowType = rowType;
             viewHolder.view = convertView;
-            viewHolder.imageOther = (ImageView) convertView.findViewById(R.id.ivProfileOther);
-            viewHolder.imageMe = (ImageView) convertView.findViewById(R.id.ivProfileMe);
             viewHolder.body = (TextView) convertView.findViewById(R.id.tvBody);
             viewHolder.status = (TextView) convertView.findViewById(R.id.tvStatus);
             convertView.setTag(viewHolder);
@@ -65,8 +70,6 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         }
 
         if (message.isMe) {
-            viewHolder.imageMe.setVisibility(View.VISIBLE);
-            viewHolder.imageOther.setVisibility(View.GONE);
             viewHolder.body.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
             viewHolder.status.setVisibility(View.VISIBLE);
             viewHolder.status.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
@@ -75,10 +78,9 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
             if (position == (getCount() - 1)) {
                 if (message.waitingForConfirmation)
                     viewHolder.status.setText(R.string.message_item_sent);
+                else if (message.readByReceiver)
+                    viewHolder.status.setText(R.string.message_item_seen);
                 else
-                    if (message.readByReceiver)
-                        viewHolder.status.setText(R.string.message_item_seen);
-                    else
                     viewHolder.status.setText(R.string.message_item_delivered);
 
             } else {
@@ -87,8 +89,6 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
 
 
         } else {
-            viewHolder.imageOther.setVisibility(View.VISIBLE);
-            viewHolder.imageMe.setVisibility(View.GONE);
             viewHolder.body.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
             viewHolder.status.setVisibility(View.GONE);
         }
@@ -99,7 +99,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         viewHolder.body.setText(message.body);
 
 
-        if (message.shouldAnimateIn){
+        if (message.shouldAnimateIn) {
             YoYo.with(Techniques.FadeInUp)
                     .duration(500)
                     .withListener(new Animator.AnimatorListener() {
@@ -112,14 +112,29 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
                         }
 
                         @Override
-                        public void onAnimationCancel(Animator animation) {}
+                        public void onAnimationCancel(Animator animation) {
+                        }
 
                         @Override
-                        public void onAnimationRepeat(Animator animation) {}
+                        public void onAnimationRepeat(Animator animation) {
+                        }
                     })
                     .playOn(viewHolder.view);
         }
 
         return convertView;
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return 2;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if(mMessages.get(position).isMe){
+            return 1;  // our layout
+        }
+        return 0; // their layout
     }
 }

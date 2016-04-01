@@ -2,6 +2,8 @@ package info.goforus.goforus.apis;
 
 import android.support.annotation.Nullable;
 
+import com.orhanobut.logger.Logger;
+
 import info.goforus.goforus.models.accounts.Account;
 
 import us.monoid.json.JSONException;
@@ -36,7 +38,7 @@ public class Utils {
             JSONObject baseJson = new JSONObject();
             return baseJson.put("error", new JSONObject().put("base", errorMessage));
         } catch (JSONException e) {
-            e.printStackTrace();
+            Logger.e(e.toString());
             return null;
         }
     }

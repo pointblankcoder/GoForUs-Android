@@ -22,15 +22,17 @@ import android.widget.TextView;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.greenrobot.eventbus.util.AsyncExecutor;
 
 import info.goforus.goforus.apis.listeners.LoginResponseListener;
+import info.goforus.goforus.event_results.LoginFromApiResult;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
-public class LoginActivity extends BaseActivity implements LoginResponseListener {
+public class LoginActivity extends BaseActivity {
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -77,8 +79,8 @@ public class LoginActivity extends BaseActivity implements LoginResponseListener
         mPasswordView.setError(null);
 
         // Store values at the time of the login attempt.
-        String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
+        final String email = mEmailView.getText().toString();
+        final String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
@@ -109,7 +111,13 @@ public class LoginActivity extends BaseActivity implements LoginResponseListener
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            Utils.SessionsApi.logIn(email, password, this);
+
+            AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
+                @Override
+                public void run() throws Exception {
+                    Utils.SessionsApi.logIn(email, password);
+                }
+            });
         }
     }
 
@@ -189,36 +197,28 @@ public class LoginActivity extends BaseActivity implements LoginResponseListener
     }
 
 
-    @Override
-    public void onLoginResponse(final JSONObject response) {
-        if (response.has("error")) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        showProgress(false);
-                        final JSONObject error = response.getJSONObject("error");
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onLoginResult(LoginFromApiResult result) {
 
-                        if (error.has("password")) {
-                            mPasswordView.setError(error.getString("password"));
-                            mPasswordView.requestFocus();
-                        } else if (error.has("email")) {
-                            mEmailView.setError(error.getString("email"));
-                            mEmailView.requestFocus();
-                        } else if (error.has("base")) {
-                            // TODO: Add base errors
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+        if (result.hasFailure()) {
+            showProgress(false);
+
+            mPasswordView.setError(result.failedPasswordMessage());
+            mPasswordView.requestFocus();
+
+            mEmailView.setError(result.failedEmailMessage());
+            mEmailView.requestFocus();
+
+            // TODO: add base message failures, this can happen if there's no server response,
+            //       unknown error has happened (parsing json bfor example), or we do not support the error response just yet
+            // mBaseMessageView.setError(result.failedMessage())
+
         } else {
             Account currentAccount = Account.currentAccount();
             if (currentAccount != null)
                 currentAccount.delete();
 
-            currentAccount = new Account(response);
+            currentAccount = new Account(result.getResponse());
             currentAccount.save();
         }
     }

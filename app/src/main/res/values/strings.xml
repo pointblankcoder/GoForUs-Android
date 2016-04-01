@@ -136,5 +136,9 @@
     <string name="message_item_delivered">Delivered</string>
     <string name="message_item_read">Read</string>
     <string name="message_item_seen">Seen</string>
+    <string name="send_message">Send</string>
 
+    <string name="queryTypePrompt">Select Message Type</string>
+    <string name="write_message_hint">write your messaage here ...</string>
+    <string name="small_lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
 </resources>

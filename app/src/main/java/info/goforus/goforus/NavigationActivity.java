@@ -7,6 +7,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -30,6 +32,7 @@ import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.event_results.NewMessagesResult;
+import info.goforus.goforus.models.conversations.Message;
 import us.monoid.json.JSONObject;
 
 public class NavigationActivity extends BaseActivity
@@ -64,6 +67,9 @@ public class NavigationActivity extends BaseActivity
                     showInboxFragment();
                 }
             });
+            if(Conversation.totalUnreadMessagesCount() > 0) {
+                mMessageFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_mail_white_24dp));
+            }
         }
 
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
