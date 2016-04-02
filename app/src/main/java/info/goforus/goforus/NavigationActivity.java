@@ -239,7 +239,7 @@ public class NavigationActivity extends BaseActivity
         }
 
         mNavigationView.setCheckedItem(R.id.nav_inbox);
-        setTitle(getString(R.string.inbox_fragment_title, Conversation.totalUnreadMessagesCount()));
+        setTitle("Inbox");
         ft.commit();
     }
 

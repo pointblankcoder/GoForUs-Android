@@ -286,6 +286,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                 displayedDriverWithSameExternalId.lat = d.lat;
                 displayedDriverWithSameExternalId.lng = d.lng;
                 displayedDriverWithSameExternalId.updatePositionOnMap();
+                displayedDriverWithSameExternalId.indicator.update();
 
                 if (displayedDriverWithSameExternalId.marker != null) {
                     if (displayedDriverWithSameExternalId.marker.isInfoWindowShown()) {
