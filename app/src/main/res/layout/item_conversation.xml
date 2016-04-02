@@ -6,8 +6,7 @@
     android:layout_height="fill_parent"
     android:background="@color/primary_material_dark_1"
     android:padding="10dp"
-    tools:layout_height="80dp"
-    >
+    tools:layout_height="80dp">
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -24,15 +23,16 @@
             android:id="@+id/tvSubject"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
+            android:layout_alignTop="@+id/ivProfile"
             android:layout_toEndOf="@+id/ivProfile"
             android:layout_toRightOf="@+id/ivProfile"
+            android:maxLength="30"
             android:paddingEnd="8dp"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
             android:paddingStart="8dp"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            tools:text="Subject Here" />
+            tools:text="Subject Here and this is long so it will cut off" />
 
         <ImageView
             android:layout_width="48dp"
@@ -41,6 +41,21 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:src="@drawable/ic_chevron_right_white_48dp" />
+
+        <TextView
+            android:id="@+id/tvLastMessageSummary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tvSubject"
+            android:layout_alignStart="@+id/tvSubject"
+            android:layout_below="@+id/tvSubject"
+            android:maxLength="40"
+            android:paddingEnd="8dp"
+            android:paddingLeft="32dp"
+            android:paddingRight="8dp"
+            android:paddingStart="32dp"
+            android:textColor="@color/secondary_text_material_dark"
+            tools:text="Hi James, are you able to deliver too..." />
 
     </RelativeLayout>
 </RelativeLayout>

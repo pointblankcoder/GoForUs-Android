@@ -4,8 +4,10 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -42,7 +44,7 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         mActivity = (BaseActivity) getActivity();
-        setTitle();
+        mActivity.setTitle("Inbox");
         View view = inflater.inflate(R.layout.fragment_inbox, container, false);
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipeLayout);
         swipeRefreshLayout.setOnRefreshListener(this);
@@ -72,7 +74,6 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
         if (hidden) {
         } else {
             mAdapter.notifyDataSetChanged();
-            setTitle();
         }
     }
 
@@ -81,14 +82,6 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
         Application.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
         swipeRefreshLayout.setRefreshing(true);
         Logger.d("We are refreshing our inbox");
-    }
-
-    private void setTitle() {
-        if (Conversation.totalUnreadMessagesCount() > 0) {
-            mActivity.setTitle(String.format("Inbox (%s)", Conversation.totalUnreadMessagesCount()));
-        } else {
-            mActivity.setTitle("Inbox");
-        }
     }
 
     private void populateConversationsList() {
@@ -134,7 +127,6 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     public void onMessageRead(MessageMarkReadResult result) {
         Conversation resultConversation = Conversation.findByExternalId(result.getConversationId());
         if (mConversations.contains(resultConversation)) {
-            setTitle();
             mConversations = Account.currentAccount().conversationsOrderedByRecentMessages();
             mAdapter.notifyDataSetChanged();
         }

@@ -26,6 +26,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
     // View lookup cache
     private static class ViewHolder {
         TextView subject;
+        TextView lastMessageSummary;
         RelativeLayout wrapper;
     }
 
@@ -45,6 +46,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
             LayoutInflater inflater = LayoutInflater.from(getContext());
             convertView = inflater.inflate(R.layout.item_conversation, parent, false);
             viewHolder.subject = (TextView) convertView.findViewById(R.id.tvSubject);
+            viewHolder.lastMessageSummary = (TextView) convertView.findViewById(R.id.tvLastMessageSummary);
             viewHolder.wrapper = (RelativeLayout) convertView.findViewById(R.id.conversationWrapper);
             convertView.setTag(viewHolder);
         } else {
@@ -73,7 +75,10 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
         });
 
         // Populate the data into the template view using the data object
-        viewHolder.subject.setText(String.format("%s (%s)", conversation.subject, conversation.unreadMessageCount()));
+        viewHolder.subject.setText(conversation.subject);
+        viewHolder.lastMessageSummary.setText(conversation.lastMessage().body);
+
+
         if (conversation.unreadMessageCount() > 0) {
             viewHolder.wrapper.setBackgroundResource(R.color.accent_material_dark_1);
             YoYo.with(Techniques.SlideInDown)
