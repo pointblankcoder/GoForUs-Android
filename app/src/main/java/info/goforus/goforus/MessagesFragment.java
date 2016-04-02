@@ -137,7 +137,10 @@ public class MessagesFragment extends Fragment {
     // without hooking into the show() hide() methods of the Fragme
     @Override
     public void onHiddenChanged(boolean hidden) {
-        if (!hidden) {
+        if (hidden) {
+            MessagesUpdateHandler.getInstance().stopUpdates();
+        } else {
+            MessagesUpdateHandler.getInstance().startUpdates(mConversation);
             mAdapter.clear();
             mAdapter.addAll(mConversation.messages());
             mAdapter.notifyDataSetChanged();

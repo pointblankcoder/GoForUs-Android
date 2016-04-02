@@ -30,7 +30,7 @@ public class ServicesManager {
         scheduleNotificationsAlarm();
         scheduleConversationsUpdateAlarm();
         scheduleLocationUpdateAlarm();
-        scheduleDriverUpdateAlarm();
+        //scheduleDriverUpdateAlarm();
     }
 
     // runs every 2s

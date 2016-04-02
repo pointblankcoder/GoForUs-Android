@@ -81,23 +81,17 @@ public class Indicator implements View.OnClickListener {
     }
 
     public void addIndicator() {
-        /* TODO:
-            addInArray been called, this = android.widget.RelativeLayout{42112af0 V.E..... ......ID 0,0-540,922 #7f0d00a2 app:id/arrowContainer}call stack =
-                                                               java.lang.Throwable: addInArray
-         */
         arrowContainer.addView(arrowView);
     }
 
-    public void show() {
-        arrowView.setVisibility(View.VISIBLE);
-    }
+    public void show() { arrowView.setVisibility(View.VISIBLE); }
 
     public void hide() {
         arrowView.setVisibility(View.GONE);
     }
 
     public void update(){
-        new UpdateIndicatorTask(mMap, mDriver, arrowView, mActivity).execute();
+        new UpdateIndicatorTask(mMap, mDriver, arrowView).execute();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

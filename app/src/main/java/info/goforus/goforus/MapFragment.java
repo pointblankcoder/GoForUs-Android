@@ -108,13 +108,19 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     @Override
     public void onPause() {
-        super.onPause();
         EventBus.getDefault().unregister(this);
         DriversUpdateHandler.getInstance().stopUpdates();
+        super.onPause();
     }
 
     @Override
     public void onHiddenChanged(boolean hidden) {
+        if (hidden) {
+            DriversUpdateHandler.getInstance().stopUpdates();
+        } else {
+            DriversUpdateHandler.getInstance().startUpdates();
+        }
+
         hideAllDrivers(hidden);
     }
 
@@ -234,7 +240,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         updateIndicators();
     }
 
-    public void updateIndicators(){
+    public void updateIndicators() {
         for (Driver d : currentlyDisplayedDrivers) {
             if (d.indicator != null) {
                 d.indicator.update();
@@ -249,7 +255,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                 if (hide) {
                     d.indicator.hide();
                 } else {
-                    d.indicator.show();
+                    d.indicator.update();
                 }
             }
         }
