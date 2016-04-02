@@ -6,11 +6,9 @@ import org.greenrobot.eventbus.EventBus;
 
 import info.goforus.goforus.Application;
 import info.goforus.goforus.R;
-import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.event_results.MessageSentResult;
 import us.monoid.json.JSONArray;
-import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
 import static us.monoid.web.Resty.content;
@@ -59,27 +57,20 @@ public class Conversations {
         return response;
     }
 
-    public void sendMessage(final Message messageToSend) {
+    public void sendMessage(final String messageToSend, int conversationId) throws Throwable {
         JSONObject response;
         JSONObject baseJson = new JSONObject();
-        try {
-            baseJson.put("conversation_id", messageToSend.conversation.externalId);
-            baseJson.put("message", messageToSend.body);
-        } catch (JSONException e) {
-            Logger.e(e.toString());
-        }
 
-        try {
-            response = Utils.resty.json(replyURI + Utils.tokenParams(), put(content(baseJson))).toObject();
-            if (response.getString("status").equals("ok")) {
-                EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_OK, Application.getInstance().getString(R.string.message_sent)));
-            } else {
-                Logger.e("something went wrong");
-                Logger.e(String.valueOf(response));
-                EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_FAILURE, Application.getInstance().getString(R.string.standard_failure_response)));
-            }
-        } catch (Exception e) {
-            Logger.e(e.toString());
+        baseJson.put("conversation_id", conversationId);
+        baseJson.put("message", messageToSend);
+
+        response = Utils.resty.json(replyURI + Utils.tokenParams(), put(content(baseJson))).toObject();
+
+        if (response.getString("status").equals("ok")) {
+            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_OK, Application.getInstance().getString(R.string.message_sent)));
+        } else {
+            Logger.e("something went wrong");
+            Logger.e(String.valueOf(response));
             EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_FAILURE, Application.getInstance().getString(R.string.standard_failure_response)));
         }
     }

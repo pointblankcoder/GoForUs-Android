@@ -34,9 +34,9 @@ public class Message extends Model {
     public Conversation conversation;
     @Column(name = "notificationSent")
     public boolean notificationSent = false;
+    @Column(name = "confirmedReceived", index = true)
+    public boolean confirmedReceived = false;
 
-    // Used for in Memory object for the Message Adapter animations and confirmation of received messages
-    public boolean waitingForConfirmation = false;
     public boolean shouldAnimateIn = false;
 
     public Message() {
@@ -52,7 +52,7 @@ public class Message extends Model {
             this.readByReceiver = message.getBoolean("is_read_by_receiver");
             this.body = message.getString("body");
             this.conversation = conversation;
-
+            this.confirmedReceived = true;
         } catch (JSONException e) {
             Logger.e(e.toString());
         }
@@ -71,18 +71,26 @@ public class Message extends Model {
     }
 
     // Finds existing Message based on remoteId or creates new user and returns
-    public static Message findOrCreateFromJson(JSONObject json, Conversation conversation) {
+    public static Message updateOrCreateFromJson(JSONObject json, Conversation conversation) {
+        String body = "";
         int externalId = 0;
 
         try {
+            body = json.getString("body");
             externalId = json.getInt("id");
         } catch (JSONException e) {
             Logger.e(e.toString());
         }
 
         Message existingMessage =
-                new Select().from(Message.class).where("externalId = ?", externalId).executeSingle();
+                new Select().from(Message.class).where("body = ? AND confirmedReceived = ?", body, false).executeSingle();
         if (existingMessage != null) {
+
+            existingMessage.body = body;
+            existingMessage.externalId = externalId;
+            existingMessage.confirmedReceived = true;
+            existingMessage.save();
+
             return existingMessage;
         } else {
             Message message = new Message(json, conversation);
@@ -91,13 +99,13 @@ public class Message extends Model {
         }
     }
 
-    public static List<Message> findOrCreateAllFromJson(JSONArray response, Conversation conversation) {
+    public static List<Message> updateOrCreateAllFromJson(JSONArray response, Conversation conversation) {
         List<Message> messages = new ArrayList<>();
 
         for (int i = 0; i < response.length(); i++) {
             try {
                 JSONObject messageJSON = response.getJSONObject(i);
-                Message message = findOrCreateFromJson(messageJSON, conversation);
+                Message message = updateOrCreateFromJson(messageJSON, conversation);
                 messages.add(message);
             } catch (JSONException e) {
                 e.printStackTrace();

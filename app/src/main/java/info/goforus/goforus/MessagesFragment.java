@@ -14,6 +14,8 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.birbit.android.jobqueue.JobManager;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -23,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import info.goforus.goforus.apis.Utils;
-import info.goforus.goforus.event_results.MessageMarkReadResult;
+import info.goforus.goforus.jobs.PostMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
@@ -37,9 +39,8 @@ public class MessagesFragment extends Fragment {
     private MessagesAdapter mAdapter;
     public static Conversation mConversation;
     private BaseActivity mActivity;
-    private long lastConnectionTime = 0;
-    private RelativeLayout connectivityLayout;
-    Handler mHandler = new Handler();
+    private JobManager mJobManager;
+    List<Message> waitingForConfirmation = new ArrayList<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,15 +55,14 @@ public class MessagesFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_messages, container, false);
     }
 
-    List<Message> waitingForConfirmation = new ArrayList<>();
-
     @Override
     public void onStart() {
         super.onStart();
         etMessage = (EditText) mActivity.findViewById(R.id.etMessage);
         btSend = (ImageButton) mActivity.findViewById(R.id.btSend);
         lvChat = (ListView) mActivity.findViewById(R.id.lvChat);
-        connectivityLayout = (RelativeLayout) mActivity.findViewById(R.id.connectivityLayout);
+
+        mJobManager = Application.getInstance().getJobManager();
 
         // auto focus the send message box with indicator.
         etMessage.requestFocus();
@@ -80,32 +80,27 @@ public class MessagesFragment extends Fragment {
             public void onClick(View v) {
                 String data = etMessage.getText().toString();
 
-                if (TextUtils.isEmpty(data) || data.length() <= 2) {
+                if (TextUtils.isEmpty(data) || data.trim().length() <= 2) {
                     etMessage.clearFocus();
                     Toast.makeText(mActivity, "Message is too short.", Toast.LENGTH_LONG).show();
                 } else {
+
 
                     Message message = new Message();
                     message.conversation = mConversation;
                     message.isMe = true;
                     message.body = data;
-                    message.waitingForConfirmation = true;
                     message.shouldAnimateIn = true;
+                    message.save();
                     waitingForConfirmation.add(message);
                     mAdapter.add(message);
+
+                    mJobManager.addJobInBackground(new PostMessageJob(message.body, mConversation.externalId));
 
                     // TODO show some indicator that we are sending the message
                     btSend.setEnabled(false);
                     etMessage.setEnabled(false);
                     etMessage.clearFocus();
-
-                    final Message messageToSend = message;
-                    AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
-                        @Override
-                        public void run() throws Exception {
-                            Utils.ConversationsApi.sendMessage(messageToSend);
-                        }
-                    });
                 }
             }
         });
@@ -177,24 +172,25 @@ public class MessagesFragment extends Fragment {
         if (result.getConversation().externalId == mConversation.externalId && result.getMessages().size() > 0) {
             List<Message> messages = result.getMessages();
 
-            for (final Message newMessage : messages) {
-                for (Message waitingMessage : waitingForConfirmation) {
-                    if (waitingMessage.body.equals(newMessage.body)) {
-                        waitingForConfirmation.remove(waitingMessage);
-                        mAdapter.remove(waitingMessage);
-                        mAdapter.notifyDataSetChanged();
-                        break;
+            // TODO: Send off mark read.
+            //Utils.MessagesApi.markRead(mConversation, newMessage);
+
+            // we don't add messages that are stored already locally. We just confirm that they have been received.
+            for (Message message : messages) {
+                if(!message.isMe) {
+                    mAdapter.add(message);
+                } else  {
+                    if(message.confirmedReceived) {
+                        int position = mAdapter.getPosition(message);
+                        if(position > 0) {
+                            mAdapter.getItem(position).confirmedReceived = true;
+                        }
+                    } else{
+                        mAdapter.add(message);
                     }
                 }
-                AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
-                    @Override
-                    public void run() throws Exception {
-                        Utils.MessagesApi.markRead(mConversation, newMessage);
-                    }
-                });
             }
 
-            mAdapter.addAll(messages);
             mAdapter.notifyDataSetChanged();
         }
     }

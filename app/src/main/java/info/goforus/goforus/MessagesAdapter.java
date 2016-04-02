@@ -77,10 +77,10 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
 
             // Set Status only if we are the last sent message
             if (position == (getCount() - 1)) {
-                if (message.waitingForConfirmation)
-                    viewHolder.status.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.check));
-                else
+                if (message.confirmedReceived)
                     viewHolder.status.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.check_double));
+                else
+                    viewHolder.status.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.check));
 
             } else {
                 viewHolder.status.setVisibility(View.GONE);
@@ -118,6 +118,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
                         }
                     })
                     .playOn(viewHolder.view);
+            message.shouldAnimateIn = false;
         }
 
 
