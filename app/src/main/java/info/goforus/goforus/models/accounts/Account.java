@@ -44,6 +44,7 @@ public class Account extends Model {
 
     public Account(JSONObject accountObject) {
         super();
+        EventBus.getDefault().register(this);
 
         try {
             this.externalId = Integer.parseInt(accountObject.get("id").toString());

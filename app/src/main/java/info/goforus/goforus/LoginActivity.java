@@ -29,6 +29,8 @@ import info.goforus.goforus.event_results.LoginFromApiResult;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;
+import info.goforus.goforus.services.LocationUpdateService;
+import info.goforus.goforus.tasks.LocationUpdateHandler;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
@@ -220,6 +222,7 @@ public class LoginActivity extends BaseActivity {
 
             currentAccount = new Account(result.getResponse());
             currentAccount.save();
+            LocationUpdateHandler.getInstance().turnUpdatesOn();
         }
     }
 

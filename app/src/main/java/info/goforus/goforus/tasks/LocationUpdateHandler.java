@@ -27,13 +27,13 @@ public class LocationUpdateHandler implements LocationListener {
 
     private LocationUpdateHandler() {
         mLocationManager = (LocationManager) Application.getInstance().getSystemService(Context.LOCATION_SERVICE);
-        turnUpdatesOn(); // we try right away incase the user is already logged in
+        turnUpdatesOn(); // we try right away in case the user is already logged in
     }
 
 
     public void turnUpdatesOn(){
         if (Gps.turnedOn()) {
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
         }
     }
 

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.tasks.LocationUpdateHandler;
 
 public class BrandExposure extends BaseActivity {
     Handler mHandler = new Handler();
@@ -30,6 +31,7 @@ public class BrandExposure extends BaseActivity {
             if(mApplication.isReady()) {
                 Intent intent;
                 if (Account.currentAccount() != null) {
+                    LocationUpdateHandler.getInstance().turnUpdatesOn();
                     intent = new Intent(BrandExposure.this, NavigationActivity.class);
                 }else {
                     intent = new Intent(BrandExposure.this, LoginActivity.class);
