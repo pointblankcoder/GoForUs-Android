@@ -18,25 +18,39 @@
         android:layout_alignParentTop="true"
         android:divider="@android:color/transparent"
         android:transcriptMode="alwaysScroll"
-        tools:listitem="@layout/item_message_mine"
-        />
+        tools:listitem="@layout/item_message_mine" />
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/llSend"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:gravity="top"
+        android:scaleType="fitXY"
+        android:src="@android:drawable/divider_horizontal_textfield" />
 
     <RelativeLayout
         android:id="@+id/llSend"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:background="@color/primary_material_dark_1"
         android:paddingBottom="10dp"
-        android:paddingLeft="0dp"
-        android:paddingRight="0dp"
-        android:paddingTop="5dp">
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="8dp">
 
         <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_alignTop="@+id/btSend"
             android:layout_toLeftOf="@+id/btSend"
-            android:layout_toStartOf="@+id/btSend"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_toStartOf="@+id/btSend">
 
             <EditText
                 android:id="@+id/etMessage"
@@ -45,16 +59,23 @@
                 android:hint="@string/write_message_hint"
                 android:imeOptions="actionSend"
                 android:inputType="textMultiLine"
-                android:maxLines="10" />
+                android:maxLines="10"
+                android:textColorHint="@color/white" />
         </android.support.design.widget.TextInputLayout>
 
         <ImageButton
             android:id="@+id/btSend"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:gravity="center_vertical|end"
+            android:layout_centerVertical="true"
+            android:background="@color/accent_material_dark_1"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             android:src="@drawable/ic_menu_send" />
+
+
     </RelativeLayout>
 </RelativeLayout>

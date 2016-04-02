@@ -25,8 +25,7 @@
             android:name="AA_MODELS"
             android:value="info.goforus.goforus.models.accounts.Account, info.goforus.goforus.models.conversations.Conversation, info.goforus.goforus.models.conversations.Message, info.goforus.goforus.models.drivers.Driver" />
 
-        <activity
-            android:name=".BrandExposure">
+        <activity android:name=".BrandExposure">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -42,7 +41,8 @@
         </activity>
         <activity
             android:name=".NavigationActivity"
-            android:label="@string/title_activity_navigation" />
+            android:label="@string/title_activity_navigation"
+            android:windowSoftInputMode="stateHidden" />
 
         <activity
             android:name=".DriverDetailsActivity"
@@ -62,20 +62,17 @@
             android:name=".services.NotificationsUpdateService"
             android:exported="false" />
 
-        <receiver
-            android:name=".services.receivers.ConversationsUpdateReceiver" />
+        <receiver android:name=".services.receivers.ConversationsUpdateReceiver" />
         <service
             android:name=".services.ConversationsUpdateService"
             android:exported="false" />
 
-        <receiver
-            android:name=".services.receivers.LocationUpdateReceiver" />
+        <receiver android:name=".services.receivers.LocationUpdateReceiver" />
         <service
             android:name=".services.LocationUpdateService"
             android:exported="false" />
 
-        <receiver
-            android:name=".services.receivers.DriversUpdateReceiver" />
+        <receiver android:name=".services.receivers.DriversUpdateReceiver" />
         <service
             android:name=".services.DriversUpdateService"
             android:exported="false" />

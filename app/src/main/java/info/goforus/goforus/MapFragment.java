@@ -46,6 +46,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     private GoogleMap mMap;
     public List<Driver> currentlyDisplayedDrivers = new ArrayList<>();
     private boolean firstLoad = true;
+    public boolean mHidden;
 
 
     /* ======================== Fragment Overrides =================== */
@@ -115,6 +116,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     @Override
     public void onHiddenChanged(boolean hidden) {
+        mHidden = hidden;
         if (hidden) {
             DriversUpdateHandler.getInstance().stopUpdates();
         } else {

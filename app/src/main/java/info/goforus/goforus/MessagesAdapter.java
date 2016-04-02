@@ -5,6 +5,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -48,6 +49,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
 
         final ViewHolder viewHolder;
         int rowType = getItemViewType(position);
+
 
         if (convertView == null) {
             viewHolder = new ViewHolder();
@@ -118,6 +120,17 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
                     })
                     .playOn(viewHolder.view);
         }
+
+
+        final View finalConvertView = convertView;
+        convertView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                InputMethodManager imm = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(finalConvertView.getWindowToken(), 0);
+            }
+        });
+
 
         return convertView;
     }

@@ -1,5 +1,6 @@
 package info.goforus.goforus;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -7,6 +8,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -68,6 +70,9 @@ public class MessagesFragment extends Fragment {
         lvChat = (ListView) mActivity.findViewById(R.id.lvChat);
         connectivityLayout = (RelativeLayout) mActivity.findViewById(R.id.connectivityLayout);
 
+        // auto focus the send message box with indicator.
+        etMessage.requestFocus();
+
         /* Automatically scroll to the bottom when a data set change notification is received
          and only if the last item is already visible on screen. Don't scroll to the bottom otherwise.
           */
@@ -121,15 +126,15 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        EventBus.getDefault().register(this);
         MessagesUpdateHandler.getInstance().startUpdates(mConversation);
+        EventBus.getDefault().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        EventBus.getDefault().unregister(this);
         MessagesUpdateHandler.getInstance().stopUpdates();
+        EventBus.getDefault().unregister(this);
     }
 
     // This is where we show the fragment again from an on click,
@@ -144,6 +149,9 @@ public class MessagesFragment extends Fragment {
             mAdapter.clear();
             mAdapter.addAll(mConversation.messages());
             mAdapter.notifyDataSetChanged();
+
+            // Request focus without starting up the keyboard
+            etMessage.requestFocus();
         }
     }
 

@@ -1,6 +1,7 @@
 package info.goforus.goforus.models.drivers;
 
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.text.SpannableStringBuilder;
 import android.text.style.ImageSpan;
@@ -58,6 +59,7 @@ public class Indicator implements View.OnClickListener {
         ImageView _arrowView = new ImageView(mActivity);
         _arrowView.setImageDrawable(ContextCompat.getDrawable(mActivity, R.drawable.ic_navigation_black_36dp));
         _arrowView.setId(viewId);
+        _arrowView.setVisibility(View.GONE);
         _arrowView.setOnClickListener(this);
 
         return _arrowView;
@@ -100,6 +102,8 @@ public class Indicator implements View.OnClickListener {
         ViewHelper.setX(arrowView, result.x);
         // Point the arrow towards the driver
         arrowView.setRotation(result.heading);
-        show();
+        if(!mapFragment.mHidden) {
+            show();
+        }
     }
 }
