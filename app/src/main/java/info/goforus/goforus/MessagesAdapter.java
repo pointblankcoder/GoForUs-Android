@@ -1,12 +1,14 @@
 package info.goforus.goforus;
 
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -29,7 +31,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         boolean isMe;
         boolean readBySender;
         boolean readByReceiver;
-        TextView status;
+        ImageView status;
         View view;
     }
 
@@ -64,7 +66,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
             viewHolder.rowType = rowType;
             viewHolder.view = convertView;
             viewHolder.body = (TextView) convertView.findViewById(R.id.tvBody);
-            viewHolder.status = (TextView) convertView.findViewById(R.id.tvStatus);
+            viewHolder.status = (ImageView) convertView.findViewById(R.id.tvStatus);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
@@ -72,16 +74,13 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
 
         if (message.isMe) {
             viewHolder.status.setVisibility(View.VISIBLE);
-            viewHolder.status.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
 
             // Set Status only if we are the last sent message
             if (position == (getCount() - 1)) {
                 if (message.waitingForConfirmation)
-                    viewHolder.status.setText(R.string.message_item_sent);
-                else if (message.readByReceiver)
-                    viewHolder.status.setText(R.string.message_item_seen);
+                    viewHolder.status.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.check));
                 else
-                    viewHolder.status.setText(R.string.message_item_delivered);
+                    viewHolder.status.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.check_double));
 
             } else {
                 viewHolder.status.setVisibility(View.GONE);
@@ -120,6 +119,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
                     })
                     .playOn(viewHolder.view);
         }
+
 
 
         final View finalConvertView = convertView;

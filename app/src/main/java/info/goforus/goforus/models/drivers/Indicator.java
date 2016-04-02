@@ -102,7 +102,7 @@ public class Indicator implements View.OnClickListener {
         ViewHelper.setX(arrowView, result.x);
         // Point the arrow towards the driver
         arrowView.setRotation(result.heading);
-        if(!mapFragment.mHidden) {
+        if(mapFragment.isVisible()) {
             show();
         }
     }

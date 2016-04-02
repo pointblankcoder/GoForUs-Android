@@ -72,15 +72,15 @@
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp">
 
-            <TextView
+            <ImageView
                 android:id="@+id/tvStatus"
-                android:layout_width="48dp"
-                android:layout_height="20dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:focusable="false"
+                android:layout_centerHorizontal="true"
                 android:gravity="center"
                 android:textColor="@color/white"
-                android:textSize="12sp"
-                tools:text="sent" />
+                android:src="@drawable/check"/>
         </RelativeLayout>
     </RelativeLayout>
 </FrameLayout>

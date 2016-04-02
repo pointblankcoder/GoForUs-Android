@@ -5,7 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
+import com.nineoldandroids.animation.Animator;
 
 import org.greenrobot.eventbus.util.AsyncExecutor;
 
@@ -21,6 +26,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
     // View lookup cache
     private static class ViewHolder {
         TextView subject;
+        RelativeLayout wrapper;
     }
 
     public ConversationsAdapter(Context context, List<Conversation> conversations) {
@@ -39,6 +45,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
             LayoutInflater inflater = LayoutInflater.from(getContext());
             convertView = inflater.inflate(R.layout.item_conversation, parent, false);
             viewHolder.subject = (TextView) convertView.findViewById(R.id.tvSubject);
+            viewHolder.wrapper = (RelativeLayout) convertView.findViewById(R.id.conversationWrapper);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
@@ -66,7 +73,32 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
         });
 
         // Populate the data into the template view using the data object
-        viewHolder.subject.setText(String.format("%s (%s)",conversation.subject, conversation.unreadMessageCount()));
+        viewHolder.subject.setText(String.format("%s (%s)", conversation.subject, conversation.unreadMessageCount()));
+        if (conversation.unreadMessageCount() > 0) {
+            viewHolder.wrapper.setBackgroundResource(R.color.accent_material_dark_1);
+            YoYo.with(Techniques.SlideInDown)
+                    .duration(500)
+                    .withListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                        }
+
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animator animation) {
+                        }
+                    })
+                    .playOn(viewHolder.wrapper);
+        } else {
+            viewHolder.wrapper.setBackgroundResource(R.color.primary_material_dark_1);
+        }
 
         // Return the completed view to render on screen
         return convertView;

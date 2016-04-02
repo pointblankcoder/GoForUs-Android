@@ -22,11 +22,13 @@ import com.orhanobut.logger.Logger;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.greenrobot.eventbus.util.AsyncExecutor;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.DriverUpdateResult;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
@@ -171,6 +173,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
         // listen to dragging motion
         mMapWrapperLayout.setGestureListener(this);
+
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 
+import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
@@ -61,6 +62,8 @@ public class Messages {
         } catch (Exception e) {
             Logger.e(e.toString());
         }
+
+        EventBus.getDefault().post(new MessageMarkReadResult(conversation, message));
         return response;
     }
 }

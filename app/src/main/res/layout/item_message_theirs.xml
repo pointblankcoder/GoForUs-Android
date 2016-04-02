@@ -14,14 +14,15 @@
         android:layout_marginTop="16dp"
         android:background="@android:color/transparent">
 
-        <TextView
+        <ImageView
             android:id="@+id/tvStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/ivProfile"
-            android:layout_alignTop="@+id/ivProfile"
-            android:textSize="14sp"
-            tools:text="sent" />
+            android:focusable="false"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:src="@drawable/check"/>
 
         <FrameLayout
             android:id="@+id/relativeLayout"

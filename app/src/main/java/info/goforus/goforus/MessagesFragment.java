@@ -1,6 +1,5 @@
 package info.goforus.goforus;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -8,7 +7,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -16,20 +14,16 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.daimajia.androidanimations.library.Techniques;
-import com.daimajia.androidanimations.library.YoYo;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.greenrobot.eventbus.util.AsyncExecutor;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import info.goforus.goforus.apis.Utils;
-import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
@@ -183,7 +177,7 @@ public class MessagesFragment extends Fragment {
         if (result.getConversation().externalId == mConversation.externalId && result.getMessages().size() > 0) {
             List<Message> messages = result.getMessages();
 
-            for (Message newMessage : messages) {
+            for (final Message newMessage : messages) {
                 for (Message waitingMessage : waitingForConfirmation) {
                     if (waitingMessage.body.equals(newMessage.body)) {
                         waitingForConfirmation.remove(waitingMessage);
@@ -192,6 +186,12 @@ public class MessagesFragment extends Fragment {
                         break;
                     }
                 }
+                AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
+                    @Override
+                    public void run() throws Exception {
+                        Utils.MessagesApi.markRead(mConversation, newMessage);
+                    }
+                });
             }
 
             mAdapter.addAll(messages);

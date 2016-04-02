@@ -1,17 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="10dp">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/conversationWrapper"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/primary_material_dark_1"
+    android:padding="10dp"
+    tools:layout_height="80dp"
+    >
 
-    <TextView
-        android:id="@+id/tvSubject"
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingEnd="6dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="6dp"
-        android:paddingStart="10dp"
-        android:text="Subject Here"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/ivProfile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_account_circle_black_48dp" />
+
+        <TextView
+            android:id="@+id/tvSubject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@+id/ivProfile"
+            android:layout_toRightOf="@+id/ivProfile"
+            android:paddingEnd="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingStart="8dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            tools:text="Subject Here" />
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_chevron_right_white_48dp" />
+
+    </RelativeLayout>
 </RelativeLayout>

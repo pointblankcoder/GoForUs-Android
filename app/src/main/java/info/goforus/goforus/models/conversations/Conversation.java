@@ -54,7 +54,7 @@ public class Conversation extends Model {
         }
     }
 
-    public static Conversation last(){
+    public static Conversation last() {
         return new Select().from(Conversation.class).orderBy("externalId DESC").executeSingle();
     }
 
@@ -98,7 +98,7 @@ public class Conversation extends Model {
         return new Select().from(Message.class).where("Conversation = ?", getId()).orderBy("externalId ASC").execute();
     }
 
-    public int messagesCount(){
+    public int messagesCount() {
         return new Select().from(Message.class).where("Conversation = ?", getId()).count();
     }
 
@@ -106,7 +106,7 @@ public class Conversation extends Model {
         return new Select().from(Message.class).where("Conversation = ?", getId()).orderBy("id DESC").executeSingle();
     }
 
-    public int unreadMessageCount(){
+    public int unreadMessageCount() {
         return new Select().from(Message.class).where("Conversation = ? AND readByReceiver = ? AND isMe = ?", getId(), false, false).count();
     }
 
@@ -120,4 +120,5 @@ public class Conversation extends Model {
         }
         return count;
     }
+
 }
