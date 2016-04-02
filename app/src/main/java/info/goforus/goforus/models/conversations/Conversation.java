@@ -94,6 +94,10 @@ public class Conversation extends Model {
         return conversations;
     }
 
+    public static Conversation findByExternalId(int externalId) {
+        return new Select().from(Conversation.class).where("externalId = ?", externalId).executeSingle();
+    }
+
     public List<Message> messages() {
         return new Select().from(Message.class).where("Conversation = ?", getId()).orderBy("externalId ASC").execute();
     }
