@@ -11,15 +11,15 @@ import info.goforus.goforus.models.conversations.Message;
 import us.monoid.json.JSONArray;
 
 public class MessagesFromApiResult {
-    Conversation mConversation;
+    int mConversationId;
     List<Message> mMessages = new ArrayList<>();
 
-    public MessagesFromApiResult(JSONArray json, Conversation conversation){
-        mConversation = conversation;
+    public MessagesFromApiResult(JSONArray json, int conversationId){
+        mConversationId = conversationId;
         if(json != null) {
-            mMessages = Message.updateOrCreateAllFromJson(json, conversation);
+            mMessages = Message.updateOrCreateAllFromJson(json, conversationId);
             if (mMessages.size() > 0) {
-                EventBus.getDefault().post(new MessagesUpdateServiceResult(conversation, mMessages));
+                EventBus.getDefault().post(new MessagesUpdateServiceResult(conversationId, mMessages));
             }
         }
     }
@@ -28,7 +28,7 @@ public class MessagesFromApiResult {
         return mMessages;
     }
 
-    public Conversation getConversation(){
-        return mConversation;
+    public int getConversationId(){
+        return mConversationId;
     }
 }

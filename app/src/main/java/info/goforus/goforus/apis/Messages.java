@@ -25,45 +25,45 @@ public class Messages {
         return messages;
     }
 
-    public JSONArray getMessages(final Conversation conversation) {
+    public JSONArray getMessages(final int conversationId) {
         JSONArray response = null;
 
         try {
-            String uri = String.format("%s/%s/messages%s", Conversations.conversationsURI, conversation.externalId, Utils.tokenParams());
+            String uri = String.format("%s/%s/messages%s", Conversations.conversationsURI, conversationId, Utils.tokenParams());
             response = Utils.resty.json(uri).array();
         } catch (Exception e) {
             Logger.e(e.toString());
         }
 
-        EventBus.getDefault().post(new MessagesFromApiResult(response, conversation));
+        EventBus.getDefault().post(new MessagesFromApiResult(response, conversationId));
         return response;
     }
 
-    public JSONArray getMessagesSince(final Conversation conversation, final int sinceId) {
+    public JSONArray getMessagesSince(int conversationId, final int sinceId) {
         JSONArray response = null;
 
         try {
-            String uri = String.format("%s/%s/messages%s&since_id=%s", Conversations.conversationsURI, conversation.externalId, Utils.tokenParams(), sinceId);
+            String uri = String.format("%s/%s/messages%s&since_id=%s", Conversations.conversationsURI, conversationId, Utils.tokenParams(), sinceId);
             JSONResource _response = Utils.resty.json(uri);
             response = _response.array();
         } catch (Exception e) {
             Logger.e(e.toString());
         }
 
-        EventBus.getDefault().post(new MessagesFromApiResult(response, conversation));
+        EventBus.getDefault().post(new MessagesFromApiResult(response, conversationId));
         return response;
     }
 
-    public JSONObject markRead(final Conversation conversation, final Message message) {
+    public JSONObject markRead(int conversationId, final Message message) {
         JSONObject response = null;
         try {
-            String uri = String.format("%s/%s/messages/%s/mark_read%s", Conversations.conversationsURI, conversation.externalId, message.externalId, Utils.tokenParams());
+            String uri = String.format("%s/%s/messages/%s/mark_read%s", Conversations.conversationsURI, conversationId, message.externalId, Utils.tokenParams());
             response = Utils.resty.json(uri, put(content(new JSONObject("{}")))).object();
         } catch (Exception e) {
             Logger.e(e.toString());
         }
 
-        EventBus.getDefault().post(new MessageMarkReadResult(conversation, message));
+        EventBus.getDefault().post(new MessageMarkReadResult(conversationId, message));
         return response;
     }
 }

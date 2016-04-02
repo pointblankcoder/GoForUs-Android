@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.jobs.GetMessagesJob;
 import info.goforus.goforus.jobs.PostMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
@@ -115,7 +116,7 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        MessagesUpdateHandler.getInstance().startUpdates(mConversation);
+        MessagesUpdateHandler.getInstance().startUpdates(mConversation.externalId);
         EventBus.getDefault().register(this);
     }
 
@@ -134,7 +135,7 @@ public class MessagesFragment extends Fragment {
         if (hidden) {
             MessagesUpdateHandler.getInstance().stopUpdates();
         } else {
-            MessagesUpdateHandler.getInstance().startUpdates(mConversation);
+            MessagesUpdateHandler.getInstance().startUpdates(mConversation.externalId);
             mAdapter.clear();
             mAdapter.addAll(mConversation.messages());
             mAdapter.notifyDataSetChanged();
@@ -151,12 +152,7 @@ public class MessagesFragment extends Fragment {
             btSend.setEnabled(true);
             etMessage.setEnabled(true);
             etMessage.setText(null);
-            AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
-                @Override
-                public void run() throws Exception {
-                    Utils.MessagesApi.getMessagesSince(mConversation, mConversation.lastMessage().externalId);
-                }
-            });
+            Application.getInstance().getJobManager().addJobInBackground(new GetMessagesJob(mConversation.externalId));
         } else {
             // Pop that last message from waiting confirmation! Something went wrong!
             waitingForConfirmation.remove(waitingForConfirmation.size() - 1);
@@ -169,7 +165,7 @@ public class MessagesFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessagesUpdate(MessagesFromApiResult result) {
-        if (result.getConversation().externalId == mConversation.externalId && result.getMessages().size() > 0) {
+        if (result.getConversationId() == mConversation.externalId && result.getMessages().size() > 0) {
             List<Message> messages = result.getMessages();
 
             // TODO: Send off mark read.

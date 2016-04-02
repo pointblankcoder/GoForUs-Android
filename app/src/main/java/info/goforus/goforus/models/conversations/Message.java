@@ -71,7 +71,9 @@ public class Message extends Model {
     }
 
     // Finds existing Message based on remoteId or creates new user and returns
-    public static Message updateOrCreateFromJson(JSONObject json, Conversation conversation) {
+    public static Message updateOrCreateFromJson(JSONObject json, int conversationId) {
+        Conversation conversation =Conversation.findByExternalId(conversationId);
+
         String body = "";
         int externalId = 0;
 
@@ -99,13 +101,13 @@ public class Message extends Model {
         }
     }
 
-    public static List<Message> updateOrCreateAllFromJson(JSONArray response, Conversation conversation) {
+    public static List<Message> updateOrCreateAllFromJson(JSONArray response, int conversationId) {
         List<Message> messages = new ArrayList<>();
 
         for (int i = 0; i < response.length(); i++) {
             try {
                 JSONObject messageJSON = response.getJSONObject(i);
-                Message message = updateOrCreateFromJson(messageJSON, conversation);
+                Message message = updateOrCreateFromJson(messageJSON, conversationId);
                 messages.add(message);
             } catch (JSONException e) {
                 e.printStackTrace();

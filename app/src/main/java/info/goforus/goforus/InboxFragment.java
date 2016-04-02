@@ -4,10 +4,8 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.MotionEventCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -110,13 +108,15 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessagesUpdate(MessagesFromApiResult result) {
-        if (mConversations.contains(result.getConversation()) && result.getMessages().size() > 0) {
+        Conversation resultConversation = Conversation.findByExternalId(result.getConversationId());
+
+        if (mConversations.contains(resultConversation) && result.getMessages().size() > 0) {
             for (Message message : result.getMessages()) {
                 if (!message.readByReceiver) {
-                    final int position = mAdapter.getPosition(result.getConversation());
+                    final int position = mAdapter.getPosition(resultConversation);
 
                     mConversations.remove(position);
-                    mConversations.add(0, result.getConversation());
+                    mConversations.add(0, resultConversation);
                     mAdapter.notifyDataSetChanged();
                 }
             }
@@ -132,7 +132,8 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageRead(MessageMarkReadResult result) {
-        if (mConversations.contains(result.getConversation())) {
+        Conversation resultConversation = Conversation.findByExternalId(result.getConversationId());
+        if (mConversations.contains(resultConversation)) {
             setTitle();
             mConversations = Account.currentAccount().conversationsOrderedByRecentMessages();
             mAdapter.notifyDataSetChanged();

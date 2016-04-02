@@ -4,18 +4,18 @@ import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 
 public class MessageMarkReadResult {
-    private final Conversation mConversation;
+    private final int mConversationId;
     private final Message mMessage;
     public static int RESULT_FAILURE = 0;
     public static int RESULT_OK = 1;
 
-    public MessageMarkReadResult(Conversation conversation, Message message){
-        mConversation = conversation;
+    public MessageMarkReadResult(int conversationId, Message message){
+        mConversationId = conversationId;
         mMessage = message;
     }
 
-    public Conversation getConversation(){
-        return mConversation;
+    public int getConversationId(){
+        return mConversationId;
     }
 
     public Message getMessage(){

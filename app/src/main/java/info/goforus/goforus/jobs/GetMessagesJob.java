@@ -28,10 +28,10 @@ public class GetMessagesJob extends Job {
         int currentMessagesCount = c.messagesCount();
 
         if (currentMessagesCount == 0) {
-            Utils.MessagesApi.getMessages(c);
+            Utils.MessagesApi.getMessages(conversationId);
         } else {
             Message lastMessageInConversation = c.lastMessage();
-            Utils.MessagesApi.getMessagesSince(c, lastMessageInConversation.externalId);
+            Utils.MessagesApi.getMessagesSince(conversationId, lastMessageInConversation.externalId);
         }
     }
 

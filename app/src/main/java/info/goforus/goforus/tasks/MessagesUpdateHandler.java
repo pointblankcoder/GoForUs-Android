@@ -2,29 +2,25 @@ package info.goforus.goforus.tasks;
 
 import android.os.Handler;
 
-import org.greenrobot.eventbus.util.AsyncExecutor;
-
-import info.goforus.goforus.apis.Utils;
-import info.goforus.goforus.models.accounts.Account;
-import info.goforus.goforus.models.conversations.Conversation;
-import info.goforus.goforus.models.conversations.Message;
+import info.goforus.goforus.Application;
+import info.goforus.goforus.jobs.GetMessagesJob;
 
 public class MessagesUpdateHandler {
-    private static final long REPEAT_TIME = 1000;
+    private static final long REPEAT_TIME = 10_000;
     private static MessagesUpdateHandler ourInstance = new MessagesUpdateHandler();
-    private Conversation mConversation;
-    private Message mMessage;
+    private int mConversationId;
 
     public static MessagesUpdateHandler getInstance() {
         return ourInstance;
     }
+
     private MessagesUpdateHandler() {
     }
 
     Handler mHandler = new Handler();
 
-    public void startUpdates(Conversation conversation){
-        mConversation = conversation;
+    public void startUpdates(int conversationId){
+        mConversationId = conversationId;
         mHandler.postDelayed(task, REPEAT_TIME);
     }
 
@@ -35,20 +31,8 @@ public class MessagesUpdateHandler {
     final Runnable task = new Runnable() {
         @Override
         public void run() {
-            AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
-                @Override
-                public void run() throws Exception {
-                    Account account = Account.currentAccount();
-                    if (account != null) {
-                        if(mConversation.lastMessage() == null){
-                            Utils.MessagesApi.getMessages(mConversation);
-                        } else {
-                            Utils.MessagesApi.getMessagesSince(mConversation, mConversation.lastMessage().externalId);
-                        }
-                    }
-                    mHandler.postDelayed(task, REPEAT_TIME);
-                }
-            });
+            Application.getInstance().getJobManager().addJobInBackground(new GetMessagesJob(mConversationId));
+            mHandler.postDelayed(task, REPEAT_TIME);
         }
     };
 }
