@@ -26,6 +26,7 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
     private final String mEmail;
     private final String mPassword;
     private final boolean mRegistering;
+    private final ProcessLogin me;
     private boolean loggedIn = false;
     private boolean collectMessagesComplete = false;
     private boolean hasGpsLocation;
@@ -35,6 +36,7 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
         this.mEmail = email;
         this.mPassword = password;
         this.mRegistering = registering;
+        this.me = this;
         EventBus.getDefault().register(this);
     }
 
@@ -54,18 +56,26 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
         }
 
 
-        while (!loggedIn) {
+        while (!loggedIn && !isCancelled()) {
         }
 
-        publishProgress("Getting your messages");
-        Application.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
-        while(!collectMessagesComplete){}
+        if (!isCancelled()) {
+            publishProgress("Getting your messages");
+            Application.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
+        }
 
-        publishProgress("Making sure we know where you are! (look out your window)");
-        LocationUpdateHandler.getInstance().forceUpdate();
-        while(!hasGpsLocation){}
+        while(!collectMessagesComplete && !isCancelled()){}
 
-        publishProgress("All done, enjoy!");
+        if (!isCancelled()) {
+            publishProgress("Making sure we know where you are! (look out your window)");
+            LocationUpdateHandler.getInstance().forceUpdate();
+        }
+
+        while(!hasGpsLocation && !isCancelled()){}
+
+        if (!isCancelled()) {
+            publishProgress("All done, enjoy!");
+        }
 
         return null;
     }
@@ -99,6 +109,7 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
             //       unknown error has happened (parsing json for example), or we do not support the error response just yet
             // mBaseMessageView.setError(result.failedMessage())
 
+            me.cancel(true);
         } else {
 
             Account currentAccount = Account.currentAccount();
