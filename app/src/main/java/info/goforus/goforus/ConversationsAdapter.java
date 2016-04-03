@@ -76,8 +76,9 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
 
         // Populate the data into the template view using the data object
         viewHolder.subject.setText(conversation.subject);
-        viewHolder.lastMessageSummary.setText(conversation.lastMessage().body);
-
+        if (conversation.lastMessage() != null) {
+            viewHolder.lastMessageSummary.setText(conversation.lastMessage().body);
+        }
 
 
         if (conversation.unreadMessageCount() > 0) {

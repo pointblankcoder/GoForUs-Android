@@ -4,9 +4,13 @@ import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.RetryConstraint;
 
+import org.greenrobot.eventbus.EventBus;
+
 import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
+import us.monoid.json.JSONArray;
 
 public class GetMessagesJob extends Job {
     public static final int PRIORITY = 1;
@@ -28,10 +32,12 @@ public class GetMessagesJob extends Job {
         int currentMessagesCount = c.messagesCount();
 
         if (currentMessagesCount == 0) {
-            Utils.MessagesApi.getMessages(conversationId);
+            JSONArray response = Utils.MessagesApi.getMessages(conversationId);
+            EventBus.getDefault().post(new MessagesFromApiResult(response, conversationId));
         } else {
             Message lastMessageInConversation = c.lastMessage();
-            Utils.MessagesApi.getMessagesSince(conversationId, lastMessageInConversation.externalId);
+            JSONArray response = Utils.MessagesApi.getMessagesSince(conversationId, lastMessageInConversation.externalId);
+            EventBus.getDefault().post(new MessagesFromApiResult(response, conversationId));
         }
     }
 

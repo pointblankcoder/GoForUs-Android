@@ -62,7 +62,7 @@ public class Application extends com.activeandroid.app.Application {
         EventBus.builder().addIndex(new EventBusIndex()).installDefaultEventBus();
 
         ServicesManager = info.goforus.goforus.services.ServicesManager.getInstance();
-        ServicesManager.scheduleAll();
+        ServicesManager.scheduleRuntimeRequirments();
 
         LocationUpdateHandler = info.goforus.goforus.tasks.LocationUpdateHandler.getInstance();
         ConnectivityManager   = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);

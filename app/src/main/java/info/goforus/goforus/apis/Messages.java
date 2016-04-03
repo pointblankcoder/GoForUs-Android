@@ -35,7 +35,6 @@ public class Messages {
             Logger.e(e.toString());
         }
 
-        EventBus.getDefault().post(new MessagesFromApiResult(response, conversationId));
         return response;
     }
 
@@ -50,7 +49,6 @@ public class Messages {
             Logger.e(e.toString());
         }
 
-        EventBus.getDefault().post(new MessagesFromApiResult(response, conversationId));
         return response;
     }
 

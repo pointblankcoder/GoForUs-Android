@@ -26,11 +26,9 @@ public class ServicesManager {
     private static final int NOTIFICATIONS_UPDATE_REQUEST_CODE = 2555;
 
 
-    public void scheduleAll(){
+    public void scheduleRuntimeRequirments(){
         scheduleNotificationsAlarm();
-        scheduleConversationsUpdateAlarm();
         scheduleLocationUpdateAlarm();
-        //scheduleDriverUpdateAlarm();
     }
 
     // runs every 2s

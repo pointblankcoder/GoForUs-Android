@@ -10,8 +10,10 @@ import org.greenrobot.eventbus.EventBus;
 
 import info.goforus.goforus.Application;
 import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
+import us.monoid.json.JSONArray;
 
 public class GetConversationsJob extends Job {
     public static final int PRIORITY = 1;
@@ -31,9 +33,11 @@ public class GetConversationsJob extends Job {
         int currentConversationsCount = mAccount.conversationsCount();
 
         if (currentConversationsCount == 0) {
-            Utils.ConversationsApi.getInbox();
+            JSONArray response = Utils.ConversationsApi.getInbox();
+            EventBus.getDefault().post(new ConversationsFromApiResult(response));
         } else {
-            Utils.ConversationsApi.getInboxSinceId(Conversation.last().externalId);
+            JSONArray response = Utils.ConversationsApi.getInboxSinceId(Conversation.last().externalId);
+            EventBus.getDefault().post(new ConversationsFromApiResult(response));
         }
 
         for(Conversation c : mAccount.conversations()) {

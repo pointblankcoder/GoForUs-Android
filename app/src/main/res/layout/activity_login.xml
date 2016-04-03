@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,14 +10,35 @@
 
 
     <!-- Login progress -->
-    <ProgressBar
-        android:id="@+id/login_progress"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:id="@+id/progressWrapper"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal|center_vertical"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:gravity="center_vertical|center_horizontal">
 
+        <ProgressBar
+            android:id="@+id/login_progress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvLoginStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/login_progress"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:text=""
+            android:visibility="gone" />
+    </RelativeLayout>
+
+    <!-- main form -->
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
@@ -83,8 +105,8 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="18dp"
                 android:text="@string/login_register_seperator"
-                android:textColor="@color/secondary_text_material_dark"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/secondary_text_material_dark" />
 
             <Button
                 android:id="@+id/registerButton"

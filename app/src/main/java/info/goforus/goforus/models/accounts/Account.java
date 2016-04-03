@@ -96,9 +96,9 @@ public class Account extends Model {
     // order our conversations by the ones with the most recent messages within them
     public List<Conversation> conversationsOrderedByRecentMessages() {
         return new Select().from(Conversation.class).as("conversations").
-                innerJoin(Message.class).on("Messages.Conversation = conversations.id").
+                leftJoin(Message.class).on("Messages.Conversation = conversations.id").
                 where("conversations.Account = ?", getId()).groupBy("conversations.id").
-                orderBy("Messages.externalId").execute();
+                orderBy("Messages.externalId DESC").execute();
     }
 
     public List<Conversation> conversations() {

@@ -3,7 +3,6 @@ package info.goforus.goforus;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.SpannableStringBuilder;
@@ -17,33 +16,25 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.orhanobut.logger.Logger;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import info.goforus.goforus.event_results.LocationUpdateServiceResult;
-import info.goforus.goforus.event_results.LoginFromApiResult;
-import info.goforus.goforus.jobs.AttemptLoginJob;
 import info.goforus.goforus.jobs.AttemptRegisterJob;
-import info.goforus.goforus.models.accounts.Account;
-import info.goforus.goforus.tasks.LocationUpdateHandler;
-import us.monoid.json.JSONException;
+import info.goforus.goforus.tasks.ProcessLogin;
 
 public class LoginActivity extends BaseActivity {
 
     // UI references.
-    private AutoCompleteTextView mEmailView;
-    private EditText mPasswordView;
-    private View mProgressView;
-    private View mLoginFormView;
+    public AutoCompleteTextView mEmailView;
+    public EditText mPasswordView;
+    public View mProgressView;
+    public View mLoginFormView;
     private boolean cancelAttempt;
     private View currentFocusView;
     private Button mLoginButton;
     private Button mRegisterButton;
+    public TextView tvLoginStatus;
+    private RelativeLayout progressWrapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +47,8 @@ public class LoginActivity extends BaseActivity {
         mLoginButton = (Button) findViewById(R.id.signInButton);
         mRegisterButton = (Button) findViewById(R.id.registerButton);
         mProgressView = findViewById(R.id.login_progress);
+        tvLoginStatus = (TextView) findViewById(R.id.tvLoginStatus);
+        progressWrapper = (RelativeLayout) findViewById(R.id.progressWrapper);
 
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -107,13 +100,11 @@ public class LoginActivity extends BaseActivity {
 
     @Override
     public void onResume() {
-        EventBus.getDefault().register(this);
         super.onResume();
     }
 
     @Override
     public void onPause() {
-        EventBus.getDefault().unregister(this);
         super.onPause();
     }
 
@@ -147,7 +138,7 @@ public class LoginActivity extends BaseActivity {
 
     // TODO: Add better password validation
     private boolean isPasswordValid(String password) {
-        return  password.length() >= 3&& !TextUtils.isEmpty(password);
+        return password.length() >= 3 && !TextUtils.isEmpty(password);
     }
 
 
@@ -156,7 +147,7 @@ public class LoginActivity extends BaseActivity {
             currentFocusView.requestFocus();
         } else {
             showProgress(true);
-            Application.getInstance().getJobManager().addJobInBackground(new AttemptLoginJob(email, password));
+            new ProcessLogin(this, email, password, false).execute();
         }
     }
 
@@ -165,16 +156,24 @@ public class LoginActivity extends BaseActivity {
             currentFocusView.requestFocus();
         } else {
             showProgress(true);
-            Application.getInstance().getJobManager().addJobInBackground(new AttemptRegisterJob(email, password));
+            new ProcessLogin(this, email, password, true).execute();
         }
     }
 
-    private void showProgress(final boolean show) {
+    public void showProgress(final boolean show) {
         View focus = getCurrentFocus();
         if (focus != null) {
             focus.clearFocus();
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+        }
+
+        if (show) {
+            progressWrapper.setVisibility(View.VISIBLE);
+            tvLoginStatus.setVisibility(View.VISIBLE);
+        } else {
+            progressWrapper.setVisibility(View.GONE);
+            tvLoginStatus.setVisibility(View.GONE);
         }
 
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
@@ -197,61 +196,12 @@ public class LoginActivity extends BaseActivity {
         });
     }
 
-    private void showErrorOn(TextView view, String errorMessage) {
+    public void showErrorOn(TextView view, String errorMessage) {
         view.setError(null);
         ForegroundColorSpan colorSpan = new ForegroundColorSpan(ContextCompat.getColor(this, R.color.accent_material_dark_1));
         SpannableStringBuilder ssBuilder = new SpannableStringBuilder(errorMessage);
         ssBuilder.setSpan(colorSpan, 0, errorMessage.toString().length(), 0);
         view.setError(ssBuilder);
         view.requestFocus();
-    }
-
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onLoginResult(LoginFromApiResult result) {
-
-        if (result.hasFailure()) {
-            showProgress(false);
-
-            if (result.failedEmailMessage() != null) {
-                showErrorOn(mEmailView, result.failedEmailMessage());
-            }
-
-            if (result.failedPasswordMessage() != null) {
-                showErrorOn(mPasswordView, result.failedPasswordMessage());
-            }
-
-            // TODO: add base message failures, this can happen if there's no server response,
-            //       unknown error has happened (parsing json for example), or we do not support the error response just yet
-            // mBaseMessageView.setError(result.failedMessage())
-
-        } else {
-
-            Account currentAccount = Account.currentAccount();
-            if (currentAccount != null)
-                // Ensure we are logged out
-                currentAccount.markAsLoggedOut();
-
-            try {
-                currentAccount = Account.findOrCreateFromApi(result.getResponse());
-                currentAccount.updateFromApi(result.getResponse());
-                currentAccount.markAsLoggedIn();
-
-                LocationUpdateHandler.getInstance().turnUpdatesOn();
-                LocationUpdateHandler.getInstance().forceUpdate();
-            } catch (JSONException e) {
-                Logger.e(e.toString());
-            }
-        }
-    }
-
-    // TODO: Replace this with PreLogin Task method to check for location updates
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onLocationUpdated(LocationUpdateServiceResult result) {
-        if (Account.currentAccount() != null && Account.currentAccount().hasLocation()) {
-            Intent intent = new Intent(LoginActivity.this, NavigationActivity.class);
-            startActivity(intent);
-            finish();
-        }
     }
 }

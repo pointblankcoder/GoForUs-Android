@@ -38,7 +38,6 @@ public class Conversations {
             Logger.e(e.toString());
         }
 
-        EventBus.getDefault().post(new ConversationsFromApiResult(response));
         return response;
     }
 
@@ -53,7 +52,6 @@ public class Conversations {
             Logger.e(e.toString());
         }
 
-        EventBus.getDefault().post(new ConversationsFromApiResult(response));
         return response;
     }
 
