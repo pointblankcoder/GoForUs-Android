@@ -29,11 +29,16 @@ public class Utils {
     public final static Messages MessagesApi = Messages.getInstance();
 
     protected static String tokenParams() {
-        return String.format("?customer_email=%s&customer_token=%s", Account.currentAccount().email, Account.currentAccount().apiToken);
+        Account account = Account.currentAccount();
+        if(account != null) {
+            return String.format("?customer_email=%s&customer_token=%s", account.email, account.apiToken);
+        } else{
+            return "?";
+        }
     }
 
     @Nullable
-    protected static JSONObject errorToJson(String errorMessage) {
+    public static JSONObject errorToJson(String errorMessage) {
         try {
             JSONObject baseJson = new JSONObject();
             return baseJson.put("error", new JSONObject().put("base", errorMessage));

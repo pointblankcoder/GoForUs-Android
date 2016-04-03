@@ -31,18 +31,26 @@ public class LocationUpdateHandler implements LocationListener {
     }
 
 
+    public void forceUpdate(){
+        mLocationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, this, null);
+    }
+
+    // Forcing an update will collect the last known location of the user and then update
+    // the account with that information, this should be used sparingly because it can update out of date
+    // information for the account. Mainly used for forcing an update for login purposes.
     public void turnUpdatesOn(){
         if (Gps.turnedOn()) {
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+            onLocationChanged(mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
         }
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        LatLng responseLocation = new LatLng(location.getLatitude(), location.getLongitude());
-        Account account = Account.currentAccount();
-        if (account != null && account.location() != responseLocation) {
-            EventBus.getDefault().post(new LocationUpdateServiceResult(account.externalId, responseLocation));
+        // sometimes we don't have a last known location, very rare.
+        if(location != null) {
+            LatLng responseLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            EventBus.getDefault().post(new LocationUpdateServiceResult(responseLocation));
         }
     }
 

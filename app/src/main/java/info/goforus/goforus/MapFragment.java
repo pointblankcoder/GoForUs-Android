@@ -279,7 +279,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
                 // No need to continue we didn't move
                 if (displayedDriverWithSameExternalId.lat == d.lat && displayedDriverWithSameExternalId.lng == d.lng) {
-                    Logger.i("we already have %s displayed in the same location", displayedDriverWithSameExternalId);
                     return;
                 }
 

@@ -4,15 +4,9 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class LocationUpdateServiceResult {
     LatLng mLocation;
-    long mAccountId;
 
-    public LocationUpdateServiceResult(int accountId, LatLng location) {
-        mAccountId = accountId;
+    public LocationUpdateServiceResult(LatLng location) {
         mLocation = location;
-    }
-
-    public long getAccountId() {
-        return mAccountId;
     }
 
     public LatLng getLocation() {

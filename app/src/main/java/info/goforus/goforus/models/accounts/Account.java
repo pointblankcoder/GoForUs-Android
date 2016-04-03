@@ -5,6 +5,7 @@ import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.google.android.gms.maps.model.LatLng;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -15,6 +16,7 @@ import java.util.List;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;
+import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
 @Parcel(analyze = Account.class, value = Parcel.Serialization.BEAN)
@@ -36,6 +38,8 @@ public class Account extends Model {
     public double lat;
     @Column(name = "lng")
     public double lng;
+    @Column(name = "loggedIn")
+    public boolean loggedIn = false;
 
     public Account() {
         super();
@@ -47,22 +51,46 @@ public class Account extends Model {
         EventBus.getDefault().register(this);
 
         try {
-            this.externalId = Integer.parseInt(accountObject.get("id").toString());
-            this.email = accountObject.get("email").toString();
-            this.apiToken = accountObject.get("authentication_token").toString();
+            this.externalId = accountObject.getInt("id");
+            this.email = accountObject.getString("email");
+            this.apiToken = accountObject.getString("authentication_token");
 
             if (accountObject.has("mobile_number"))
-                this.phoneNumber = accountObject.get("mobile_number").toString();
+                this.phoneNumber = accountObject.getString("mobile_number");
             if (accountObject.has("name"))
-                this.name = accountObject.get("name").toString();
-
+                this.name = accountObject.getString("name");
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(e.toString());
         }
     }
 
     public static Account currentAccount() {
-        return new Select().from(Account.class).orderBy("id DESC").executeSingle();
+        return new Select().from(Account.class).where("loggedIn = ?", true).orderBy("id DESC").executeSingle();
+    }
+
+    public static Account findByExternalId(int externalId){
+        return new Select().from(Account.class).where("externalId = ?", externalId).executeSingle();
+    }
+
+    public static Account findOrCreateFromApi(JSONObject json) throws JSONException {
+        int externalId = json.getInt("id");
+        Account existingAccount = Account.findByExternalId(externalId);
+        if (existingAccount != null) {
+            return existingAccount;
+        } else {
+            Account newAccount = new Account(json);
+            newAccount.externalId = externalId;
+            newAccount.save();
+            return newAccount;
+        }
+    }
+
+    public void updateFromApi(JSONObject json) throws JSONException {
+        this.externalId = json.getInt("id");
+        this.apiToken = json.getString("authentication_token");
+        this.name = json.getString("name");
+        this.email = json.getString("email");
+        this.phoneNumber = json.getString("mobile_number");
     }
 
     // order our conversations by the ones with the most recent messages within them
@@ -95,11 +123,18 @@ public class Account extends Model {
         return lat != 0 && lng != 0;
     }
 
-    @Subscribe
-    public void onLocationUpdate(LocationUpdateServiceResult result) {
-        if(result.getAccountId() == externalId) {
-            updateLocation(result.getLocation().latitude, result.getLocation().longitude);
-        }
+
+    public void markAsLoggedOut() {
+        this.loggedIn = false;
+        this.save();
     }
 
+    public void markAsLoggedIn() {
+        this.loggedIn = true;
+        this.save();
+    }
+    @Subscribe
+    public void onLocationUpdate(LocationUpdateServiceResult result) {
+        updateLocation(result.getLocation().latitude, result.getLocation().longitude);
+    }
 }

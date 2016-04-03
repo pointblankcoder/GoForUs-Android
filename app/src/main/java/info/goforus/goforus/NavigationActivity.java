@@ -4,19 +4,18 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.view.View;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,16 +26,15 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import info.goforus.goforus.apis.listeners.LogoutResponseListener;
-import info.goforus.goforus.models.accounts.Account;
-import info.goforus.goforus.apis.Utils;
-import info.goforus.goforus.models.conversations.Conversation;
+import info.goforus.goforus.event_results.LogoutFromApiResult;
 import info.goforus.goforus.event_results.NewMessagesResult;
-import info.goforus.goforus.models.conversations.Message;
+import info.goforus.goforus.jobs.AttemptLogoutJob;
+import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.models.conversations.Conversation;
 import us.monoid.json.JSONObject;
 
 public class NavigationActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, LogoutResponseListener {
+        implements NavigationView.OnNavigationItemSelectedListener {
     private ActionBarDrawerToggle mDrawerToggle;
     private FloatingActionButton mMessageFab;
     private Toolbar mToolbar;
@@ -67,7 +65,7 @@ public class NavigationActivity extends BaseActivity
                     showInboxFragment();
                 }
             });
-            if(Conversation.totalUnreadMessagesCount() > 0) {
+            if (Conversation.totalUnreadMessagesCount() > 0) {
                 mMessageFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_mail_white_24dp));
             }
         }
@@ -88,7 +86,7 @@ public class NavigationActivity extends BaseActivity
             mapFragment = (MapFragment) mFragmentManager.getFragment(savedInstanceState, "Map");
             inboxFragment = (InboxFragment) mFragmentManager.getFragment(savedInstanceState, "Inbox");
             messagesFragment = (MessagesFragment) mFragmentManager.getFragment(savedInstanceState, "Messages");
-            if(savedInstanceState.getBoolean("mMessageFabShown")){
+            if (savedInstanceState.getBoolean("mMessageFabShown")) {
                 mMessageFab.show();
             } else {
                 mMessageFab.hide();
@@ -174,7 +172,7 @@ public class NavigationActivity extends BaseActivity
 
         switch (id) {
             case R.id.action_logout:
-                Utils.SessionsApi.logOut(this);
+                mApplication.getJobManager().addJobInBackground(new AttemptLogoutJob());
                 break;
         }
 
@@ -311,15 +309,10 @@ public class NavigationActivity extends BaseActivity
                 .playOn(mMessageFab);
     }
 
-    @Override
-    public void onLogoutResponse(JSONObject response) {
-        if (response.has("error")) {
-            // TODO: Add responsive error messages
-        } else {
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
-            finish();
-            Account.currentAccount().delete();
-        }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onLogoutConfirmed(LogoutFromApiResult response) {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

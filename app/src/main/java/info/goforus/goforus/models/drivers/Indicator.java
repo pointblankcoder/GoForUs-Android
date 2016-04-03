@@ -1,7 +1,6 @@
 package info.goforus.goforus.models.drivers;
 
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.text.SpannableStringBuilder;
 import android.text.style.ImageSpan;
@@ -10,9 +9,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.Projection;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.nineoldandroids.view.ViewHelper;
 
 import org.greenrobot.eventbus.EventBus;
