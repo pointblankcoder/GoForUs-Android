@@ -62,7 +62,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
                     public void run() throws Exception {
                         for (Message m : conversation.messages()) {
                             if (!m.readByReceiver) {
-                                Utils.MessagesApi.markRead(conversation.externalId, m);
+                                Utils.MessagesApi.markRead(conversation.externalId, m.externalId);
                                 m.readByReceiver = true;
                                 m.save();
                             }

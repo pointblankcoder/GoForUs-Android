@@ -3,6 +3,7 @@ package info.goforus.goforus;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.test.ApplicationTestCase;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.jobs.GetMessagesJob;
+import info.goforus.goforus.jobs.MarkReadMessageJob;
 import info.goforus.goforus.jobs.PostMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
@@ -168,9 +171,6 @@ public class MessagesFragment extends Fragment {
         if (result.getConversationId() == mConversation.externalId && result.getMessages().size() > 0) {
             List<Message> messages = result.getMessages();
 
-            // TODO: Send off mark read.
-            //Utils.MessagesApi.markRead(mConversation, newMessage);
-
             // we don't add messages that are stored already locally. We just confirm that they have been received.
             for (Message message : messages) {
                 if(!message.isMe) {
@@ -185,6 +185,11 @@ public class MessagesFragment extends Fragment {
                         mAdapter.add(message);
                     }
                 }
+
+                Application.getInstance().getJobManager().addJobInBackground(new MarkReadMessageJob(mConversation.externalId, message.externalId));
+                message.confirmedReceived = true;
+                message.readByReceiver = true;
+                message.save();
             }
 
             mAdapter.notifyDataSetChanged();

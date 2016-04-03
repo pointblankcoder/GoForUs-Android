@@ -107,7 +107,7 @@ public class Conversation extends Model {
     }
 
     public Message lastMessage() {
-        return new Select().from(Message.class).where("Conversation = ? AND confirmedReceived = ?", getId(), true).orderBy("id DESC").executeSingle();
+        return new Select().from(Message.class).where("Conversation = ? AND confirmedReceived = ?", getId(), true).orderBy("externalId DESC").executeSingle();
     }
 
     public int unreadMessageCount() {

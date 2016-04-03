@@ -52,16 +52,15 @@ public class Messages {
         return response;
     }
 
-    public JSONObject markRead(int conversationId, final Message message) {
+    public JSONObject markRead(int conversationId, int messageId) {
         JSONObject response = null;
         try {
-            String uri = String.format("%s/%s/messages/%s/mark_read%s", Conversations.conversationsURI, conversationId, message.externalId, Utils.tokenParams());
+            String uri = String.format("%s/%s/messages/%s/mark_read%s", Conversations.conversationsURI, conversationId, messageId, Utils.tokenParams());
             response = Utils.resty.json(uri, put(content(new JSONObject("{}")))).object();
         } catch (Exception e) {
             Logger.e(e.toString());
         }
 
-        EventBus.getDefault().post(new MessageMarkReadResult(conversationId, message));
         return response;
     }
 }
