@@ -35,9 +35,8 @@ public class Location {
         try {
             String latLngParams = String.format("&lat=%s&lng=%s", lat, lng);
             drivers = Utils.resty.json(nearbyDriversURI + Utils.tokenParams() + latLngParams).array();
-            Logger.d("Got drivers JSON (%s)", drivers);
         } catch (IOException | JSONException e) {
-            Logger.e(e, "getNearbyDrivers");
+            Logger.e(e.toString());
         }
         if(drivers != null) {
             EventBus.getDefault().post(new NearbyDriversFromApiResult(drivers));

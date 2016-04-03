@@ -73,28 +73,6 @@ public class Application extends com.activeandroid.app.Application {
 
     private void configureJobManager() {
         Configuration.Builder builder = new Configuration.Builder(this)
-                .customLogger(new CustomLogger() {
-                    private static final String TAG = "JOBS";
-                    @Override
-                    public boolean isDebugEnabled() {
-                        return true;
-                    }
-
-                    @Override
-                    public void d(String text, Object... args) {
-                        Logger.d(TAG, String.format(text, args));
-                    }
-
-                    @Override
-                    public void e(Throwable t, String text, Object... args) {
-                        Logger.e(TAG, String.format(text, args), t);
-                    }
-
-                    @Override
-                    public void e(String text, Object... args) {
-                        Logger.e(TAG, String.format(text, args));
-                    }
-                })
                 .minConsumerCount(1)//always keep at least one consumer alive
                 .maxConsumerCount(3)//up to 3 consumers at a time
                 .loadFactor(3)//3 jobs per consumer

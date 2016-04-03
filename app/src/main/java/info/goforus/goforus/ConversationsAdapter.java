@@ -60,8 +60,8 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
                 AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
                     @Override
                     public void run() throws Exception {
-                        for(Message m : conversation.messages()) {
-                            if(!m.readByReceiver) {
+                        for (Message m : conversation.messages()) {
+                            if (!m.readByReceiver) {
                                 Utils.MessagesApi.markRead(conversation.externalId, m);
                                 m.readByReceiver = true;
                                 m.save();
@@ -77,6 +77,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
         // Populate the data into the template view using the data object
         viewHolder.subject.setText(conversation.subject);
         viewHolder.lastMessageSummary.setText(conversation.lastMessage().body);
+
 
 
         if (conversation.unreadMessageCount() > 0) {
