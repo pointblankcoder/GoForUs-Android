@@ -105,6 +105,8 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
                 mScrollView.scrollTo(0, 0);
             }
         });
+
+        addRating();
     }
 
     @Override
@@ -161,6 +163,16 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
             ViewPropertyAnimator.animate(mFabContact).scaleX(1).scaleY(1).setDuration(200).start();
             ViewPropertyAnimator.animate(mFabOrder).scaleX(1).scaleY(1).setDuration(200).start();
             mFabIsShown = true;
+        }
+    }
+
+    public void addRating() {
+        for (int i = 0; i < mDriver.rating; i++ ){
+            ImageView star = new ImageView(this);
+            star.setBackground(ContextCompat.getDrawable(this, R.drawable.star));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(mRatingContainer.getLayoutParams());
+            star.setLayoutParams(params);
+            mRatingContainer.addView(star);
         }
     }
 }

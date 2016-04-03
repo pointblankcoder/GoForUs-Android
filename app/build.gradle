@@ -51,4 +51,6 @@ dependencies {
     apt 'org.greenrobot:eventbus-annotation-processor:3.0.1'
     // Job Queue
     compile 'com.birbit:android-priority-jobqueue:2.0.0-alpha2'
+    // Binders
+    compile 'com.jakewharton:butterknife:7.0.1'
 }

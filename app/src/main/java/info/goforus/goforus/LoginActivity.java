@@ -19,73 +19,59 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import info.goforus.goforus.jobs.AttemptRegisterJob;
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnEditorAction;
 import info.goforus.goforus.tasks.ProcessLogin;
 
 public class LoginActivity extends BaseActivity {
 
-    // UI references.
-    public AutoCompleteTextView mEmailView;
-    public EditText mPasswordView;
-    public View mProgressView;
-    public View mLoginFormView;
+    @Bind(R.id.email) public AutoCompleteTextView mEmailView;
+    @Bind(R.id.password) public EditText mPasswordView;
+    @Bind(R.id.login_form) public View mLoginFormView;
+    @Bind(R.id.tvLoginStatus) public TextView tvLoginStatus;
+    @Bind(R.id.login_progress) View mProgressView;
+    @Bind(R.id.progressWrapper) RelativeLayout progressWrapper;
+
     private boolean cancelAttempt;
     private View currentFocusView;
-    private Button mLoginButton;
-    private Button mRegisterButton;
-    public TextView tvLoginStatus;
-    private RelativeLayout progressWrapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-        mLoginFormView = findViewById(R.id.login_form);
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        mPasswordView = (EditText) findViewById(R.id.password);
-        mLoginButton = (Button) findViewById(R.id.signInButton);
-        mRegisterButton = (Button) findViewById(R.id.registerButton);
-        mProgressView = findViewById(R.id.login_progress);
-        tvLoginStatus = (TextView) findViewById(R.id.tvLoginStatus);
-        progressWrapper = (RelativeLayout) findViewById(R.id.progressWrapper);
-
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    final String email = mEmailView.getText().toString();
-                    final String password = mPasswordView.getText().toString();
-                    checkValidity(email, password);
-                    attemptLogin(email, password);
-                    return true;
-                }
-                return false;
-            }
-        });
-
-        mLoginButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final String email = mEmailView.getText().toString();
-                final String password = mPasswordView.getText().toString();
-                checkValidity(email, password);
-                attemptLogin(email, password);
-            }
-        });
-
-        mRegisterButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final String email = mEmailView.getText().toString();
-                final String password = mPasswordView.getText().toString();
-                checkValidity(email, password);
-                attemptRegister(email, password);
-                // TODO: Attempt register
-            }
-        });
+        ButterKnife.bind(this);
     }
 
+    @OnClick(R.id.signInButton)
+    public void onLoginClick(){
+        final String email = mEmailView.getText().toString();
+        final String password = mPasswordView.getText().toString();
+        checkValidity(email, password);
+        attemptLogin(email, password);
+    }
+
+
+    @OnClick(R.id.registerButton)
+    public void onRegisterClick(){
+        final String email = mEmailView.getText().toString();
+        final String password = mPasswordView.getText().toString();
+        checkValidity(email, password);
+        attemptRegister(email, password);
+    }
+
+    @OnEditorAction(R.id.password)
+    public boolean onPasswordEditorAction(TextView textView, int id, KeyEvent keyEvent){
+        if (id == R.id.login || id == EditorInfo.IME_NULL) {
+            final String email = mEmailView.getText().toString();
+            final String password = mPasswordView.getText().toString();
+            checkValidity(email, password);
+            attemptLogin(email, password);
+            return true;
+        }
+        return false;
+    }
 
     @Override
     public void onStart() {
