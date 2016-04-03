@@ -8,15 +8,18 @@ import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.activeandroid.ActiveAndroid;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
-import com.nineoldandroids.animation.Animator;
 
 import org.greenrobot.eventbus.util.AsyncExecutor;
 
 import java.util.List;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import info.goforus.goforus.apis.Utils;
+import info.goforus.goforus.jobs.MarkReadMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 
@@ -24,10 +27,14 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
     private final NavigationActivity mContext;
 
     // View lookup cache
-    private static class ViewHolder {
-        TextView subject;
-        TextView lastMessageSummary;
-        RelativeLayout wrapper;
+    static class ViewHolder {
+        @Bind(R.id.tvSubject) TextView subject;
+        @Bind(R.id.tvLastMessageSummary) TextView lastMessageSummary;
+        @Bind(R.id.conversationWrapper) RelativeLayout conversationWrapper;
+
+        public ViewHolder(View view) {
+            ButterKnife.bind(this, view);
+        }
     }
 
     public ConversationsAdapter(Context context, List<Conversation> conversations) {
@@ -36,40 +43,30 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View view, ViewGroup parent) {
         // Get the data item for this position
         final Conversation conversation = getItem(position);
 
-        ViewHolder viewHolder;
-        if (convertView == null) {
-            viewHolder = new ViewHolder();
+        final ViewHolder viewHolder;
+        if (view == null) {
             LayoutInflater inflater = LayoutInflater.from(getContext());
-            convertView = inflater.inflate(R.layout.item_conversation, parent, false);
-            viewHolder.subject = (TextView) convertView.findViewById(R.id.tvSubject);
-            viewHolder.lastMessageSummary = (TextView) convertView.findViewById(R.id.tvLastMessageSummary);
-            viewHolder.wrapper = (RelativeLayout) convertView.findViewById(R.id.conversationWrapper);
-            convertView.setTag(viewHolder);
+            view = inflater.inflate(R.layout.item_conversation, parent, false);
+            viewHolder = new ViewHolder(view);
+            view.setTag(viewHolder);
         } else {
-            viewHolder = (ViewHolder) convertView.getTag();
+            viewHolder = (ViewHolder) view.getTag();
         }
 
-        convertView.setOnClickListener(new View.OnClickListener() {
-
+        view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
-                    @Override
-                    public void run() throws Exception {
-                        for (Message m : conversation.messages()) {
-                            if (!m.readByReceiver) {
-                                Utils.MessagesApi.markRead(conversation.externalId, m.externalId);
-                                m.readByReceiver = true;
-                                m.save();
-                            }
-                        }
+                for (Message m : conversation.messages()) {
+                    if(!m.readByReceiver && m.isMe) {
+                        Application.getInstance().getJobManager().addJobInBackground(new MarkReadMessageJob(conversation.externalId, m.externalId));
+                        m.readByReceiver = true;
+                        m.save();
                     }
-                });
-
+                }
                 mContext.showMessagesFragment(conversation);
             }
         });
@@ -82,32 +79,13 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
 
 
         if (conversation.unreadMessageCount() > 0) {
-            viewHolder.wrapper.setBackgroundResource(R.color.accent_material_dark_1);
-            YoYo.with(Techniques.SlideInDown)
-                    .duration(500)
-                    .withListener(new Animator.AnimatorListener() {
-                        @Override
-                        public void onAnimationStart(Animator animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                        }
-
-                        @Override
-                        public void onAnimationCancel(Animator animation) {
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animator animation) {
-                        }
-                    })
-                    .playOn(viewHolder.wrapper);
+            viewHolder.conversationWrapper.setBackgroundResource(R.color.accent_material_dark_1);
+            YoYo.with(Techniques.SlideInDown).duration(500).playOn(viewHolder.conversationWrapper);
         } else {
-            viewHolder.wrapper.setBackgroundResource(R.color.primary_material_dark_1);
+            viewHolder.conversationWrapper.setBackgroundResource(R.color.primary_material_dark_1);
         }
 
         // Return the completed view to render on screen
-        return convertView;
+        return view;
     }
 }

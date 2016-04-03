@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -26,25 +27,25 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import info.goforus.goforus.event_results.LogoutFromApiResult;
 import info.goforus.goforus.event_results.NewMessagesResult;
 import info.goforus.goforus.jobs.AttemptLogoutJob;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
-import us.monoid.json.JSONObject;
 
-public class NavigationActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
-    private ActionBarDrawerToggle mDrawerToggle;
-    private FloatingActionButton mMessageFab;
-    private Toolbar mToolbar;
+public class NavigationActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
+    ActionBarDrawerToggle mDrawerToggle;
+    @Bind(R.id.messageFab) FloatingActionButton mMessageFab;
+    @Bind(R.id.toolbar) Toolbar mToolbar;
+    @Bind(R.id.drawer_layout) DrawerLayout mDrawer;
 
     InboxFragment inboxFragment;
     MapFragment mapFragment;
     MessagesFragment messagesFragment;
-    private FragmentManager mFragmentManager;
-    private DrawerLayout mDrawer;
-    private NavigationView mNavigationView;
+    FragmentManager mFragmentManager;
+    @Bind(R.id.nav_view) NavigationView mNavigationView;
 
     public NavigationActivity() {
     }
@@ -53,11 +54,10 @@ public class NavigationActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
+        ButterKnife.bind(this);
 
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
-        mMessageFab = (FloatingActionButton) findViewById(R.id.messageFab);
         if (mMessageFab != null) {
             mMessageFab.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -66,17 +66,14 @@ public class NavigationActivity extends BaseActivity
                 }
             });
             if (Conversation.totalUnreadMessagesCount() > 0) {
-                mMessageFab.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_mail_white_24dp));
+                mMessageFab.setImageDrawable(ContextCompat
+                        .getDrawable(this, R.drawable.ic_mail_white_24dp));
             }
         }
 
-        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerToggle =
-                new ActionBarDrawerToggle(this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawerToggle.syncState();
         mDrawer.addDrawerListener(mDrawerToggle);
-
-        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
         mNavigationView.setNavigationItemSelectedListener(this);
 
         // only create fragments if they haven't been instantiated already
@@ -84,23 +81,20 @@ public class NavigationActivity extends BaseActivity
 
         if (savedInstanceState != null) {
             mapFragment = (MapFragment) mFragmentManager.getFragment(savedInstanceState, "Map");
-            inboxFragment = (InboxFragment) mFragmentManager.getFragment(savedInstanceState, "Inbox");
-            messagesFragment = (MessagesFragment) mFragmentManager.getFragment(savedInstanceState, "Messages");
+            inboxFragment = (InboxFragment) mFragmentManager
+                    .getFragment(savedInstanceState, "Inbox");
+            messagesFragment = (MessagesFragment) mFragmentManager
+                    .getFragment(savedInstanceState, "Messages");
             if (savedInstanceState.getBoolean("mMessageFabShown")) {
                 mMessageFab.show();
             } else {
                 mMessageFab.hide();
             }
         }
-        if (mapFragment == null)
-            mapFragment = new MapFragment();
-        if (inboxFragment == null)
-            inboxFragment = new InboxFragment();
-        if (messagesFragment == null)
-            messagesFragment = new MessagesFragment();
-
-        if (savedInstanceState == null)
-            showMapFragment();
+        if (mapFragment == null) mapFragment = new MapFragment();
+        if (inboxFragment == null) inboxFragment = new InboxFragment();
+        if (messagesFragment == null) messagesFragment = new MessagesFragment();
+        if (savedInstanceState == null) showMapFragment();
     }
 
 
@@ -189,7 +183,8 @@ public class NavigationActivity extends BaseActivity
         } else if (id == R.id.nav_inbox) {
             showInboxFragment();
         } else if (id == R.id.nav_settings) {
-            Snackbar.make(getWindow().getDecorView(), "Settings are not complete", Snackbar.LENGTH_LONG)
+            Snackbar.make(getWindow()
+                    .getDecorView(), "Settings are not complete", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
         }
 
@@ -293,20 +288,14 @@ public class NavigationActivity extends BaseActivity
     }
 
 
-    /* =================== Api Callbacks ================= */
-    int lastMessageCount = 0;
+    /* =================== Api Callbacks ================= */ int lastMessageCount = 0;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void notifyNewMessage(NewMessagesResult result) {
         lastMessageCount = result.getNewMessages().size();
-        Toast.makeText(
-                NavigationActivity.this,
-                String.format("You have %s new messages.", lastMessageCount),
-                Toast.LENGTH_LONG
-        ).show();
-        YoYo.with(Techniques.Shake)
-                .duration(2000)
-                .playOn(mMessageFab);
+        Toast.makeText(NavigationActivity.this, String
+                .format("You have %s new messages.", lastMessageCount), Toast.LENGTH_LONG).show();
+        YoYo.with(Techniques.Shake).duration(2000).playOn(mMessageFab);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

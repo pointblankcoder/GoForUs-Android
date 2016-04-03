@@ -1,8 +1,8 @@
 package info.goforus.goforus;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,62 +14,61 @@ import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
-import com.nineoldandroids.animation.Animator;
 
 import java.util.List;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import info.goforus.goforus.models.conversations.Message;
 
 public class MessagesAdapter extends ArrayAdapter<Message> {
     private final List<Message> mMessages;
-    private ListView mListView;
-    private NavigationActivity mContext;
+    private LayoutInflater inflater;
 
-    private static class ViewHolder {
+    static class ViewHolder {
         int rowType;
-        TextView body;
+        @Bind(R.id.tvBody) TextView body;
+        @Bind(R.id.tvStatus) ImageView status;
+        View view;
         boolean isMe;
         boolean readBySender;
         boolean readByReceiver;
-        ImageView status;
-        View view;
+
+        public ViewHolder(View view) {
+            ButterKnife.bind(this, view);
+        }
+
     }
 
-    public MessagesAdapter(Context context, ListView listView, List<Message> messages) {
+    public MessagesAdapter(Activity context, List<Message> messages) {
         super(context, 0, messages);
-        mListView = listView;
-        mContext = (NavigationActivity) context;
         mMessages = messages;
+        inflater = context.getLayoutInflater();
     }
 
     static final int MY_ROW_TYPE = 1;
     static final int THEIR_ROW_TYPE = 0;
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View view, ViewGroup parent) {
         Message message = getItem(position);
 
         final ViewHolder viewHolder;
         int rowType = getItemViewType(position);
 
-
-        if (convertView == null) {
-            viewHolder = new ViewHolder();
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-
+        if (view == null) {
             if (rowType == MY_ROW_TYPE) {
-                convertView = inflater.inflate(R.layout.item_message_mine, parent, false);
+                view = inflater.inflate(R.layout.item_message_mine, parent, false);
             } else {
-                convertView = inflater.inflate(R.layout.item_message_theirs, parent, false);
+                view = inflater.inflate(R.layout.item_message_theirs, parent, false);
             }
 
+            viewHolder = new ViewHolder(view);
             viewHolder.rowType = rowType;
-            viewHolder.view = convertView;
-            viewHolder.body = (TextView) convertView.findViewById(R.id.tvBody);
-            viewHolder.status = (ImageView) convertView.findViewById(R.id.tvStatus);
-            convertView.setTag(viewHolder);
+            viewHolder.view = view;
+            view.setTag(viewHolder);
         } else {
-            viewHolder = (ViewHolder) convertView.getTag();
+            viewHolder = (ViewHolder) view.getTag();
         }
 
         if (message.isMe) {
@@ -77,16 +76,13 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
 
             // Set Status only if we are the last sent message
             if (position == (getCount() - 1)) {
-                if (message.confirmedReceived)
-                    viewHolder.status.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.check_double));
-                else
-                    viewHolder.status.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.check));
-
+                if (message.confirmedReceived) viewHolder.status.setImageDrawable(ContextCompat
+                        .getDrawable(getContext(), R.drawable.check_double));
+                else viewHolder.status.setImageDrawable(ContextCompat
+                        .getDrawable(getContext(), R.drawable.check));
             } else {
                 viewHolder.status.setVisibility(View.GONE);
             }
-
-
         } else {
             viewHolder.status.setVisibility(View.GONE);
         }
@@ -96,44 +92,22 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         viewHolder.readBySender = message.readBySender;
         viewHolder.body.setText(message.body);
 
-
         if (message.shouldAnimateIn) {
-            YoYo.with(Techniques.FadeInUp)
-                    .duration(500)
-                    .withListener(new Animator.AnimatorListener() {
-                        @Override
-                        public void onAnimationStart(Animator animation) {
-                        }
-
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                        }
-
-                        @Override
-                        public void onAnimationCancel(Animator animation) {
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(Animator animation) {
-                        }
-                    })
-                    .playOn(viewHolder.view);
+            YoYo.with(Techniques.FadeInUp).duration(500).playOn(viewHolder.view);
             message.shouldAnimateIn = false;
         }
 
-
-
-        final View finalConvertView = convertView;
-        convertView.setOnClickListener(new View.OnClickListener() {
+        final View finalView = view;
+        view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                InputMethodManager imm = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(finalConvertView.getWindowToken(), 0);
+                InputMethodManager imm = (InputMethodManager) getContext()
+                        .getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(finalView.getWindowToken(), 0);
             }
         });
 
-
-        return convertView;
+        return view;
     }
 
     @Override
@@ -143,7 +117,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
 
     @Override
     public int getItemViewType(int position) {
-        if(mMessages.get(position).isMe){
+        if (mMessages.get(position).isMe) {
             return MY_ROW_TYPE;  // our layout
         }
         return THEIR_ROW_TYPE; // their layout

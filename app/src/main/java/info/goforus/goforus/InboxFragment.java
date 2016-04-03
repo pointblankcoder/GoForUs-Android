@@ -1,13 +1,9 @@
 package info.goforus.goforus;
 
-import java.util.List;
-
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.MotionEventCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -19,12 +15,16 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.jobs.GetConversationsJob;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
-import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.models.conversations.Message;
 
 public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
@@ -32,7 +32,8 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     private BaseActivity mActivity;
     private ConversationsAdapter mAdapter;
     private List<Conversation> mConversations;
-    private SwipeRefreshLayout swipeRefreshLayout;
+    @Bind(R.id.swipeLayout) SwipeRefreshLayout swipeRefreshLayout;
+    @Bind(R.id.lvConversations) ListView listView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,7 +47,7 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
         mActivity = (BaseActivity) getActivity();
         mActivity.setTitle("Inbox");
         View view = inflater.inflate(R.layout.fragment_inbox, container, false);
-        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipeLayout);
+        ButterKnife.bind(this, view);
         swipeRefreshLayout.setOnRefreshListener(this);
         return view;
     }
@@ -54,7 +55,9 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     @Override
     public void onStart() {
         super.onStart();
-        populateConversationsList();
+        mConversations = Account.currentAccount().conversationsOrderedByRecentMessages();
+        mAdapter = new ConversationsAdapter(mActivity, mConversations);
+        listView.setAdapter(mAdapter);
     }
 
     @Override
@@ -84,11 +87,10 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
         Logger.d("We are refreshing our inbox");
     }
 
-    private void populateConversationsList() {
-        mConversations = Account.currentAccount().conversationsOrderedByRecentMessages();
-        mAdapter = new ConversationsAdapter(mActivity, mConversations);
-        ListView listView = (ListView) mActivity.findViewById(R.id.lvConversations);
-        listView.setAdapter(mAdapter);
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -98,7 +100,7 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
             mAdapter.notifyDataSetChanged();
         }
 
-        if(swipeRefreshLayout.isRefreshing()) {
+        if (swipeRefreshLayout.isRefreshing()) {
             Toast.makeText(getContext(), "Inbox Refreshed", Toast.LENGTH_SHORT).show();
             swipeRefreshLayout.setRefreshing(false);
         }

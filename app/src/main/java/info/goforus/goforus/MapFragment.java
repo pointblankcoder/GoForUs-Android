@@ -22,13 +22,12 @@ import com.orhanobut.logger.Logger;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.greenrobot.eventbus.util.AsyncExecutor;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import info.goforus.goforus.apis.Utils;
+import butterknife.ButterKnife;
 import info.goforus.goforus.event_results.DriverUpdateResult;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
@@ -36,19 +35,16 @@ import info.goforus.goforus.models.drivers.Indicator;
 import info.goforus.goforus.models.drivers.InfoWindowAdapter;
 import info.goforus.goforus.tasks.DriversUpdateHandler;
 
-public class MapFragment extends SupportMapFragment implements OnMapReadyCallback,
-        GoogleMap.OnMapLoadedCallback, MapWrapperLayout.GestureListener,
-        GoogleMap.OnCameraChangeListener, GoogleMap.OnInfoWindowClickListener,
-        GoogleMap.OnInfoWindowCloseListener, GoogleMap.OnInfoWindowLongClickListener, GoogleMap.OnMarkerClickListener {
+public class MapFragment extends SupportMapFragment implements OnMapReadyCallback, GoogleMap.OnMapLoadedCallback, MapWrapperLayout.GestureListener, GoogleMap.OnCameraChangeListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnInfoWindowCloseListener, GoogleMap.OnInfoWindowLongClickListener, GoogleMap.OnMarkerClickListener {
 
     public static final String TAG = "MapFragment";
-    private View mOriginalView;
-    private MapWrapperLayout mMapWrapperLayout;
-    private BaseActivity mActivity;
-    private GoogleMap mMap;
+    View mOriginalView;
+    MapWrapperLayout mMapWrapperLayout;
+    BaseActivity mActivity;
+    GoogleMap mMap;
     public List<Driver> currentlyDisplayedDrivers = new ArrayList<>();
-    private boolean firstLoad = true;
-    public boolean mHidden;
+    boolean firstLoad = true;
+    boolean mHidden;
 
 
     /* ======================== Fragment Overrides =================== */
@@ -75,6 +71,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         // Assign our maps surround layout to so we can track screen gestures
         mMapWrapperLayout = new MapWrapperLayout(getActivity());
         mMapWrapperLayout.addView(mOriginalView);
+        ButterKnife.bind(mMapWrapperLayout);
+
         // Init Google Map
         getMapAsync(this);
 
@@ -84,6 +82,12 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
     }
 
     @Override
@@ -209,7 +213,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         if (mActivity != null) {
             if (currentDriverSelected != null) {
                 Intent intent = new Intent(mActivity, DriverDetailsActivity.class);
-                intent.putExtra("Information", Parcels.wrap(currentDriverSelected.toDriverInformation()));
+                intent.putExtra("Information", Parcels
+                        .wrap(currentDriverSelected.toDriverInformation()));
                 mActivity.startActivity(intent);
             }
         }
