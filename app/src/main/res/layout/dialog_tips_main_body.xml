@@ -29,7 +29,7 @@
             android:layout_gravity="center"
             android:layout_toEndOf="@+id/doNotShowTips"
             android:layout_toRightOf="@+id/doNotShowTips"
-            android:text="@string/dont_show_tips_again"
+            android:text="@string/dont_show_this_again"
             android:textColor="@color/secondary_text_material_dark"/>
     </RelativeLayout>
         <RelativeLayout

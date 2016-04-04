@@ -83,10 +83,10 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
 
         mTipDialog = DialogPlus.newDialog(this)
-                               .setHeader(R.layout.dialog_tips_header)
+                               .setHeader(R.layout.dialog_tips_main_header)
                                .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
                                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
-                               .setContentHolder(new ViewHolder(R.layout.dialog_tips_body))
+                               .setContentHolder(new ViewHolder(R.layout.dialog_tips_main_body))
                                .setGravity(Gravity.CENTER)
                                .setCancelable(true).setOnClickListener(new OnClickListener() {
                     @Override
@@ -96,17 +96,17 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
                             mTipDialog.dismiss();
                         } else if (view.equals(checkBox)) {
                             Account account = Account.currentAccount();
-                            account.showTips = !checkBox.isChecked();
+                            account.showMapTips = !checkBox.isChecked();
                             account.save();
                         }
                     }
                 }).create();
 
-        if (Account.currentAccount().showTips) {
+        if (Account.currentAccount().showMapTips) {
             mTipDialog.show();
             AppCompatCheckBox checkBox = (AppCompatCheckBox) mTipDialog
                     .findViewById(R.id.doNotShowTips);
-            checkBox.setSelected(!Account.currentAccount().showTips);
+            checkBox.setSelected(!Account.currentAccount().showMapTips);
         }
 
 
@@ -214,7 +214,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
                 mTipDialog.show();
                 AppCompatCheckBox checkBox = (AppCompatCheckBox) mTipDialog
                         .findViewById(R.id.doNotShowTips);
-                checkBox.setChecked(!Account.currentAccount().showTips);
+                checkBox.setChecked(!Account.currentAccount().showMapTips);
                 break;
         }
 

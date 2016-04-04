@@ -24,24 +24,16 @@ import us.monoid.json.JSONObject;
 public class Account extends Model {
     private static final String TAG = "Account";
 
-    @Column(name = "externalId", index = true, unique = true)
-    public Integer externalId;
-    @Column(name = "name")
-    public String name;
-    @Column(name = "email")
-    public String email;
-    @Column(name = "phoneNumber")
-    public String phoneNumber;
-    @Column(name = "apiToken")
-    public String apiToken;
-    @Column(name = "lat")
-    public double lat;
-    @Column(name = "lng")
-    public double lng;
-    @Column(name = "loggedIn")
-    public boolean loggedIn = false;
-    @Column(name = "showTips")
-    public boolean showTips = true;
+    @Column(name = "externalId", index = true, unique = true) public Integer externalId;
+    @Column(name = "name") public String name;
+    @Column(name = "email") public String email;
+    @Column(name = "phoneNumber") public String phoneNumber;
+    @Column(name = "apiToken") public String apiToken;
+    @Column(name = "lat") public double lat;
+    @Column(name = "lng") public double lng;
+    @Column(name = "loggedIn") public boolean loggedIn = false;
+    @Column(name = "showMapTips") public boolean showMapTips = true;
+    @Column(name = "showMiniProfileDriverTip") public boolean showMiniProfileDriverTip = true;
 
     public Account() {
         super();
@@ -59,18 +51,18 @@ public class Account extends Model {
 
             if (accountObject.has("mobile_number"))
                 this.phoneNumber = accountObject.getString("mobile_number");
-            if (accountObject.has("name"))
-                this.name = accountObject.getString("name");
+            if (accountObject.has("name")) this.name = accountObject.getString("name");
         } catch (Exception e) {
             Logger.e(e.toString());
         }
     }
 
     public static Account currentAccount() {
-        return new Select().from(Account.class).where("loggedIn = ?", true).orderBy("id DESC").executeSingle();
+        return new Select().from(Account.class).where("loggedIn = ?", true).orderBy("id DESC")
+                           .executeSingle();
     }
 
-    public static Account findByExternalId(int externalId){
+    public static Account findByExternalId(int externalId) {
         return new Select().from(Account.class).where("externalId = ?", externalId).executeSingle();
     }
 
@@ -99,8 +91,9 @@ public class Account extends Model {
     public List<Conversation> conversationsOrderedByRecentMessages() {
         return new Select().from(Conversation.class).as("conversations").
                 leftJoin(Message.class).on("Messages.Conversation = conversations.id").
-                where("conversations.Account = ?", getId()).groupBy("conversations.id").
-                orderBy("Messages.externalId DESC").execute();
+                                   where("conversations.Account = ?", getId())
+                           .groupBy("conversations.id").
+                                   orderBy("Messages.externalId DESC").execute();
     }
 
     public List<Conversation> conversations() {
@@ -111,7 +104,7 @@ public class Account extends Model {
         return new Select().from(Conversation.class).where("Account = ?", getId()).count();
     }
 
-    public LatLng location(){
+    public LatLng location() {
         return new LatLng(lat, lng);
     }
 
@@ -121,7 +114,7 @@ public class Account extends Model {
         this.save();
     }
 
-    public boolean hasLocation(){
+    public boolean hasLocation() {
         return lat != 0 && lng != 0;
     }
 
@@ -135,6 +128,7 @@ public class Account extends Model {
         this.loggedIn = true;
         this.save();
     }
+
     @Subscribe
     public void onLocationUpdate(LocationUpdateServiceResult result) {
         updateLocation(result.getLocation().latitude, result.getLocation().longitude);

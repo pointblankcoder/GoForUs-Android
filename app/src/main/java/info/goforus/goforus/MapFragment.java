@@ -3,6 +3,8 @@ package info.goforus.goforus;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,6 +19,9 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.OnClickListener;
+import com.orhanobut.dialogplus.ViewHolder;
 import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
@@ -45,6 +50,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     public List<Driver> currentlyDisplayedDrivers = new ArrayList<>();
     boolean firstLoad = true;
     boolean mHidden;
+    private DialogPlus mMiniProfileDriverTipDialog;
 
 
     /* ======================== Fragment Overrides =================== */
@@ -61,7 +67,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                 d.indicator.removeIndicator();
             }
         }
-       DriversUpdateHandler.getInstance().stopUpdates();
+        DriversUpdateHandler.getInstance().stopUpdates();
 
         super.onDestroy();
     }
@@ -74,11 +80,34 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         mMapWrapperLayout = new MapWrapperLayout(getActivity());
         mMapWrapperLayout.addView(mOriginalView);
         ButterKnife.bind(mMapWrapperLayout);
+        mActivity = (BaseActivity) getActivity();
 
         // Init Google Map
         getMapAsync(this);
 
-        mActivity = (BaseActivity) getActivity();
+        mMiniProfileDriverTipDialog = DialogPlus.newDialog(mActivity)
+                                                .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
+                                                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                                                .setContentHolder(new ViewHolder(R.layout.dialog_tips_mini_drivers_profile_body))
+                                                .setGravity(Gravity.TOP).setCancelable(true)
+                                                .setOnClickListener(new OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogPlus dialog, View view) {
+                                                        AppCompatCheckBox checkBox = (AppCompatCheckBox) mActivity
+                                                                .findViewById(R.id.doNotShowTips);
+                                                        if (view.equals(mActivity
+                                                                .findViewById(R.id.dismissTipDialog))) {
+                                                            mMiniProfileDriverTipDialog.dismiss();
+                                                        } else if (view.equals(checkBox)) {
+                                                            Account account = Account
+                                                                    .currentAccount();
+                                                            account.showMiniProfileDriverTip = !checkBox
+                                                                    .isChecked();
+                                                            account.save();
+                                                        }
+                                                    }
+                                                }).create();
+
         return mMapWrapperLayout;
     }
 
@@ -238,6 +267,14 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         Logger.d("marker was clicked, updated currently selected");
         currentDriverSelected = Driver.findByDriverMarker(currentlyDisplayedDrivers, marker);
         currentDriverSelected.goToWithInfoWindow();
+
+        // Do we show the driver tip
+        if (Account.currentAccount().showMiniProfileDriverTip) {
+            mMiniProfileDriverTipDialog.show();
+            AppCompatCheckBox checkBox = (AppCompatCheckBox) mMiniProfileDriverTipDialog
+                    .findViewById(R.id.doNotShowTips);
+            checkBox.setSelected(!Account.currentAccount().showMapTips);
+        }
 
         return true; // disable default behavior
     }

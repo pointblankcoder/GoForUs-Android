@@ -148,7 +148,8 @@
     <string name="tip_text_driver_indicator">This icon indicates a Driver which is in your area but currently off your screen. Clicking this icon will take you straight to the driver it\'s associated with.</string>
     <string name="tip_text_driver">This icon is a Driver. You will see this icon move around the map to show the exact location of the said Driver. This is what the indicator mentioned above will point towards. Clicking this will bring up a mini profile where you can access quick driver information such as rating and their availability.</string>
     <string name="tips">Tips</string>
-    <string name="dont_show_tips_again">do not show tips again</string>
+    <string name="dont_show_this_again">do not show this again</string>
     <string name="ok">Ok</string>
     <string name="tip_text_read_message_fab">This button means that you have an empty inbox, clicking this icon will take you straight to your inbox where you can contact Drivers you\'ve already started a discussion with</string>
+    <string name="tip_text_mini_drivers_profile">Here you see basic information related to this driver. Click on the box and you can read reviews and more in-depth information about this driver such as what their typical pickup points are. You will be able to contact the driver if you have a query or start a delivery with this driver.</string>
 </resources>
