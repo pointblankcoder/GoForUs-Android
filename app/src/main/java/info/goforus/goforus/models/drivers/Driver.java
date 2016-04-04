@@ -77,7 +77,7 @@ public class Driver extends Model implements Comparable<Driver> {
 
     public void addToMap(GoogleMap map) {
         this.map = map;
-        Drawable car = ActivityCompat.getDrawable(Application.getInstance(), R.drawable.car_medium);
+        Drawable car = ActivityCompat.getDrawable(Application.getInstance(), R.drawable.car_black_36dp);
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(car.getIntrinsicWidth(), car.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);

@@ -40,6 +40,8 @@ public class Account extends Model {
     public double lng;
     @Column(name = "loggedIn")
     public boolean loggedIn = false;
+    @Column(name = "showTips")
+    public boolean showTips = true;
 
     public Account() {
         super();

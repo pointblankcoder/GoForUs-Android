@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/primary_material_dark_1"
+            android:theme="@style/Theme.GoForUs">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/driverIndicatorTipIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_navigation_black_48dp"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/driverIndicatorTipIcon"
+                android:layout_toRightOf="@+id/driverIndicatorTipIcon"
+                android:text="@string/tip_text_driver_indicator"
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/driverTipIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/car_black_48dp"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/driverTipIcon"
+                android:layout_toRightOf="@+id/driverTipIcon"
+                android:text="@string/tip_text_driver"
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/messageFABReadTipIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_drafts_white_24dp"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/messageFABReadTipIcon"
+                android:layout_toRightOf="@+id/messageFABReadTipIcon"
+                android:text="@string/tip_text_read_message_fab"
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/messageFABUnreadTipIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_mail_white_24dp"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/messageFABUnreadTipIcon"
+                android:layout_toRightOf="@+id/messageFABUnreadTipIcon"
+                android:text="This button means that you have an unread messages in your inbox, clicking this icon will take you straight to your inbox where you can read that message."
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+    </LinearLayout>
+</ScrollView>

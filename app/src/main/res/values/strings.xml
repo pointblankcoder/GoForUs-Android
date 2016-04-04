@@ -140,8 +140,15 @@
     <string name="send_message">Send</string>
 
     <string name="queryTypePrompt">Select Message Type</string>
-    <string name="write_message_hint">write your messaage here ...</string>
+    <string name="write_message_hint">write your message here&#8320;</string>
     <string name="small_lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
-    <string name="difficulty_sending_failure_response">We are experiencing network issues, we will keep trying for now. Please wait...</string>
+    <string name="difficulty_sending_failure_response">We are experiencing network issues, we will keep trying for now. Please wait&#8320;</string>
     <string name="login_register_seperator">or</string>
+    <string name="tips_title">Tips</string>
+    <string name="tip_text_driver_indicator">This icon indicates a Driver which is in your area but currently off your screen. Clicking this icon will take you straight to the driver it\'s associated with.</string>
+    <string name="tip_text_driver">This icon is a Driver. You will see this icon move around the map to show the exact location of the said Driver. This is what the indicator mentioned above will point towards. Clicking this will bring up a mini profile where you can access quick driver information such as rating and their availability.</string>
+    <string name="tips">Tips</string>
+    <string name="dont_show_tips_again">do not show tips again</string>
+    <string name="ok">Ok</string>
+    <string name="tip_text_read_message_fab">This button means that you have an empty inbox, clicking this icon will take you straight to your inbox where you can contact Drivers you\'ve already started a discussion with</string>
 </resources>

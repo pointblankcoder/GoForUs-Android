@@ -15,5 +15,12 @@
         <item name="android:homeAsUpIndicator">@drawable/ic_arrow_back_white_24dp</item>
     </style>
 
+    <style name="Theme.GoForUs.Reverse" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF212121</item>
+        <item name="colorPrimaryDark">#FF000000</item>
+        <item name="colorAccent">#FF80CBC4</item>
+        <item name="android:textColorPrimary">@color/primary_text_material_light</item>
+    </style>
+
     <color name="window_background">#FF303030</color>
 </resources>

@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
 
+import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.settings.Gps;
 import info.goforus.goforus.settings.PermissionsHandler;
 

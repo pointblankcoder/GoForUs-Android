@@ -11,9 +11,10 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +23,9 @@ import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.OnClickListener;
+import com.orhanobut.dialogplus.ViewHolder;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -40,11 +44,12 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     @Bind(R.id.messageFab) FloatingActionButton mMessageFab;
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.drawer_layout) DrawerLayout mDrawer;
-
     InboxFragment inboxFragment;
     MapFragment mapFragment;
     MessagesFragment messagesFragment;
     FragmentManager mFragmentManager;
+
+    DialogPlus mTipDialog;
     @Bind(R.id.nav_view) NavigationView mNavigationView;
 
     public NavigationActivity() {
@@ -76,9 +81,36 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         mDrawer.addDrawerListener(mDrawerToggle);
         mNavigationView.setNavigationItemSelectedListener(this);
 
+
+        mTipDialog = DialogPlus.newDialog(this).setHeader(R.layout.dialog_tips_header)
+                               .setContentHolder(new ViewHolder(R.layout.dialog_tips_body))
+                               .setFooter(R.layout.dialog_tips_footer).setGravity(Gravity.CENTER)
+                               .setCancelable(true)
+                               .setOnClickListener(new OnClickListener() {
+                                   @Override
+                                   public void onClick(DialogPlus dialog, View view) {
+                                       AppCompatCheckBox checkBox = (AppCompatCheckBox) findViewById(R.id.doNotShowTips);
+                                       if(view.equals(findViewById(R.id.dismissTipDialog))){
+                                           mTipDialog.dismiss();
+                                       } else if (view.equals(checkBox)){
+                                           Account account = Account.currentAccount();
+                                           account.showTips = !checkBox.isChecked();
+                                           account.save();
+                                       }
+                                   }
+                               }).create();
+
+        if (Account.currentAccount().showTips) {
+            mTipDialog.show();
+            AppCompatCheckBox checkBox = (AppCompatCheckBox) mTipDialog.findViewById(R.id.doNotShowTips);
+            checkBox.setSelected(!Account.currentAccount().showTips);
+        }
+
+
+
+
         // only create fragments if they haven't been instantiated already
         mFragmentManager = getSupportFragmentManager();
-
         if (savedInstanceState != null) {
             mapFragment = (MapFragment) mFragmentManager.getFragment(savedInstanceState, "Map");
             inboxFragment = (InboxFragment) mFragmentManager
@@ -96,7 +128,6 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         if (messagesFragment == null) messagesFragment = new MessagesFragment();
         if (savedInstanceState == null) showMapFragment();
     }
-
 
     @Override
     public void onResume() {
@@ -128,9 +159,8 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
+        if (mDrawer.isDrawerOpen(GravityCompat.START)) {
+            mDrawer.closeDrawer(GravityCompat.START);
         } else {
             if (messagesFragment.isVisible()) {
                 showInboxFragment();
@@ -167,6 +197,11 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         switch (id) {
             case R.id.action_logout:
                 mApplication.getJobManager().addJobInBackground(new AttemptLogoutJob());
+                break;
+            case R.id.action_tips:
+                mTipDialog.show();
+                AppCompatCheckBox checkBox = (AppCompatCheckBox) mTipDialog.findViewById(R.id.doNotShowTips);
+                checkBox.setChecked(!Account.currentAccount().showTips);
                 break;
         }
 
