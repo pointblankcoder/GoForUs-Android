@@ -50,6 +50,12 @@ public class MessagesFragment extends Fragment {
     }
 
     @Override
+    public void onDestroy() {
+        MessagesUpdateHandler.getInstance().stopUpdates();
+        super.onDestroy();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_messages, container, false);

@@ -18,8 +18,7 @@ public class ConversationsUpdateService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         mAccount = Account.currentAccount();
-        // Handle conversations first so we have our conversations saved before fetching messages
-        // for them conversations
+
         if (mAccount != null) {
             Application.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
         }

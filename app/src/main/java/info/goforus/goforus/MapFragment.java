@@ -61,6 +61,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                 d.indicator.removeIndicator();
             }
         }
+       DriversUpdateHandler.getInstance().stopUpdates();
+
         super.onDestroy();
     }
 

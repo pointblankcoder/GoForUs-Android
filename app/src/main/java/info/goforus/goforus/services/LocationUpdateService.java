@@ -27,6 +27,9 @@ public class LocationUpdateService extends IntentService {
 
         if (Gps.turnedOn()) {
             Location lastKnownLoc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (lastKnownLoc == null)
+                lastKnownLoc = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
             if (lastKnownLoc != null) {
                 LatLng responseLocation = new LatLng(lastKnownLoc.getLatitude(), lastKnownLoc.getLongitude());
                 EventBus.getDefault().post(new LocationUpdateServiceResult(responseLocation));

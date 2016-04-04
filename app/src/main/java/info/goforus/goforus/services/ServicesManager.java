@@ -81,7 +81,7 @@ public class ServicesManager {
     }
 
     public void cancelConversationsUpdateAlarm() {
-        Intent intent = new Intent(appContext, NotificationsUpdateReceiver.class);
+        Intent intent = new Intent(appContext, ConversationsUpdateReceiver.class);
         final PendingIntent pIntent = PendingIntent.getBroadcast(appContext, CONVERSATIONS_UPDATE_REQUEST_CODE,
                 intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarm = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);

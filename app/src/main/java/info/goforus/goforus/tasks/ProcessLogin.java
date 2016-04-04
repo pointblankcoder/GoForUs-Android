@@ -49,7 +49,8 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
 
         if (mRegistering) {
             publishProgress("Getting you registered");
-            application.getJobManager().addJobInBackground(new AttemptRegisterJob(mEmail, mPassword));
+            application.getJobManager()
+                       .addJobInBackground(new AttemptRegisterJob(mEmail, mPassword));
         } else {
             publishProgress("Logging In");
             application.getJobManager().addJobInBackground(new AttemptLoginJob(mEmail, mPassword));
@@ -64,14 +65,31 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
             Application.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
         }
 
-        while(!collectMessagesComplete && !isCancelled()){}
+        while (!collectMessagesComplete && !isCancelled()) {
+        }
 
         if (!isCancelled()) {
-            publishProgress("Making sure we know where you are! (look out your window)");
+            publishProgress("Trying to find where you are");
             LocationUpdateHandler.getInstance().forceUpdate();
         }
 
-        while(!hasGpsLocation && !isCancelled()){}
+        int count = 0;
+        while (!hasGpsLocation && !isCancelled()) {
+            if (count > 10) {
+                // this catches and keeps our loop going if we are having trouble finding the local
+                // without publishing constantly
+            } else if (count == 10) {
+                publishProgress("We are having trouble finding your location \n Moving around can help if you're using GPS");
+                count++; // push the count over so we don't keep publishing our progress
+            } else {
+                count++;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // we don't care
+                }
+            }
+        }
 
         if (!isCancelled()) {
             publishProgress("All done, enjoy!");
@@ -102,7 +120,8 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
             }
 
             if (result.failedPasswordMessage() != null) {
-                mLoginActivity.showErrorOn(mLoginActivity.mPasswordView, result.failedPasswordMessage());
+                mLoginActivity
+                        .showErrorOn(mLoginActivity.mPasswordView, result.failedPasswordMessage());
             }
 
             // TODO: add base message failures, this can happen if there's no server response,

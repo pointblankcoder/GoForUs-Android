@@ -134,6 +134,12 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     }
 
     @Override
+    public void onDestroy(){
+        mApplication.ServicesManager.cancelConversationsUpdateAlarm();
+        super.onDestroy();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         mApplication.ServicesManager.scheduleConversationsUpdateAlarm();
@@ -329,9 +335,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         ft.commit();
     }
 
-
-    /* =================== Api Callbacks ================= */ int lastMessageCount = 0;
-
+    int lastMessageCount = 0;
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void notifyNewMessage(NewMessagesResult result) {
         lastMessageCount = result.getNewMessages().size();
