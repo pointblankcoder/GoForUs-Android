@@ -10,6 +10,28 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp">
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:id="@+id/doNotShowTips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
+
+        <CheckedTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/doNotShowTips"
+            android:layout_gravity="center"
+            android:layout_toEndOf="@+id/doNotShowTips"
+            android:layout_toRightOf="@+id/doNotShowTips"
+            android:text="@string/dont_show_tips_again"
+            android:textColor="@color/secondary_text_material_dark"/>
+    </RelativeLayout>
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

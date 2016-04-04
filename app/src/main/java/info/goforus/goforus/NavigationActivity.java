@@ -18,6 +18,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -81,9 +82,12 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         mNavigationView.setNavigationItemSelectedListener(this);
 
 
-        mTipDialog = DialogPlus.newDialog(this).setHeader(R.layout.dialog_tips_header)
+        mTipDialog = DialogPlus.newDialog(this)
+                               .setHeader(R.layout.dialog_tips_header)
+                               .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
+                               .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
                                .setContentHolder(new ViewHolder(R.layout.dialog_tips_body))
-                               .setFooter(R.layout.dialog_tips_footer).setGravity(Gravity.CENTER)
+                               .setGravity(Gravity.CENTER)
                                .setCancelable(true).setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(DialogPlus dialog, View view) {
