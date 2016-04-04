@@ -96,13 +96,12 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onConversationsUpdate(ConversationsFromApiResult result) {
         if (result.getConversations().size() > 0) {
-            mAdapter.addAll(result.getConversations());
-            mAdapter.notifyDataSetChanged();
-        }
-
-        if (swipeRefreshLayout.isRefreshing()) {
-            Toast.makeText(getContext(), "Inbox Refreshed", Toast.LENGTH_SHORT).show();
-            swipeRefreshLayout.setRefreshing(false);
+            for (Conversation c : result.getConversations()) {
+                if(!mConversations.contains(c)) {
+                    mAdapter.add(c);
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
         }
     }
 
@@ -120,6 +119,12 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
                     mAdapter.notifyDataSetChanged();
                 }
             }
+        }
+
+
+        if (swipeRefreshLayout.isRefreshing()) {
+            Toast.makeText(getContext(), "Inbox Refreshed", Toast.LENGTH_SHORT).show();
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 

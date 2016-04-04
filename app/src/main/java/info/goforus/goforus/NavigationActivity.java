@@ -34,6 +34,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import info.goforus.goforus.event_results.LogoutFromApiResult;
+import info.goforus.goforus.event_results.MessageMarkReadResult;
+import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.event_results.NewMessagesResult;
 import info.goforus.goforus.jobs.AttemptLogoutJob;
 import info.goforus.goforus.models.accounts.Account;
@@ -70,10 +72,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
                     showInboxFragment();
                 }
             });
-            if (Conversation.totalUnreadMessagesCount() > 0) {
-                mMessageFab.setImageDrawable(ContextCompat
-                        .getDrawable(this, R.drawable.ic_mail_white_24dp));
-            }
+            updateMessageFAB();
         }
 
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -85,28 +84,26 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         mTipDialog = DialogPlus.newDialog(this).setHeader(R.layout.dialog_tips_header)
                                .setContentHolder(new ViewHolder(R.layout.dialog_tips_body))
                                .setFooter(R.layout.dialog_tips_footer).setGravity(Gravity.CENTER)
-                               .setCancelable(true)
-                               .setOnClickListener(new OnClickListener() {
-                                   @Override
-                                   public void onClick(DialogPlus dialog, View view) {
-                                       AppCompatCheckBox checkBox = (AppCompatCheckBox) findViewById(R.id.doNotShowTips);
-                                       if(view.equals(findViewById(R.id.dismissTipDialog))){
-                                           mTipDialog.dismiss();
-                                       } else if (view.equals(checkBox)){
-                                           Account account = Account.currentAccount();
-                                           account.showTips = !checkBox.isChecked();
-                                           account.save();
-                                       }
-                                   }
-                               }).create();
+                               .setCancelable(true).setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(DialogPlus dialog, View view) {
+                        AppCompatCheckBox checkBox = (AppCompatCheckBox) findViewById(R.id.doNotShowTips);
+                        if (view.equals(findViewById(R.id.dismissTipDialog))) {
+                            mTipDialog.dismiss();
+                        } else if (view.equals(checkBox)) {
+                            Account account = Account.currentAccount();
+                            account.showTips = !checkBox.isChecked();
+                            account.save();
+                        }
+                    }
+                }).create();
 
         if (Account.currentAccount().showTips) {
             mTipDialog.show();
-            AppCompatCheckBox checkBox = (AppCompatCheckBox) mTipDialog.findViewById(R.id.doNotShowTips);
+            AppCompatCheckBox checkBox = (AppCompatCheckBox) mTipDialog
+                    .findViewById(R.id.doNotShowTips);
             checkBox.setSelected(!Account.currentAccount().showTips);
         }
-
-
 
 
         // only create fragments if they haven't been instantiated already
@@ -132,12 +129,14 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     @Override
     public void onResume() {
         super.onResume();
+        mApplication.ServicesManager.scheduleConversationsUpdateAlarm();
         EventBus.getDefault().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        mApplication.ServicesManager.cancelConversationsUpdateAlarm();
         EventBus.getDefault().unregister(this);
     }
 
@@ -200,7 +199,8 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
                 break;
             case R.id.action_tips:
                 mTipDialog.show();
-                AppCompatCheckBox checkBox = (AppCompatCheckBox) mTipDialog.findViewById(R.id.doNotShowTips);
+                AppCompatCheckBox checkBox = (AppCompatCheckBox) mTipDialog
+                        .findViewById(R.id.doNotShowTips);
                 checkBox.setChecked(!Account.currentAccount().showTips);
                 break;
         }
@@ -328,8 +328,6 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void notifyNewMessage(NewMessagesResult result) {
         lastMessageCount = result.getNewMessages().size();
-        Toast.makeText(NavigationActivity.this, String
-                .format("You have %s new messages.", lastMessageCount), Toast.LENGTH_LONG).show();
         YoYo.with(Techniques.Shake).duration(2000).playOn(mMessageFab);
     }
 
@@ -338,5 +336,31 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void updateMessageFAB(){
+        int totalUnreadCount = Conversation.totalUnreadMessagesCount();
+        if (totalUnreadCount > 0) {
+            mMessageFab.setImageDrawable(ContextCompat
+                    .getDrawable(this, R.drawable.ic_mail_white_24dp));
+            YoYo.with(Techniques.Pulse).duration(1000).playOn(mMessageFab);
+        } else {
+            mMessageFab.setImageDrawable(ContextCompat
+                    .getDrawable(this, R.drawable.ic_drafts_white_24dp));
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessagesUpdate(MessagesFromApiResult result) {
+        updateMessageFAB();
+        int totalUnreadCount = Conversation.totalUnreadMessagesCount();
+        if (result.getMessages().size() > 0 && totalUnreadCount > 0)
+            Toast.makeText(this, String.format("You have %s new message%s", totalUnreadCount, totalUnreadCount == 1 ? "" : "s"), Toast.LENGTH_LONG).show();
+
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageRead(MessageMarkReadResult result) {
+        updateMessageFAB();
     }
 }
