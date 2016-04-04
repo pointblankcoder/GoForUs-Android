@@ -5,12 +5,12 @@
         <item
             android:id="@+id/nav_map"
             android:checked="true"
-            android:icon="@drawable/ic_map_black_24dp"
+            android:icon="@drawable/map_black_36dp"
             android:title="Map" />
 
         <item
             android:id="@+id/nav_inbox"
-            android:icon="@drawable/ic_message_black_24dp"
+            android:icon="@drawable/ic_mail_black_24dp"
             android:title="Inbox" />
         <item
             android:id="@+id/nav_settings"

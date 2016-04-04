@@ -114,10 +114,13 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         mFragmentManager = getSupportFragmentManager();
         if (savedInstanceState != null) {
             mapFragment = (MapFragment) mFragmentManager.getFragment(savedInstanceState, "Map");
+
             inboxFragment = (InboxFragment) mFragmentManager
                     .getFragment(savedInstanceState, "Inbox");
+
             messagesFragment = (MessagesFragment) mFragmentManager
                     .getFragment(savedInstanceState, "Messages");
+
             if (savedInstanceState.getBoolean("mMessageFabShown")) {
                 mMessageFab.show();
             } else {
