@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="query_types">
+        <item>I\'m intending to place an order</item>
+        <item>Confirm pickup point</item>
+        <item>Other</item>
+    </string-array>
+</resources>

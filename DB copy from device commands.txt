@@ -1,0 +1,2 @@
+adb shell "run-as info.goforus.goforus chmod 666 /data/data/info.goforus.goforus/databases/dev1111.db"
+adb pull /data/data/info.goforus.goforus/databases/dev1111.db

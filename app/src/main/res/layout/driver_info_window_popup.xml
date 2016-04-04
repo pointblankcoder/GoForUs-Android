@@ -14,14 +14,15 @@
 
         <!-- ROW 1 -->
         <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:id="@+id/orderBtn"
             android:layout_column="0"
             android:layout_columnSpan="12"
-            android:layout_gravity="center_horizontal"
+            android:layout_gravity="center"
             android:layout_row="0"
-            android:src="@mipmap/ic_launcher" />
+            android:layout_margin="10dp"
+            android:textColor="#ffffff"
+            android:src="@drawable/ic_account_circle_black_48dp"/>
+
 
         <TextView
             android:id="@+id/title"
@@ -78,20 +79,6 @@
                 android:layout_gravity="center_vertical"
                 android:src="@drawable/star" />
         </LinearLayout>
-
-        <Button
-            android:id="@+id/orderBtn"
-            android:layout_column="0"
-            android:layout_columnSpan="12"
-            android:layout_gravity="fill"
-            android:layout_marginTop="20dp"
-            android:layout_row="3"
-            android:layout_marginRight="10dp"
-            android:layout_margin="10dp"
-            android:text="Order"
-            android:textColor="#ffffff"
-            android:backgroundTint="@color/colorCTA"
-            android:background="@color/colorCTA" />
 
     </GridLayout>
 </FrameLayout>
