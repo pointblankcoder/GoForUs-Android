@@ -104,7 +104,6 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
             }
         }
 
-
         if (swipeRefreshLayout.isRefreshing()) {
             Toast.makeText(getContext(), "Inbox Refreshed", Toast.LENGTH_SHORT).show();
             swipeRefreshLayout.setRefreshing(false);
@@ -125,6 +124,12 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
                     mAdapter.notifyDataSetChanged();
                 }
             }
+        }
+
+
+        if (swipeRefreshLayout.isRefreshing()) {
+            Toast.makeText(getContext(), "Inbox Refreshed", Toast.LENGTH_SHORT).show();
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 
