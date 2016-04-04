@@ -8,17 +8,13 @@ import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.activeandroid.ActiveAndroid;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
-
-import org.greenrobot.eventbus.util.AsyncExecutor;
 
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.jobs.MarkReadMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
@@ -46,8 +42,8 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
     public View getView(int position, View view, ViewGroup parent) {
         // Get the data item for this position
         final Conversation conversation = getItem(position);
-
         final ViewHolder viewHolder;
+
         if (view == null) {
             LayoutInflater inflater = LayoutInflater.from(getContext());
             view = inflater.inflate(R.layout.item_conversation, parent, false);

@@ -189,7 +189,9 @@ public class MessagesFragment extends Fragment {
                 Application.getInstance().getJobManager()
                            .addJobInBackground(new MarkReadMessageJob(mConversation.externalId, message.externalId));
                 message.confirmedReceived = true;
-                message.readByReceiver = true;
+                if (isVisible()) {
+                    message.readByReceiver = true;
+                }
                 message.save();
             }
 

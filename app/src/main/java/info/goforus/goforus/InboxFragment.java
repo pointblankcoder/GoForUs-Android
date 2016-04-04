@@ -96,9 +96,14 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onConversationsUpdate(ConversationsFromApiResult result) {
         if (result.getConversations().size() > 0) {
-            mAdapter.addAll(result.getConversations());
-            mAdapter.notifyDataSetChanged();
+            for (Conversation c : result.getConversations()) {
+                if(!mConversations.contains(c)) {
+                    mAdapter.add(c);
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
         }
+
 
         if (swipeRefreshLayout.isRefreshing()) {
             Toast.makeText(getContext(), "Inbox Refreshed", Toast.LENGTH_SHORT).show();
