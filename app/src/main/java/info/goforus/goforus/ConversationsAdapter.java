@@ -61,7 +61,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
             @Override
             public void onClick(View v) {
                 for (Message m : conversation.messages()) {
-                    if(!m.readByReceiver && m.isMe) {
+                    if(!m.readByReceiver) {
                         Application.getInstance().getJobManager().addJobInBackground(new MarkReadMessageJob(conversation.externalId, m.externalId));
                         m.readByReceiver = true;
                         m.save();
@@ -76,7 +76,6 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
         if (conversation.lastMessage() != null) {
             viewHolder.lastMessageSummary.setText(conversation.lastMessage().body);
         }
-
 
         if (conversation.unreadMessageCount() > 0) {
             viewHolder.conversationWrapper.setBackgroundResource(R.color.accent_material_dark_1);
