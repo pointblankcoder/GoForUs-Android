@@ -3,17 +3,10 @@ package info.goforus.goforus;
 import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.net.Network;
-import android.os.Build;
 
 import com.activeandroid.ActiveAndroid;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.config.Configuration;
-import com.birbit.android.jobqueue.log.CustomLogger;
-import com.birbit.android.jobqueue.scheduling.FrameworkJobSchedulerService;
-import com.birbit.android.jobqueue.scheduling.GcmJobSchedulerService;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
@@ -23,13 +16,13 @@ import info.goforus.goforus.services.ServicesManager;
 import info.goforus.goforus.settings.Gps;
 import info.goforus.goforus.tasks.NetworkUpdateHandler;
 
-public class Application extends com.activeandroid.app.Application {
-    static final String TAG = "Application";
+public class GoForUs extends com.activeandroid.app.Application {
+    static final String TAG = "GoForUs";
 
     public LocationUpdateHandler LocationUpdateHandler;
     public ServicesManager ServicesManager;
     public ConnectivityManager ConnectivityManager;
-    private static Application instance;
+    private static GoForUs instance;
     private JobManager jobManager;
 
     private Activity mCurrentActivity = null;
@@ -44,7 +37,7 @@ public class Application extends com.activeandroid.app.Application {
         return Gps.turnedOn();
     }
 
-    public static Application getInstance(){
+    public static GoForUs getInstance(){
         return instance;
     }
 

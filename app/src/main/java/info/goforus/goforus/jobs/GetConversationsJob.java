@@ -1,14 +1,12 @@
 package info.goforus.goforus.jobs;
 
-import android.support.annotation.Nullable;
-
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.RetryConstraint;
 
 import org.greenrobot.eventbus.EventBus;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.models.accounts.Account;
@@ -41,7 +39,7 @@ public class GetConversationsJob extends Job {
         }
 
         for(Conversation c : mAccount.conversations()) {
-            Application.getInstance().getJobManager().addJobInBackground(new GetMessagesJob(c.externalId));
+            GoForUs.getInstance().getJobManager().addJobInBackground(new GetMessagesJob(c.externalId));
         }
     }
 

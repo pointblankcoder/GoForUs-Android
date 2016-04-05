@@ -17,7 +17,7 @@ import com.google.maps.android.SphericalUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
 import info.goforus.goforus.event_results.IndicatorUpdateResult;
 import info.goforus.goforus.models.drivers.Driver;
@@ -54,8 +54,8 @@ public class UpdateIndicatorTask extends AsyncTask<Object, Integer, Float[]> {
     }
 
     protected Float[] doInBackground(Object... objects) {
-        final Application application = Application.getInstance();
-        final Resources resources = Application.getInstance().getResources();
+        final GoForUs goForUs = GoForUs.getInstance();
+        final Resources resources = GoForUs.getInstance().getResources();
         final BitmapFactory.Options opt = new BitmapFactory.Options();
         opt.inJustDecodeBounds = true;
         BitmapFactory.decodeResource(resources, R.drawable.ic_navigation_black_36dp, opt);
@@ -65,7 +65,7 @@ public class UpdateIndicatorTask extends AsyncTask<Object, Integer, Float[]> {
         int actionBarSize = 0;
         TypedValue tv = new TypedValue();
 
-        if (application.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true))
+        if (goForUs.getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true))
         {
             actionBarSize = TypedValue.complexToDimensionPixelSize(tv.data, resources.getDisplayMetrics());
         }

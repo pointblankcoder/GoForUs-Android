@@ -12,7 +12,7 @@ import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;
 import info.goforus.goforus.settings.Gps;
 
@@ -26,8 +26,8 @@ public class LocationUpdateHandler implements LocationListener {
     }
 
     private LocationUpdateHandler() {
-        mLocationManager = (LocationManager) Application.getInstance()
-                                                        .getSystemService(Context.LOCATION_SERVICE);
+        mLocationManager = (LocationManager) GoForUs.getInstance()
+                                                    .getSystemService(Context.LOCATION_SERVICE);
         turnUpdatesOn(); // we try right away in case the user is already logged in
     }
 

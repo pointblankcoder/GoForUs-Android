@@ -5,7 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.services.receivers.ConversationsUpdateReceiver;
 import info.goforus.goforus.services.receivers.DriversUpdateReceiver;
 import info.goforus.goforus.services.receivers.LocationUpdateReceiver;
@@ -18,7 +18,7 @@ public class ServicesManager {
     public static ServicesManager getInstance() {
         return manager;
     }
-    private Application appContext = Application.getInstance();
+    private GoForUs appContext = GoForUs.getInstance();
 
     private static final int DRIVERS_UPDATE_REQUEST_CODE = 2558;
     private static final int CONVERSATIONS_UPDATE_REQUEST_CODE = 2557;

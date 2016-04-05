@@ -6,7 +6,7 @@ import com.birbit.android.jobqueue.RetryConstraint;
 
 import org.greenrobot.eventbus.EventBus;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
 import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.MessageSentResult;
@@ -41,7 +41,8 @@ public class PostMessageJob extends Job {
     @Override
     protected RetryConstraint shouldReRunOnThrowable(Throwable throwable, int runCount, int maxRunCount) {
         if(runCount > 10) {
-            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_FAILURE, Application.getInstance().getString(
+            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_FAILURE, GoForUs
+                    .getInstance().getString(
                     R.string.difficulty_sending_failure_response)));
         }
 
