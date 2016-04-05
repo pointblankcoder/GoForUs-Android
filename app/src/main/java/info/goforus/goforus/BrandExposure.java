@@ -4,9 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 
-import org.greenrobot.eventbus.util.AsyncExecutor;
-
-import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.tasks.LocationUpdateHandler;
 
@@ -31,7 +28,7 @@ public class BrandExposure extends BaseActivity {
     Runnable readyCheckRunnable = new Runnable() {
         @Override
         public void run() {
-            if(mApplication.isReady()) {
+            if(mGoForUs.isReady()) {
                 Intent intent;
                 if (Account.currentAccount() != null) {
                     LocationUpdateHandler.getInstance().turnUpdatesOn();

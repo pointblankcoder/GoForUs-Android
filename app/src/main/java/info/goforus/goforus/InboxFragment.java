@@ -82,7 +82,7 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
 
     @Override
     public void onRefresh() {
-        Application.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
+        GoForUs.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
         swipeRefreshLayout.setRefreshing(true);
         Logger.d("We are refreshing our inbox");
     }

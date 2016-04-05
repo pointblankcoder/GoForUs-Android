@@ -58,7 +58,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
             public void onClick(View v) {
                 for (Message m : conversation.messages()) {
                     if(!m.readByReceiver) {
-                        Application.getInstance().getJobManager().addJobInBackground(new MarkReadMessageJob(conversation.externalId, m.externalId));
+                        GoForUs.getInstance().getJobManager().addJobInBackground(new MarkReadMessageJob(conversation.externalId, m.externalId));
                         m.readByReceiver = true;
                         m.save();
                     }

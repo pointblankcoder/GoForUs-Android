@@ -13,13 +13,13 @@ import info.goforus.goforus.settings.Gps;
 import info.goforus.goforus.settings.PermissionsHandler;
 
 public abstract class BaseActivity extends AppCompatActivity {
-    public Application mApplication = Application.getInstance();
+    public GoForUs mGoForUs = GoForUs.getInstance();
 
     /* =========================== Class Overrides =========================== */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mApplication.setCurrentActivity(this);
+        mGoForUs.setCurrentActivity(this);
 
         if (!Gps.turnedOn()) {
             PermissionsHandler.checkGpsPermissions(this);
@@ -34,7 +34,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mApplication.setCurrentActivity(this);
+        mGoForUs.setCurrentActivity(this);
     }
 
     @Override
@@ -87,9 +87,9 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     /* =========================== Class Specific =========================== */
     private void clearReferences() {
-        Activity currActivity = mApplication.getCurrentActivity();
+        Activity currActivity = mGoForUs.getCurrentActivity();
         if (this.equals(currActivity)) {
-            mApplication.setCurrentActivity(null);
+            mGoForUs.setCurrentActivity(null);
         }
     }
 

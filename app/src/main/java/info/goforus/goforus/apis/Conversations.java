@@ -4,9 +4,8 @@ import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
-import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.event_results.MessageSentResult;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONObject;
@@ -65,11 +64,12 @@ public class Conversations {
         response = Utils.resty.json(replyURI + Utils.tokenParams(), put(content(baseJson))).toObject();
 
         if (response.getString("status").equals("ok")) {
-            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_OK, Application.getInstance().getString(R.string.message_sent)));
+            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_OK, GoForUs.getInstance().getString(R.string.message_sent)));
         } else {
             Logger.e("something went wrong");
             Logger.e(String.valueOf(response));
-            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_FAILURE, Application.getInstance().getString(R.string.standard_failure_response)));
+            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_FAILURE, GoForUs
+                    .getInstance().getString(R.string.standard_failure_response)));
         }
     }
 }

@@ -3,15 +3,16 @@ package info.goforus.goforus.settings;
 import android.location.GpsStatus;
 import android.location.LocationManager;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 
 public class Gps implements GpsStatus.Listener {
     private static final Gps gps = new Gps();
     private Gps(){}
     public static Gps getInstance(){ return gps; }
 
-    private final Application mApplication = Application.getInstance();
-    private final LocationManager mLocationManager = (LocationManager) mApplication.getSystemService(Application.LOCATION_SERVICE);
+    private final GoForUs mGoForUs = GoForUs.getInstance();
+    private final LocationManager mLocationManager = (LocationManager) mGoForUs
+            .getSystemService(GoForUs.LOCATION_SERVICE);
 
     private boolean gpsStopped = false;
 

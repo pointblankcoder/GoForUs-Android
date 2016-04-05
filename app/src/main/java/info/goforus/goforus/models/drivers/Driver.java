@@ -1,19 +1,16 @@
 package info.goforus.goforus.models.drivers;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -21,7 +18,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
 import us.monoid.json.JSONObject;
 
@@ -77,7 +74,7 @@ public class Driver extends Model implements Comparable<Driver> {
 
     public void addToMap(GoogleMap map) {
         this.map = map;
-        Drawable car = ActivityCompat.getDrawable(Application.getInstance(), R.drawable.car_black_36dp);
+        Drawable car = ActivityCompat.getDrawable(GoForUs.getInstance(), R.drawable.car_black_36dp);
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(car.getIntrinsicWidth(), car.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);

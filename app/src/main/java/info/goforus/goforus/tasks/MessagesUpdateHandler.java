@@ -2,7 +2,7 @@ package info.goforus.goforus.tasks;
 
 import android.os.Handler;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.jobs.GetMessagesJob;
 
 public class MessagesUpdateHandler {
@@ -31,7 +31,7 @@ public class MessagesUpdateHandler {
     final Runnable task = new Runnable() {
         @Override
         public void run() {
-            Application.getInstance().getJobManager().addJobInBackground(new GetMessagesJob(mConversationId));
+            GoForUs.getInstance().getJobManager().addJobInBackground(new GetMessagesJob(mConversationId));
             mHandler.postDelayed(task, REPEAT_TIME);
         }
     };

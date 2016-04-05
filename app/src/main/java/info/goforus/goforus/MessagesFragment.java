@@ -74,7 +74,7 @@ public class MessagesFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        mJobManager = Application.getInstance().getJobManager();
+        mJobManager = GoForUs.getInstance().getJobManager();
 
         // auto focus the send message box with indicator.
         etMessage.requestFocus();
@@ -160,8 +160,8 @@ public class MessagesFragment extends Fragment {
             btSend.setEnabled(true);
             etMessage.setEnabled(true);
             etMessage.setText(null);
-            Application.getInstance().getJobManager()
-                       .addJobInBackground(new GetMessagesJob(mConversation.externalId));
+            GoForUs.getInstance().getJobManager()
+                   .addJobInBackground(new GetMessagesJob(mConversation.externalId));
         } else {
             // Pop that last message from waiting confirmation! Something went wrong!
             waitingForConfirmation.remove(waitingForConfirmation.size() - 1);
@@ -193,8 +193,8 @@ public class MessagesFragment extends Fragment {
                     }
                 }
 
-                Application.getInstance().getJobManager()
-                           .addJobInBackground(new MarkReadMessageJob(mConversation.externalId, message.externalId));
+                GoForUs.getInstance().getJobManager()
+                       .addJobInBackground(new MarkReadMessageJob(mConversation.externalId, message.externalId));
                 message.confirmedReceived = true;
                 if (isVisible()) {
                     message.readByReceiver = true;

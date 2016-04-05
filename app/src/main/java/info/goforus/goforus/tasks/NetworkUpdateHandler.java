@@ -1,13 +1,12 @@
 package info.goforus.goforus.tasks;
 
-import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.util.AsyncExecutor;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.event_results.NetworkUpdateResult;
 
 public class NetworkUpdateHandler {
@@ -36,10 +35,10 @@ public class NetworkUpdateHandler {
             AsyncExecutor.create().execute(new AsyncExecutor.RunnableEx() {
                 @Override
                 public void run() throws Exception {
-                    NetworkInfo activeNetwork = Application.getInstance().ConnectivityManager.getActiveNetworkInfo();
-                    Application.isConnected = (activeNetwork != null && activeNetwork.isConnectedOrConnecting());
+                    NetworkInfo activeNetwork = GoForUs.getInstance().ConnectivityManager.getActiveNetworkInfo();
+                    GoForUs.isConnected = (activeNetwork != null && activeNetwork.isConnectedOrConnecting());
 
-                    EventBus.getDefault().post(new NetworkUpdateResult(activeNetwork, Application.isConnected));
+                    EventBus.getDefault().post(new NetworkUpdateResult(activeNetwork, GoForUs.isConnected));
 
                     mHandler.removeCallbacks(task);
                     mHandler.postDelayed(task, REPEAT_TIME);

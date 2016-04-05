@@ -9,7 +9,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import info.goforus.goforus.Application;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.LoginActivity;
 import info.goforus.goforus.NavigationActivity;
 import info.goforus.goforus.event_results.ConversationsFromApiResult;
@@ -45,15 +45,15 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
     }
 
     protected Void doInBackground(Object... objects) {
-        final Application application = Application.getInstance();
+        final GoForUs goForUs = GoForUs.getInstance();
 
         if (mRegistering) {
             publishProgress("Getting you registered");
-            application.getJobManager()
-                       .addJobInBackground(new AttemptRegisterJob(mEmail, mPassword));
+            goForUs.getJobManager()
+                   .addJobInBackground(new AttemptRegisterJob(mEmail, mPassword));
         } else {
             publishProgress("Logging In");
-            application.getJobManager().addJobInBackground(new AttemptLoginJob(mEmail, mPassword));
+            goForUs.getJobManager().addJobInBackground(new AttemptLoginJob(mEmail, mPassword));
         }
 
 
@@ -62,7 +62,7 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
 
         if (!isCancelled()) {
             publishProgress("Getting your messages");
-            Application.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
+            GoForUs.getInstance().getJobManager().addJobInBackground(new GetConversationsJob());
         }
 
         while (!collectMessagesComplete && !isCancelled()) {

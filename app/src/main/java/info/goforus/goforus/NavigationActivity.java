@@ -135,21 +135,21 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
     @Override
     public void onDestroy(){
-        mApplication.ServicesManager.cancelConversationsUpdateAlarm();
+        mGoForUs.ServicesManager.cancelConversationsUpdateAlarm();
         super.onDestroy();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mApplication.ServicesManager.scheduleConversationsUpdateAlarm();
+        mGoForUs.ServicesManager.scheduleConversationsUpdateAlarm();
         EventBus.getDefault().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mApplication.ServicesManager.cancelConversationsUpdateAlarm();
+        mGoForUs.ServicesManager.cancelConversationsUpdateAlarm();
         EventBus.getDefault().unregister(this);
     }
 
@@ -208,7 +208,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
         switch (id) {
             case R.id.action_logout:
-                mApplication.getJobManager().addJobInBackground(new AttemptLogoutJob());
+                mGoForUs.getJobManager().addJobInBackground(new AttemptLogoutJob());
                 break;
             case R.id.action_tips:
                 mTipDialog.show();
