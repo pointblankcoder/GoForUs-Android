@@ -28,7 +28,11 @@ public class Location {
         return location;
     }
 
-    public static final String nearbyDriversURI = Utils.BaseURI + "partners/nearby";
+    public static String nearbyDriversURI = getNearbyDriversUri();
+
+    public static String getNearbyDriversUri(){
+        return Utils.getBaseUri() + "partners/nearby";
+    }
 
     public JSONArray getNearbyDrivers(final double lat, final double lng) {
         JSONArray drivers = null;
@@ -45,7 +49,11 @@ public class Location {
     }
 
 
-    public static final String updateLocationURI = Utils.BaseURI + "location/update";
+    public static String updateLocationURI = getUpdateLocationUri();
+
+    public static String getUpdateLocationUri(){
+        return Utils.getBaseUri() + "location/update";
+    }
 
     public void updateMyLocation(final double lat, final double lng) {
         try {

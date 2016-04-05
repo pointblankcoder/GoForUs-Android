@@ -14,9 +14,9 @@ import static us.monoid.web.Resty.content;
 import static us.monoid.web.Resty.put;
 
 public class Conversations {
-    public static final String conversationsURI = Utils.BaseURI + "conversations";
-    public static final String inboxURI = Utils.BaseURI + "conversations/inbox";
-    public static final String replyURI = Utils.BaseURI + "conversations/reply";
+    public static String conversationsURI = getConversationsUri();
+    public static String inboxURI = getInboxUri();
+    public static String replyURI = getReplyUri();
 
     private static final Conversations conversation = new Conversations();
 
@@ -25,6 +25,16 @@ public class Conversations {
 
     public static Conversations getInstance() {
         return conversation;
+    }
+
+    public static String getConversationsUri(){
+        return Utils.getBaseUri() + "conversations";
+    }
+    public static String getInboxUri(){
+        return Utils.getBaseUri() + "conversations/inbox";
+    }
+    public static String getReplyUri(){
+        return Utils.getBaseUri() + "conversations/reply";
     }
 
     public JSONArray getInbox() {

@@ -4,15 +4,14 @@ import android.support.annotation.Nullable;
 
 import com.orhanobut.logger.Logger;
 
+import info.goforus.goforus.BuildConfig;
 import info.goforus.goforus.models.accounts.Account;
-
+import info.goforus.goforus.settings.DebugSettings;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 import us.monoid.web.Resty;
 
-// TODO: Add catch all for loss of internet connection (UnknownHostException)
 public class Utils {
-    public static final String BaseURI = "http://dev.goforus.info/api/v1/";
     public static final Resty resty = new Resty();
     private final static String TAG = "Utils";
 
@@ -35,6 +34,10 @@ public class Utils {
         } else{
             return "?";
         }
+    }
+
+    public static String getBaseUri(){
+        return (BuildConfig.DEBUG) ? DebugSettings.getInstance().getApiUrl() : "http://dev.goforus.info/api/v1/";
     }
 
     @Nullable
