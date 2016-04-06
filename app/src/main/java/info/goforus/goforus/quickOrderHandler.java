@@ -11,7 +11,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -20,6 +19,8 @@ import info.goforus.goforus.models.drivers.Driver;
 
 public class QuickOrderHandler implements OnClickListener {
     final NavigationActivity activity;
+    private final DriversOnMapManager driversOnMapManager;
+    MapFragment mapFragment;
     DialogPlus mDialog;
     View vehicleStep;
     View itemStep;
@@ -37,6 +38,7 @@ public class QuickOrderHandler implements OnClickListener {
 
     public QuickOrderHandler(NavigationActivity activity) {
         this.activity = activity;
+        driversOnMapManager = DriversOnMapManager.getInstance();
     }
 
     @Override
@@ -52,6 +54,7 @@ public class QuickOrderHandler implements OnClickListener {
         nextDriverButton = (Button) dialog.findViewById(R.id.nextDriver);
         mSteps = new ArrayList<>(Arrays
                 .asList(vehicleStep, itemStep, distanceStep, driverFoundStep));
+        mapFragment = (MapFragment) activity.getSupportFragmentManager().findFragmentByTag("Map");
 
 
         // Going forward
@@ -87,6 +90,7 @@ public class QuickOrderHandler implements OnClickListener {
             showStep(previousStep);
             showProceedButton();
             showBackButton();
+            excludedDrivers = new ArrayList<>(); // We went back, clear the exclusion list
 
             if (currentStep() == mSteps.get(0)) {
                 hideBackButton();
@@ -111,34 +115,27 @@ public class QuickOrderHandler implements OnClickListener {
             hideBackButton();
             showNextDriverButton();
             showProceedButton();
-            driver.goToWithInfoWindow(1000);
+
+            driversOnMapManager.goToDriverWithInfoWindow(driver, 1000);
+
             driverFoundText.setText(String
                     .format("%s matched your criteria, is available and currently the closest to you. Would you like to proceed or find someone else?", driver.name));
         }
     }
 
-    private void hideProceedButton() { proceedButton.setVisibility(View.GONE); }
-
-    private void showProceedButton() { proceedButton.setVisibility(View.VISIBLE); }
-
-    private void showNextDriverButton() { nextDriverButton.setVisibility(View.VISIBLE); }
-
-    private void hideNextDriverButton() { nextDriverButton.setVisibility(View.GONE); }
-
-    private void hideBackButton() { backButton.setVisibility(View.GONE); }
-
-    private void showBackButton() { backButton.setVisibility(View.VISIBLE); }
-
     int driverCycleCount = 0;
+
     private Driver findBestDriver() {
-        MapFragment mapFragment = (MapFragment) activity.getSupportFragmentManager()
-                                                        .findFragmentByTag("Map");
         Account account = Account.currentAccount();
         LatLng myLocation = account.location();
-        ArrayList<Driver> driversToCycle = mapFragment.currentlyDisplayedDrivers;
+        ArrayList<Driver> driversToCycle = (ArrayList<Driver>) driversOnMapManager
+                .getCurrentlyDisplayedDrivers().clone();
 
-        driversToCycle.removeAll(excludedDrivers);
-        if(excludedDrivers.contains(closestDriver)) {
+        for (Driver d : excludedDrivers) {
+            driversToCycle.remove(d);
+        }
+
+        if (excludedDrivers.contains(closestDriver)) {
             closestDriver = null;
             closetDriverResults = new float[1];
         }
@@ -154,9 +151,10 @@ public class QuickOrderHandler implements OnClickListener {
             }
         }
 
+
         // if we have no drivers to cycle through anymore. and we are not on the first count.
         // wipe the slate clean and show that there are no drivers for them
-        if(driverCycleCount > 0 && driversToCycle.size() == 0) {
+        if (driverCycleCount > 0 && driversToCycle.size() == 0) {
             closestDriver = null;
             closetDriverResults = new float[1];
         }
@@ -196,4 +194,17 @@ public class QuickOrderHandler implements OnClickListener {
         }
         stepToShow.setVisibility(View.VISIBLE);
     }
+
+
+    private void hideProceedButton() { proceedButton.setVisibility(View.GONE); }
+
+    private void showProceedButton() { proceedButton.setVisibility(View.VISIBLE); }
+
+    private void showNextDriverButton() { nextDriverButton.setVisibility(View.VISIBLE); }
+
+    private void hideNextDriverButton() { nextDriverButton.setVisibility(View.GONE); }
+
+    private void hideBackButton() { backButton.setVisibility(View.GONE); }
+
+    private void showBackButton() { backButton.setVisibility(View.VISIBLE); }
 }

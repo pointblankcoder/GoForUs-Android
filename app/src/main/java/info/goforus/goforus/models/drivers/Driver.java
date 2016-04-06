@@ -93,7 +93,7 @@ public class Driver extends Model implements Comparable<Driver> {
 
     public void goToWithInfoWindow() {
         if (marker != null) {
-            // TODO: Add actual calculation based on the info window height
+            updatePositionOnMap();
             LatLng latLngPositionWithInfoWindow = new LatLng(marker.getPosition().latitude + 0.0022f, marker.getPosition().longitude);
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLngPositionWithInfoWindow, 15);
             map.animateCamera(cameraUpdate, 1, new GoogleMap.CancelableCallback() {
@@ -110,7 +110,7 @@ public class Driver extends Model implements Comparable<Driver> {
     }
     public void goToWithInfoWindow(int animationTimer) {
         if (marker != null) {
-            // TODO: Add actual calculation based on the info window height
+            updatePositionOnMap();
             LatLng latLngPositionWithInfoWindow = new LatLng(marker.getPosition().latitude + 0.0022f, marker.getPosition().longitude);
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLngPositionWithInfoWindow, 15);
             map.animateCamera(cameraUpdate, animationTimer, new GoogleMap.CancelableCallback() {
@@ -128,6 +128,7 @@ public class Driver extends Model implements Comparable<Driver> {
 
     public void goTo() {
         if (marker != null) {
+            updatePositionOnMap();
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15);
             map.animateCamera(cameraUpdate, 1, new GoogleMap.CancelableCallback() {
                 public void onFinish() {
@@ -142,6 +143,7 @@ public class Driver extends Model implements Comparable<Driver> {
 
     public void goTo(int animationTime) {
         if (marker != null) {
+            updatePositionOnMap();
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15);
             map.animateCamera(cameraUpdate, animationTime, new GoogleMap.CancelableCallback() {
                 @Override

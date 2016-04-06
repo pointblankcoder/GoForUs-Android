@@ -24,18 +24,11 @@ import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.ViewHolder;
 import com.orhanobut.logger.Logger;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 import org.parceler.Parcels;
 
-import java.util.ArrayList;
-
 import butterknife.ButterKnife;
-import info.goforus.goforus.event_results.DriverUpdateResult;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
-import info.goforus.goforus.models.drivers.Indicator;
 import info.goforus.goforus.models.drivers.InfoWindowAdapter;
 import info.goforus.goforus.tasks.DriversUpdateHandler;
 
@@ -46,10 +39,10 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     MapWrapperLayout mMapWrapperLayout;
     BaseActivity mActivity;
     GoogleMap mMap;
-    public ArrayList<Driver> currentlyDisplayedDrivers = new ArrayList<>();
     boolean firstLoad = true;
     boolean mHidden;
     private DialogPlus mMiniProfileDriverTipDialog;
+    private DriversOnMapManager driversOnMapManager;
 
 
     /* ======================== Fragment Overrides =================== */
@@ -102,9 +95,9 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                                                     }
                                                 }).create();
 
-        if(!firstLoad){
+        if (!firstLoad) {
             // We hold a reference to the old activity in the indicators. let's reassign them!
-            for(Driver d : currentlyDisplayedDrivers) {
+            for (Driver d : driversOnMapManager.getCurrentlyDisplayedDrivers()) {
                 d.indicator.updateAfterConfigurationChange(mActivity);
             }
         }
@@ -124,14 +117,14 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     @Override
     public void onStart() {
         super.onStart();
-        if (!isHidden()) {
-            hideAllDrivers(false);
+        if (!isHidden() && driversOnMapManager != null) {
+            driversOnMapManager.hideAllDrivers(false);
         }
     }
 
     @Override
     public void onStop() {
-        hideAllDrivers(true);
+        driversOnMapManager.hideAllDrivers(true);
         super.onStop();
     }
 
@@ -139,18 +132,18 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     public void onResume() {
         super.onResume();
 
-        if (!isHidden()) {
-            hideAllDrivers(false);
+        if (!isHidden() && driversOnMapManager != null) {
+            driversOnMapManager.hideAllDrivers(false);
         }
 
-        EventBus.getDefault().register(this);
-        updateIndicators();
+        if (driversOnMapManager != null) {
+            driversOnMapManager.updateIndicators();
+        }
         DriversUpdateHandler.getInstance().startUpdates();
     }
 
     @Override
     public void onPause() {
-        EventBus.getDefault().unregister(this);
         DriversUpdateHandler.getInstance().stopUpdates();
         super.onPause();
     }
@@ -164,7 +157,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
             DriversUpdateHandler.getInstance().startUpdates();
         }
 
-        hideAllDrivers(hidden);
+        driversOnMapManager.hideAllDrivers(hidden);
     }
 
     @Override
@@ -173,9 +166,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
+    public void onSaveInstanceState(Bundle outState) { super.onSaveInstanceState(outState); }
 
     @Override
     public View getView() {
@@ -185,9 +176,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     /* ======================== Google Map Related =================== */
     @Override
-    public void onCameraChange(CameraPosition position) {
-        updateIndicators();
-    }
+    public void onCameraChange(CameraPosition position) { driversOnMapManager.updateIndicators(); }
 
     @SuppressWarnings("ResourceType")
     @Override
@@ -214,6 +203,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         // listen to dragging motion
         mMapWrapperLayout.setGestureListener(this);
 
+        driversOnMapManager = DriversOnMapManager.getInstance();
+        driversOnMapManager.setup(mActivity, mMap, this);
     }
 
     @Override
@@ -236,7 +227,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
             });
             firstLoad = false;
         }
-        updateIndicators();
+        driversOnMapManager.updateIndicators();
     }
 
     /* ======================== Marker Listeners =================== */
@@ -270,7 +261,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     @Override
     public boolean onMarkerClick(Marker marker) {
         Logger.d("marker was clicked, updated currently selected");
-        currentDriverSelected = Driver.findByDriverMarker(currentlyDisplayedDrivers, marker);
+        currentDriverSelected = Driver
+                .findByDriverMarker(driversOnMapManager.getCurrentlyDisplayedDrivers(), marker);
         currentDriverSelected.goToWithInfoWindow();
 
         // Do we show the driver tip
@@ -285,69 +277,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     }
 
     @Override
-    public void onDrag(MotionEvent event) {
-        updateIndicators();
-    }
+    public void onDrag(MotionEvent event) { driversOnMapManager.updateIndicators(); }
 
     @Override
-    public void onFling() {
-        updateIndicators();
-    }
-
-    public void updateIndicators() {
-        for (Driver d : currentlyDisplayedDrivers) {
-            if (d.indicator != null) {
-                d.indicator.update();
-            }
-        }
-    }
-
-    /* =================== Helpers =================== */
-    public void hideAllDrivers(boolean hide) {
-        for (Driver d : currentlyDisplayedDrivers) {
-            if (d.indicator != null) {
-                if (hide) {
-                    d.indicator.hide();
-                } else {
-                    d.indicator.update();
-                }
-            }
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onDriversUpdate(DriverUpdateResult result) {
-        Driver d = result.getDriver();
-
-        if (Driver.containsId(currentlyDisplayedDrivers, d.externalId)) {
-            // Just update the position of the current driver
-            int index = Driver.getIndexOfDriverFrom(currentlyDisplayedDrivers, d.externalId);
-            // -1 represents a not found driver in the array
-            if (index != -1) {
-                Driver displayedDriverWithSameExternalId = currentlyDisplayedDrivers.get(index);
-
-                // No need to continue we didn't move
-                if (displayedDriverWithSameExternalId.lat == d.lat && displayedDriverWithSameExternalId.lng == d.lng) {
-                    return;
-                }
-
-                displayedDriverWithSameExternalId.lat = d.lat;
-                displayedDriverWithSameExternalId.lng = d.lng;
-                displayedDriverWithSameExternalId.updatePositionOnMap();
-                displayedDriverWithSameExternalId.indicator.update();
-
-                if (displayedDriverWithSameExternalId.marker != null) {
-                    if (displayedDriverWithSameExternalId.marker.isInfoWindowShown()) {
-                        displayedDriverWithSameExternalId.goToWithInfoWindow();
-                    }
-                }
-            }
-        } else {
-            // Add to map
-            d.addToMap(mMap);
-            d.indicator = new Indicator(d, mActivity, mMap, MapFragment.this);
-            d.indicator.update();
-            currentlyDisplayedDrivers.add(d);
-        }
-    }
+    public void onFling() { driversOnMapManager.updateIndicators(); }
 }
