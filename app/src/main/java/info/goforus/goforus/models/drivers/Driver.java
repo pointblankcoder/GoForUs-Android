@@ -108,6 +108,23 @@ public class Driver extends Model implements Comparable<Driver> {
             marker.showInfoWindow();
         }
     }
+    public void goToWithInfoWindow(int animationTimer) {
+        if (marker != null) {
+            // TODO: Add actual calculation based on the info window height
+            LatLng latLngPositionWithInfoWindow = new LatLng(marker.getPosition().latitude + 0.0022f, marker.getPosition().longitude);
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLngPositionWithInfoWindow, 15);
+            map.animateCamera(cameraUpdate, animationTimer, new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                }
+
+                @Override
+                public void onCancel() {
+                }
+            });
+            marker.showInfoWindow();
+        }
+    }
 
     public void goTo() {
         if (marker != null) {

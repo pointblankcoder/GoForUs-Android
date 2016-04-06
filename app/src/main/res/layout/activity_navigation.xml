@@ -43,6 +43,15 @@
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_drafts_white_24dp" />
 
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/quickOrderFab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            app:layout_anchor="@id/messageFab"
+            app:layout_anchorGravity="top"
+            android:layout_marginBottom="88dp"
+            android:src="@drawable/truck_delivery_white_24dp" />
 
         <RelativeLayout
             android:id="@+id/arrowContainer"

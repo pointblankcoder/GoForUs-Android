@@ -34,6 +34,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import info.goforus.goforus.event_results.LogoutFromApiResult;
 import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
@@ -50,6 +51,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     FragmentManager mFragmentManager;
     DialogPlus mTipDialog;
 
+    @Bind(R.id.quickOrderFab) FloatingActionButton mQuickOrderFab;
     @Bind(R.id.messageFab) FloatingActionButton mMessageFab;
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.drawer_layout) DrawerLayout mDrawer;
@@ -66,41 +68,30 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
         setSupportActionBar(mToolbar);
 
-        if (mMessageFab != null) {
-            mMessageFab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showInboxFragment();
-                }
-            });
-            updateMessageFAB();
-        }
-
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawerToggle.syncState();
         mDrawer.addDrawerListener(mDrawerToggle);
         mNavigationView.setNavigationItemSelectedListener(this);
 
 
-        mTipDialog = DialogPlus.newDialog(this)
-                               .setHeader(R.layout.dialog_tips_main_header)
+        mTipDialog = DialogPlus.newDialog(this).setHeader(R.layout.dialog_tips_main_header)
                                .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
                                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
                                .setContentHolder(new ViewHolder(R.layout.dialog_tips_main_body))
-                               .setGravity(Gravity.CENTER)
-                               .setCancelable(true).setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(DialogPlus dialog, View view) {
-                        AppCompatCheckBox checkBox = (AppCompatCheckBox) findViewById(R.id.doNotShowTips);
-                        if (view.equals(findViewById(R.id.dismissTipDialog))) {
-                            mTipDialog.dismiss();
-                        } else if (view.equals(checkBox)) {
-                            Account account = Account.currentAccount();
-                            account.showMapTips = !checkBox.isChecked();
-                            account.save();
-                        }
-                    }
-                }).create();
+                               .setGravity(Gravity.CENTER).setCancelable(true)
+                               .setOnClickListener(new OnClickListener() {
+                                   @Override
+                                   public void onClick(DialogPlus dialog, View view) {
+                                       AppCompatCheckBox checkBox = (AppCompatCheckBox) findViewById(R.id.doNotShowTips);
+                                       if (view.equals(findViewById(R.id.dismissTipDialog))) {
+                                           mTipDialog.dismiss();
+                                       } else if (view.equals(checkBox)) {
+                                           Account account = Account.currentAccount();
+                                           account.showMapTips = !checkBox.isChecked();
+                                           account.save();
+                                       }
+                                   }
+                               }).create();
 
         if (Account.currentAccount().showMapTips) {
             mTipDialog.show();
@@ -109,6 +100,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
             checkBox.setSelected(!Account.currentAccount().showMapTips);
         }
 
+        updateMessageFAB();
 
         // only create fragments if they haven't been instantiated already
         mFragmentManager = getSupportFragmentManager();
@@ -121,9 +113,11 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
             messagesFragment = (MessagesFragment) mFragmentManager
                     .getFragment(savedInstanceState, "Messages");
 
-            if (savedInstanceState.getBoolean("mMessageFabShown")) {
+            if (savedInstanceState.getBoolean("showFABs")) {
+                mQuickOrderFab.show();
                 mMessageFab.show();
             } else {
+                mQuickOrderFab.hide();
                 mMessageFab.hide();
             }
         }
@@ -133,8 +127,24 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         if (savedInstanceState == null) showMapFragment();
     }
 
+    @OnClick(R.id.messageFab)
+    public void onMessageFabClick() {
+        showInboxFragment();
+    }
+
+    @OnClick(R.id.quickOrderFab)
+    public void onQuickOrderFabClick() {
+        DialogPlus quickOrderDialog = DialogPlus.newDialog(this)
+                                                .setContentHolder(new ViewHolder(R.layout.dialog_quick_order))
+                                                .setGravity(Gravity.TOP).setCancelable(true)
+                                                .setContentBackgroundResource(R.color.primary_material_dark_1)
+                                                .setOnClickListener(new QuickOrderHandler(this))
+                                                .create();
+        quickOrderDialog.show();
+    }
+
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         mGoForUs.ServicesManager.cancelConversationsUpdateAlarm();
         super.onDestroy();
     }
@@ -164,7 +174,8 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         if (messagesFragment.isAdded())
             sfm.putFragment(savedInstanceState, "Messages", sfm.findFragmentByTag("Messages"));
 
-        savedInstanceState.putBoolean("mMessageFabShown", mMessageFab.isShown());
+        savedInstanceState
+                .putBoolean("showFABs", (mMessageFab.isShown() || mQuickOrderFab.isShown()));
 
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -336,6 +347,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     }
 
     int lastMessageCount = 0;
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void notifyNewMessage(NewMessagesResult result) {
         lastMessageCount = result.getNewMessages().size();
@@ -349,7 +361,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         finish();
     }
 
-    private void updateMessageFAB(){
+    private void updateMessageFAB() {
         int totalUnreadCount = Conversation.totalUnreadMessagesCount();
         if (totalUnreadCount > 0) {
             mMessageFab.setImageDrawable(ContextCompat
@@ -365,8 +377,9 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     public void onMessagesUpdate(MessagesFromApiResult result) {
         updateMessageFAB();
         int totalUnreadCount = Conversation.totalUnreadMessagesCount();
-        if (result.getMessages().size() > 0 && totalUnreadCount > 0)
-            Toast.makeText(this, String.format("You have %s new message%s", totalUnreadCount, totalUnreadCount == 1 ? "" : "s"), Toast.LENGTH_LONG).show();
+        if (result.getMessages().size() > 0 && totalUnreadCount > 0) Toast.makeText(this, String
+                .format("You have %s new message%s", totalUnreadCount, totalUnreadCount == 1 ? "" : "s"), Toast.LENGTH_LONG)
+                                                                          .show();
 
     }
 

@@ -31,7 +31,6 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
-import info.goforus.goforus.settings.DebugActionbar;
 import info.goforus.goforus.settings.DebugSettings;
 import info.goforus.goforus.tasks.ProcessLogin;
 
