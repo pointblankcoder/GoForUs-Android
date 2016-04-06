@@ -102,4 +102,12 @@ public class Indicator implements View.OnClickListener {
             show();
         }
     }
+
+    public void updateAfterConfigurationChange(BaseActivity activity) {
+        removeIndicator();
+        this.mActivity = activity;
+        this.arrowContainer = (RelativeLayout) mActivity.findViewById(R.id.arrowContainer);
+        addIndicator();
+        update();
+    }
 }

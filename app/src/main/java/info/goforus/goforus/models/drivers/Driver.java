@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.widget.RelativeLayout;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
@@ -184,4 +185,5 @@ public class Driver extends Model implements Comparable<Driver> {
             marker.setPosition(new LatLng(lat, lng));
         }
     }
+
 }

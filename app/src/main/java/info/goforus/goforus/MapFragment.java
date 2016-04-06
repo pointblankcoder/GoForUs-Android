@@ -30,7 +30,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.ButterKnife;
 import info.goforus.goforus.event_results.DriverUpdateResult;
@@ -47,7 +46,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     MapWrapperLayout mMapWrapperLayout;
     BaseActivity mActivity;
     GoogleMap mMap;
-    public List<Driver> currentlyDisplayedDrivers = new ArrayList<>();
+    public ArrayList<Driver> currentlyDisplayedDrivers = new ArrayList<>();
     boolean firstLoad = true;
     boolean mHidden;
     private DialogPlus mMiniProfileDriverTipDialog;
@@ -62,11 +61,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     @Override
     public void onDestroy() {
-        for (Driver d : currentlyDisplayedDrivers) {
-            if (d.indicator != null) {
-                d.indicator.removeIndicator();
-            }
-        }
         DriversUpdateHandler.getInstance().stopUpdates();
 
         super.onDestroy();
@@ -108,6 +102,12 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                                                     }
                                                 }).create();
 
+        if(!firstLoad){
+            // We hold a reference to the old activity in the indicators. let's reassign them!
+            for(Driver d : currentlyDisplayedDrivers) {
+                d.indicator.updateAfterConfigurationChange(mActivity);
+            }
+        }
         return mMapWrapperLayout;
     }
 
@@ -138,6 +138,10 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     @Override
     public void onResume() {
         super.onResume();
+
+        if (!isHidden()) {
+            hideAllDrivers(false);
+        }
 
         EventBus.getDefault().register(this);
         updateIndicators();
@@ -189,6 +193,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
 
         // Setup Map UI
         UiSettings mapUISettings = mMap.getUiSettings();

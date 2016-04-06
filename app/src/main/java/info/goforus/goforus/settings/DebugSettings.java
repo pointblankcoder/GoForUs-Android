@@ -9,7 +9,7 @@ public class DebugSettings {
     private DebugSettings() {
     }
 
-    private String mApiUrl = "http://dev.goforus.info/api/v1/";
+    private String mApiUrl = "http://staging.goforus.info/api/v1/";
 
     public String getApiUrl() {
         return mApiUrl;

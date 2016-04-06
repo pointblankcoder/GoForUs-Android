@@ -44,15 +44,15 @@ import info.goforus.goforus.models.conversations.Conversation;
 
 public class NavigationActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
     ActionBarDrawerToggle mDrawerToggle;
-    @Bind(R.id.messageFab) FloatingActionButton mMessageFab;
-    @Bind(R.id.toolbar) Toolbar mToolbar;
-    @Bind(R.id.drawer_layout) DrawerLayout mDrawer;
     InboxFragment inboxFragment;
     MapFragment mapFragment;
     MessagesFragment messagesFragment;
     FragmentManager mFragmentManager;
-
     DialogPlus mTipDialog;
+
+    @Bind(R.id.messageFab) FloatingActionButton mMessageFab;
+    @Bind(R.id.toolbar) Toolbar mToolbar;
+    @Bind(R.id.drawer_layout) DrawerLayout mDrawer;
     @Bind(R.id.nav_view) NavigationView mNavigationView;
 
     public NavigationActivity() {
