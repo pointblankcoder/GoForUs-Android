@@ -32,9 +32,7 @@ public class DriversOnMapManager {
         mCurrentlyDisplayedDrivers = currentlyDisplayedDrivers;
     }
 
-    public ArrayList<Driver> getCurrentlyDisplayedDrivers() {
-        return mCurrentlyDisplayedDrivers;
-    }
+    public ArrayList<Driver> getCurrentlyDisplayedDrivers() { return mCurrentlyDisplayedDrivers; }
 
     public void setup(BaseActivity activity, GoogleMap map, MapFragment mapFragment) {
         mActivity = activity;

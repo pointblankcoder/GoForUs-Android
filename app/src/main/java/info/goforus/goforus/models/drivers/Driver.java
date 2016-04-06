@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.widget.RelativeLayout;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
@@ -157,12 +156,10 @@ public class Driver extends Model implements Comparable<Driver> {
         }
     }
 
-    /* ================== Class Conversions  =======================*/
     public Information toDriverInformation(){
         return new Information(this);
     }
 
-    /* =================== Custom Lookups/Comparators =============== */
     public static boolean containsId(List<Driver> list, long id) {
         for (Driver object : list) {
             if (object.externalId == id) {
@@ -191,7 +188,6 @@ public class Driver extends Model implements Comparable<Driver> {
         }
         return -1;
     }
-
 
     @Override
     public int compareTo(@NonNull Driver another) {

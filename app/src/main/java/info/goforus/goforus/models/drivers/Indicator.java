@@ -53,7 +53,8 @@ public class Indicator implements View.OnClickListener {
         viewId = ViewIdGenerator.generateViewId();
 
         ImageView _arrowView = new ImageView(mActivity);
-        _arrowView.setImageDrawable(ContextCompat.getDrawable(mActivity, R.drawable.ic_navigation_black_36dp));
+        _arrowView.setImageDrawable(ContextCompat
+                .getDrawable(mActivity, R.drawable.ic_navigation_black_36dp));
         _arrowView.setId(viewId);
         _arrowView.setVisibility(View.GONE);
         _arrowView.setOnClickListener(this);
@@ -67,30 +68,22 @@ public class Indicator implements View.OnClickListener {
 
         SpannableStringBuilder builder = new SpannableStringBuilder();
         builder.append("Press ").append(" ");
-        builder.setSpan(new ImageSpan(mActivity, R.drawable.car), builder.length() - 1, builder.length(), 0);
+        builder.setSpan(new ImageSpan(mActivity, R.drawable.car), builder.length() - 1, builder
+                .length(), 0);
         builder.append(" to find out more about this driver");
 
-        Snackbar.make(v, builder, Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+        Snackbar.make(v, builder, Snackbar.LENGTH_LONG).setAction("Action", null).show();
     }
 
-    public void removeIndicator() {
-        arrowContainer.removeView(arrowView);
-    }
+    public void removeIndicator() { arrowContainer.removeView(arrowView); }
 
-    public void addIndicator() {
-        arrowContainer.addView(arrowView);
-    }
+    public void addIndicator() { arrowContainer.addView(arrowView); }
 
     public void show() { arrowView.setVisibility(View.VISIBLE); }
 
-    public void hide() {
-        arrowView.setVisibility(View.GONE);
-    }
+    public void hide() { arrowView.setVisibility(View.GONE); }
 
-    public void update(){
-        new UpdateIndicatorTask(mMap, mDriver, arrowView).execute();
-    }
+    public void update() { new UpdateIndicatorTask(mMap, mDriver, arrowView).execute(); }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onUpdateResult(IndicatorUpdateResult result) {
