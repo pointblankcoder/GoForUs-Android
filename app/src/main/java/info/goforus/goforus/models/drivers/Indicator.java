@@ -94,12 +94,14 @@ public class Indicator implements View.OnClickListener {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onUpdateResult(IndicatorUpdateResult result) {
-        ViewHelper.setY(arrowView, result.y);
-        ViewHelper.setX(arrowView, result.x);
-        // Point the arrow towards the driver
-        arrowView.setRotation(result.heading);
-        if(mapFragment.isVisible()) {
-            show();
+        if (result.viewId == arrowView.getId()) {
+            ViewHelper.setY(arrowView, result.y);
+            ViewHelper.setX(arrowView, result.x);
+            // Point the arrow towards the driver
+            arrowView.setRotation(result.heading);
+            if (mapFragment.isVisible()) {
+                show();
+            }
         }
     }
 

@@ -93,6 +93,6 @@ public class UpdateIndicatorTask extends AsyncTask<Object, Integer, Float[]> {
     }
 
     protected void onPostExecute(Float[] xyh) {
-        EventBus.getDefault().post(new IndicatorUpdateResult(xyh[0], xyh[1], xyh[2]));
+        EventBus.getDefault().post(new IndicatorUpdateResult(xyh[0], xyh[1], xyh[2], mArrowView.getId()));
     }
 }
