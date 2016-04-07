@@ -23,21 +23,28 @@ public class DriversOnMapManager {
     BaseActivity mActivity;
     GoogleMap mMap;
     MapFragment mFragment;
+    Driver selectedDriver;
 
-    private DriversOnMapManager() {
-        EventBus.getDefault().register(this);
-    }
-
-    public void setCurrentlyDisplayedDrivers(ArrayList<Driver> currentlyDisplayedDrivers) {
-        mCurrentlyDisplayedDrivers = currentlyDisplayedDrivers;
-    }
-
-    public ArrayList<Driver> getCurrentlyDisplayedDrivers() { return mCurrentlyDisplayedDrivers; }
+    private DriversOnMapManager() { EventBus.getDefault().register(this); }
 
     public void setup(BaseActivity activity, GoogleMap map, MapFragment mapFragment) {
         mActivity = activity;
         mMap = map;
         mFragment = mapFragment;
+    }
+
+    public ArrayList<Driver> getCurrentlyDisplayedDrivers() { return mCurrentlyDisplayedDrivers; }
+
+    public void setCurrentlyDisplayedDrivers(ArrayList<Driver> currentlyDisplayedDrivers) {
+        mCurrentlyDisplayedDrivers = currentlyDisplayedDrivers;
+    }
+
+    public Driver getSelectedDriver() {
+        return selectedDriver;
+    }
+
+    public void setSelectedDriver(Driver selectedDriver) {
+        this.selectedDriver = selectedDriver;
     }
 
     public void goToDriverWithInfoWindow(Driver d, int animationTime) {
@@ -54,12 +61,46 @@ public class DriversOnMapManager {
         }
     }
 
+
+    public void unblockIndicators() {
+        for (Driver d : mCurrentlyDisplayedDrivers) {
+            if (d.indicator != null) {
+                d.indicator.allowShowIndicator();
+            }
+        }
+    }
+
+    public void blockIndicatorsExcept(Driver driver) {
+        for (Driver d : mCurrentlyDisplayedDrivers) {
+            if (d.indicator != null && (d.indicator != driver.indicator)) {
+                d.indicator.blockShowIndicator();
+            }
+        }
+    }
+
     public void hideAllDrivers(boolean hide) {
         for (Driver d : mCurrentlyDisplayedDrivers) {
             if (d.indicator != null) {
                 if (hide) {
+                    d.marker.setVisible(false);
                     d.indicator.hide();
                 } else {
+                    d.marker.setVisible(true);
+                    d.indicator.update();
+                }
+            }
+        }
+    }
+
+    public void hideAllDriversExcept(boolean hide, Driver driver) {
+        for (Driver d : mCurrentlyDisplayedDrivers) {
+            if (d.indicator != null && d != driver) {
+                if (hide) {
+                    d.marker.remove();
+                    d.indicator.hide();
+                } else {
+                    if (!d.marker.isVisible()) d.addToMap(mMap);
+
                     d.indicator.update();
                 }
             }

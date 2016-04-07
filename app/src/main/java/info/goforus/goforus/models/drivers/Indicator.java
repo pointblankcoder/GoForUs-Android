@@ -33,6 +33,7 @@ public class Indicator implements View.OnClickListener {
     protected int viewId;
 
     private static final String TAG = "Indicator";
+    private boolean blockIndicatorShowing;
 
     public Indicator() {
     }
@@ -85,6 +86,9 @@ public class Indicator implements View.OnClickListener {
 
     public void update() { new UpdateIndicatorTask(mMap, mDriver, arrowView).execute(); }
 
+    public void blockShowIndicator() { blockIndicatorShowing = true; }
+    public void allowShowIndicator() { blockIndicatorShowing = false; }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onUpdateResult(IndicatorUpdateResult result) {
         if (result.viewId == arrowView.getId()) {
@@ -92,7 +96,7 @@ public class Indicator implements View.OnClickListener {
             ViewHelper.setX(arrowView, result.x);
             // Point the arrow towards the driver
             arrowView.setRotation(result.heading);
-            if (mapFragment.isVisible()) {
+            if (mapFragment.isVisible() && !blockIndicatorShowing) {
                 show();
             }
         }

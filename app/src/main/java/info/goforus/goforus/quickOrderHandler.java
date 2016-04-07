@@ -72,6 +72,9 @@ public class QuickOrderHandler implements OnClickListener {
 
             if (nextStep == null) {
                 dialog.dismiss();
+                closestDriver.marker.hideInfoWindow();
+                driversOnMapManager.setSelectedDriver(closestDriver);
+                mapFragment.switchMapMode(MapFragment.ORDER_MODE);
             } else if (nextStep == driverFoundStep) {
                 Driver driver = findBestDriver();
                 showStep(nextStep);
