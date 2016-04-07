@@ -80,6 +80,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
             mOriginalView.setBackgroundResource(R.drawable.map_border);
             mOriginalView.setVisibility(View.VISIBLE);
             mOriginalView.setPadding(16, 16, 16, 16);
+            View quickOrderFab = mActivity.findViewById(R.id.quickOrderFab);
+            quickOrderFab.setVisibility(View.GONE);
 
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
             mOriginalView.setLayoutParams(params);
@@ -110,7 +112,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                         d.addToMap(mMap);
                     }
 
-
                     for (Marker m : pickupPoints) {
                         m.remove();
                     }
@@ -128,6 +129,9 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
                 }
             });
         } else {
+            View quickOrderFab = mActivity.findViewById(R.id.quickOrderFab);
+            quickOrderFab.setVisibility(View.VISIBLE);
+
             mOriginalView.setBackgroundResource(android.R.color.transparent);
             mOriginalView.setPadding(0, 0, 0, 0);
         }
@@ -292,6 +296,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
         driversOnMapManager = DriversOnMapManager.getInstance();
         driversOnMapManager.setup(mActivity, mMap, this);
+
+        switchMapMode(mapMode);
     }
 
     @Override

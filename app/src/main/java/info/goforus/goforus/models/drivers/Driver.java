@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.widget.AppCompatCheckBox;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
@@ -18,8 +19,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
 
+import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
+import info.goforus.goforus.models.accounts.Account;
 import us.monoid.json.JSONObject;
 
 public class Driver extends Model implements Comparable<Driver> {
@@ -93,6 +96,8 @@ public class Driver extends Model implements Comparable<Driver> {
     public void goToWithInfoWindow() {
         if (marker != null) {
             updatePositionOnMap();
+            map.setInfoWindowAdapter(new InfoWindowAdapter((BaseActivity) GoForUs.getInstance().getCurrentActivity()));
+
             LatLng latLngPositionWithInfoWindow = new LatLng(marker.getPosition().latitude + 0.0022f, marker.getPosition().longitude);
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLngPositionWithInfoWindow, 15);
             map.animateCamera(cameraUpdate, 1, new GoogleMap.CancelableCallback() {
@@ -110,6 +115,8 @@ public class Driver extends Model implements Comparable<Driver> {
     public void goToWithInfoWindow(int animationTimer) {
         if (marker != null) {
             updatePositionOnMap();
+            map.setInfoWindowAdapter(new InfoWindowAdapter((BaseActivity) GoForUs.getInstance().getCurrentActivity()));
+
             LatLng latLngPositionWithInfoWindow = new LatLng(marker.getPosition().latitude + 0.0022f, marker.getPosition().longitude);
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLngPositionWithInfoWindow, 15);
             map.animateCamera(cameraUpdate, animationTimer, new GoogleMap.CancelableCallback() {
