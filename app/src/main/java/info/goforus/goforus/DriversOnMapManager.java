@@ -112,27 +112,46 @@ public class DriversOnMapManager {
         Driver d = result.getDriver();
 
         if (Driver.containsId(mCurrentlyDisplayedDrivers, d.externalId)) {
-            // Just update the position of the current driver
-            int index = Driver.getIndexOfDriverFrom(mCurrentlyDisplayedDrivers, d.externalId);
-            // -1 represents a not found driver in the array
-            if (index != -1) {
-                Driver displayedDriverWithSameExternalId = mCurrentlyDisplayedDrivers.get(index);
+            if (d.online) {
+                // Just update the position of the current driver
+                int index = Driver.getIndexOfDriverFrom(mCurrentlyDisplayedDrivers, d.externalId);
+                // -1 represents a not found driver in the array
+                if (index != -1) {
+                    Driver displayedDriverWithSameExternalId = mCurrentlyDisplayedDrivers
+                            .get(index);
+                    d.indicator = displayedDriverWithSameExternalId.indicator;
+                    d.indicator.update();
+                    d.indicator.driver = d;
+                    d.map = displayedDriverWithSameExternalId.map;
+                    d.marker = displayedDriverWithSameExternalId.marker;
+                    d.updatePositionOnMap();
 
-                displayedDriverWithSameExternalId.updatePositionOnMap();
-                displayedDriverWithSameExternalId.indicator.update();
 
-                if (displayedDriverWithSameExternalId.marker != null) {
-                    if (displayedDriverWithSameExternalId.marker.isInfoWindowShown()) {
-                        displayedDriverWithSameExternalId.goToWithInfoWindow();
+                    if (d.marker != null) {
+                        if (d.marker.isInfoWindowShown()) {
+                            d.goToWithInfoWindow();
+                        }
                     }
+                    mCurrentlyDisplayedDrivers.remove(index);
+                    mCurrentlyDisplayedDrivers.add(d);
+                }
+            } else {
+                int index = Driver.getIndexOfDriverFrom(mCurrentlyDisplayedDrivers, d.externalId);
+                // -1 represents a not found driver in the array
+                if (index != -1) {
+                    d.marker.remove();
+                    mCurrentlyDisplayedDrivers.remove(index);
                 }
             }
         } else {
-            // Add to map
-            d.addToMap(mMap);
-            d.indicator = new Indicator(d, mActivity, mMap, mFragment);
-            d.indicator.update();
-            mCurrentlyDisplayedDrivers.add(d);
+            if (d.online) {
+                // Add to map
+                d.addToMap(mMap);
+                d.updatePositionOnMap();
+                d.indicator = new Indicator(d, mActivity, mMap, mFragment);
+                d.indicator.update();
+                mCurrentlyDisplayedDrivers.add(d);
+            }
         }
     }
 }

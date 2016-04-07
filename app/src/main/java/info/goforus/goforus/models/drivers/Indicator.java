@@ -29,7 +29,7 @@ public class Indicator implements View.OnClickListener {
     private RelativeLayout arrowContainer;
     private ImageView arrowView;
 
-    protected Driver mDriver;
+    public Driver driver;
     protected int viewId;
 
     private static final String TAG = "Indicator";
@@ -40,7 +40,7 @@ public class Indicator implements View.OnClickListener {
 
     public Indicator(Driver _driver, BaseActivity activity, GoogleMap map, MapFragment _mapFragment) {
         mActivity = activity;
-        mDriver = _driver;
+        driver = _driver;
         mMap = map;
         mapFragment = _mapFragment;
 
@@ -65,7 +65,7 @@ public class Indicator implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        mDriver.goTo(1000);
+        driver.goTo(1000);
 
         SpannableStringBuilder builder = new SpannableStringBuilder();
         builder.append("Press ").append(" ");
@@ -84,7 +84,7 @@ public class Indicator implements View.OnClickListener {
 
     public void hide() { arrowView.setVisibility(View.GONE); }
 
-    public void update() { new UpdateIndicatorTask(mMap, mDriver, arrowView).execute(); }
+    public void update() { new UpdateIndicatorTask(mMap, driver, arrowView).execute(); }
 
     public void blockShowIndicator() { blockIndicatorShowing = true; }
     public void allowShowIndicator() { blockIndicatorShowing = false; }

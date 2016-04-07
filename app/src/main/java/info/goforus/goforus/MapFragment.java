@@ -398,9 +398,9 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
             });
             marker.showInfoWindow();
         } else {
-            mMap.setInfoWindowAdapter(new InfoWindowAdapter(mActivity));
             currentDriverSelected = Driver
                     .findByDriverMarker(driversOnMapManager.getCurrentlyDisplayedDrivers(), marker);
+            mMap.setInfoWindowAdapter(new InfoWindowAdapter(mActivity, currentDriverSelected));
 
             // someone clicked on the marker a tad too fast!
             if (currentDriverSelected == null) return false;

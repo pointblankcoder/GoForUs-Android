@@ -13,6 +13,8 @@ import com.orhanobut.dialogplus.OnClickListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
@@ -110,7 +112,7 @@ public class QuickOrderHandler implements OnClickListener {
     private void showBestDriverResults(Driver driver) {
         if (driver == null) {
             driverFoundText
-                    .setText("Unable to find a driver right now. The Pre-Booking feature is Work In Progress");
+                    .setText("There's no available driver right now. The Pre-Booking feature is Work In Progress");
             showBackButton();
             hideNextDriverButton();
             hideProceedButton();
@@ -133,6 +135,14 @@ public class QuickOrderHandler implements OnClickListener {
         LatLng myLocation = account.location();
         ArrayList<Driver> driversToCycle = (ArrayList<Driver>) driversOnMapManager
                 .getCurrentlyDisplayedDrivers().clone();
+
+        Iterator<Driver> driversToCycleIterator = driversToCycle.iterator();
+
+        while(driversToCycleIterator.hasNext()) {
+            Driver driver = driversToCycleIterator.next();
+            if (!driver.available) driversToCycleIterator.remove();
+        }
+
 
         for (Driver d : excludedDrivers) {
             driversToCycle.remove(d);

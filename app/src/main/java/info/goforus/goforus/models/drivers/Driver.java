@@ -8,6 +8,7 @@ import android.support.v4.app.ActivityCompat;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -23,9 +24,11 @@ import java.util.List;
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
+import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
+@Table(name = "Drivers")
 public class Driver extends Model implements Comparable<Driver> {
     private static final String TAG = "Driver";
     public static final float markerAnchorY = 0.5f;
@@ -39,6 +42,8 @@ public class Driver extends Model implements Comparable<Driver> {
     @Column(name = "lng") public double lng;
     @Column(name = "mobileNumber") public String mobileNumber;
     @Column(name = "rating") public Integer rating = 5;
+    @Column(name = "online") public boolean online = false;
+    @Column(name = "available") public boolean available = false;
 
 
     public Indicator indicator;
@@ -49,14 +54,16 @@ public class Driver extends Model implements Comparable<Driver> {
 
     public Driver(JSONObject driverObject) {
         try {
-            this.externalId = Integer.parseInt(driverObject.get("id").toString());
-            this.name = driverObject.get("name").toString();
-            this.email = driverObject.get("email").toString();
-            this.lat = Double.parseDouble(driverObject.get("lat").toString());
-            this.lng = Double.parseDouble(driverObject.get("lng").toString());
+            this.externalId = driverObject.getInt("id");
+            this.name = driverObject.getString("name");
+            this.email = driverObject.getString("email");
+            this.lat = driverObject.getDouble("lat");
+            this.lng = driverObject.getDouble("lng");
+            this.available = driverObject.getBoolean("available");
+            this.online = driverObject.getBoolean("online");
             this.mobileNumber = driverObject.get("mobile_number").toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(e.toString());
         }
     }
 
@@ -74,16 +81,50 @@ public class Driver extends Model implements Comparable<Driver> {
                                             .executeSingle();
         if (existingDriver != null) {
             Driver driver = new Driver(json);
-            if (existingDriver.lat != driver.lat) existingDriver.lat = driver.lat;
-            if (existingDriver.lng != driver.lng) existingDriver.lng = driver.lng;
+            existingDriver.lat = driver.lat;
+            existingDriver.lng = driver.lng;
             if (existingDriver.name != driver.name) existingDriver.name = driver.name;
+            if (existingDriver.available != driver.available)
+                existingDriver.available = driver.available;
+            if (existingDriver.online != driver.online) existingDriver.online = driver.online;
             existingDriver.save();
+
+
+            try {
+                JSONArray vehiclesJSON = json.getJSONArray("vehicles");
+                for (int i = 0; i < vehiclesJSON.length(); i++) {
+                    Vehicle vehicle = Vehicle
+                            .updateOrCreateFromJson((JSONObject) vehiclesJSON.get(i));
+                    vehicle.driver = existingDriver.getId();
+                    vehicle.save();
+                }
+            } catch (Exception e) {
+                Logger.e(e.toString());
+            }
             return existingDriver;
         } else {
             Driver driver = new Driver(json);
             driver.save();
+
+            try {
+                JSONArray vehiclesJSON = json.getJSONArray("vehicles");
+                for (int i = 0; i < vehiclesJSON.length(); i++) {
+                    JSONObject vehicleJSON = (JSONObject) vehiclesJSON.get(i);
+                    Vehicle vehicle = new Vehicle(vehicleJSON);
+                    vehicle.driver = driver.getId();
+                    vehicle.save();
+                }
+            } catch (Exception e) {
+                Logger.e(e.toString());
+            }
+
             return driver;
         }
+    }
+
+    public Vehicle getCurrentVehicle() {
+        return new Select().from(Vehicle.class)
+                           .where("Driver = ? AND onlineWith = ?", getId(), true).executeSingle();
     }
 
     public LatLng location() { return new LatLng(lat, lng); }
@@ -94,25 +135,40 @@ public class Driver extends Model implements Comparable<Driver> {
 
     public void addToMap(GoogleMap map) {
         this.map = map;
-        Drawable car = ActivityCompat.getDrawable(GoForUs.getInstance(), R.drawable.car_black_36dp);
-        Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(car.getIntrinsicWidth(), car
-                .getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        canvas.setBitmap(bitmap);
-        car.setBounds(0, 0, car.getIntrinsicWidth(), car.getIntrinsicHeight());
-        car.draw(canvas);
+        Drawable vehicleIcon;
+        if (getCurrentVehicle() != null) {
+            if (getCurrentVehicle().vehicleType.equals("Standard Car")) {
+                vehicleIcon = ActivityCompat
+                        .getDrawable(GoForUs.getInstance(), R.drawable.car_black_36dp);
+            } else if (getCurrentVehicle().vehicleType.equals("Scooter")) {
+                vehicleIcon = ActivityCompat.getDrawable(GoForUs
+                        .getInstance(), R.drawable.ic_directions_bike_black_36dp);
+            } else {
+                vehicleIcon = ActivityCompat
+                        .getDrawable(GoForUs.getInstance(), R.drawable.car_black_36dp);
+            }
 
-        marker = map.addMarker(new MarkerOptions().position(location()).visible(true)
-                                                  .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                                                  .anchor(markerAnchorX, markerAnchorY)
-                                                  .title(name));
+            Canvas canvas = new Canvas();
+            Bitmap bitmap = Bitmap.createBitmap(vehicleIcon.getIntrinsicWidth(), vehicleIcon
+                    .getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            canvas.setBitmap(bitmap);
+            vehicleIcon.setBounds(0, 0, vehicleIcon.getIntrinsicWidth(), vehicleIcon
+                    .getIntrinsicHeight());
+            vehicleIcon.draw(canvas);
+
+            marker = map.addMarker(new MarkerOptions().position(location()).visible(true)
+                                                      .icon(BitmapDescriptorFactory
+                                                              .fromBitmap(bitmap))
+                                                      .anchor(markerAnchorX, markerAnchorY)
+                                                      .title(name));
+        }
     }
 
     public void goToWithInfoWindow() {
         if (marker != null) {
             updatePositionOnMap();
             map.setInfoWindowAdapter(new InfoWindowAdapter((BaseActivity) GoForUs.getInstance()
-                                                                                 .getCurrentActivity()));
+                                                                                 .getCurrentActivity(), this));
 
             LatLng latLngPositionWithInfoWindow = new LatLng(marker
                     .getPosition().latitude + 0.0022f, marker.getPosition().longitude);
@@ -135,7 +191,7 @@ public class Driver extends Model implements Comparable<Driver> {
         if (marker != null) {
             updatePositionOnMap();
             map.setInfoWindowAdapter(new InfoWindowAdapter((BaseActivity) GoForUs.getInstance()
-                                                                                 .getCurrentActivity()));
+                                                                                 .getCurrentActivity(), this));
 
             LatLng latLngPositionWithInfoWindow = new LatLng(marker
                     .getPosition().latitude + 0.0022f, marker.getPosition().longitude);
