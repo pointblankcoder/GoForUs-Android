@@ -118,13 +118,6 @@ public class DriversOnMapManager {
             if (index != -1) {
                 Driver displayedDriverWithSameExternalId = mCurrentlyDisplayedDrivers.get(index);
 
-                // No need to continue we didn't move
-                if (displayedDriverWithSameExternalId.lat == d.lat && displayedDriverWithSameExternalId.lng == d.lng) {
-                    return;
-                }
-
-                displayedDriverWithSameExternalId.lat = d.lat;
-                displayedDriverWithSameExternalId.lng = d.lng;
                 displayedDriverWithSameExternalId.updatePositionOnMap();
                 displayedDriverWithSameExternalId.indicator.update();
 

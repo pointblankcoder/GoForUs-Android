@@ -5,10 +5,10 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.widget.AppCompatCheckBox;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
+import com.activeandroid.query.Select;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -16,13 +16,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.orhanobut.logger.Logger;
 
 import java.util.List;
 
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
-import info.goforus.goforus.models.accounts.Account;
+import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
 public class Driver extends Model implements Comparable<Driver> {
@@ -31,27 +32,20 @@ public class Driver extends Model implements Comparable<Driver> {
     public static final float markerAnchorX = 0.5f;
 
 
-    @Column(name = "externalId", index = true)
-    public Integer externalId;
-    @Column(name = "name")
-    public String name;
-    @Column(name = "email")
-    public String email;
-    @Column(name = "lat")
-    public double lat;
-    @Column(name = "lng")
-    public double lng;
-    @Column(name = "mobileNumber")
-    public String mobileNumber;
-    @Column(name = "rating")
-    public Integer rating = 5;
+    @Column(name = "externalId", index = true) public Integer externalId;
+    @Column(name = "name") public String name;
+    @Column(name = "email") public String email;
+    @Column(name = "lat") public double lat;
+    @Column(name = "lng") public double lng;
+    @Column(name = "mobileNumber") public String mobileNumber;
+    @Column(name = "rating") public Integer rating = 5;
 
 
     public Indicator indicator;
     public Marker marker;
     public GoogleMap map;
 
-    public Driver(){}
+    public Driver() {}
 
     public Driver(JSONObject driverObject) {
         try {
@@ -67,9 +61,32 @@ public class Driver extends Model implements Comparable<Driver> {
     }
 
 
-    public LatLng location() {
-        return new LatLng(lat, lng);
+    public static Driver updateOrCreateFromJson(JSONObject json) {
+        int externalId = 0;
+
+        try {
+            externalId = json.getInt("id");
+        } catch (JSONException e) {
+            Logger.e(e.toString());
+        }
+
+        Driver existingDriver = new Select().from(Driver.class).where("externalId = ?", externalId)
+                                            .executeSingle();
+        if (existingDriver != null) {
+            Driver driver = new Driver(json);
+            if (existingDriver.lat != driver.lat) existingDriver.lat = driver.lat;
+            if (existingDriver.lng != driver.lng) existingDriver.lng = driver.lng;
+            if (existingDriver.name != driver.name) existingDriver.name = driver.name;
+            existingDriver.save();
+            return existingDriver;
+        } else {
+            Driver driver = new Driver(json);
+            driver.save();
+            return driver;
+        }
     }
+
+    public LatLng location() { return new LatLng(lat, lng); }
 
     public String toString() {
         return name;
@@ -79,27 +96,28 @@ public class Driver extends Model implements Comparable<Driver> {
         this.map = map;
         Drawable car = ActivityCompat.getDrawable(GoForUs.getInstance(), R.drawable.car_black_36dp);
         Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(car.getIntrinsicWidth(), car.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(car.getIntrinsicWidth(), car
+                .getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
         car.setBounds(0, 0, car.getIntrinsicWidth(), car.getIntrinsicHeight());
         car.draw(canvas);
 
-        marker = map.addMarker(new MarkerOptions()
-                        .position(location())
-                        .visible(true)
-                        .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                        .anchor(markerAnchorX, markerAnchorY)
-                        .title(name)
-        );
+        marker = map.addMarker(new MarkerOptions().position(location()).visible(true)
+                                                  .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
+                                                  .anchor(markerAnchorX, markerAnchorY)
+                                                  .title(name));
     }
 
     public void goToWithInfoWindow() {
         if (marker != null) {
             updatePositionOnMap();
-            map.setInfoWindowAdapter(new InfoWindowAdapter((BaseActivity) GoForUs.getInstance().getCurrentActivity()));
+            map.setInfoWindowAdapter(new InfoWindowAdapter((BaseActivity) GoForUs.getInstance()
+                                                                                 .getCurrentActivity()));
 
-            LatLng latLngPositionWithInfoWindow = new LatLng(marker.getPosition().latitude + 0.0022f, marker.getPosition().longitude);
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLngPositionWithInfoWindow, 15);
+            LatLng latLngPositionWithInfoWindow = new LatLng(marker
+                    .getPosition().latitude + 0.0022f, marker.getPosition().longitude);
+            CameraUpdate cameraUpdate = CameraUpdateFactory
+                    .newLatLngZoom(latLngPositionWithInfoWindow, 15);
             map.animateCamera(cameraUpdate, 1, new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
@@ -112,13 +130,17 @@ public class Driver extends Model implements Comparable<Driver> {
             marker.showInfoWindow();
         }
     }
+
     public void goToWithInfoWindow(int animationTimer) {
         if (marker != null) {
             updatePositionOnMap();
-            map.setInfoWindowAdapter(new InfoWindowAdapter((BaseActivity) GoForUs.getInstance().getCurrentActivity()));
+            map.setInfoWindowAdapter(new InfoWindowAdapter((BaseActivity) GoForUs.getInstance()
+                                                                                 .getCurrentActivity()));
 
-            LatLng latLngPositionWithInfoWindow = new LatLng(marker.getPosition().latitude + 0.0022f, marker.getPosition().longitude);
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLngPositionWithInfoWindow, 15);
+            LatLng latLngPositionWithInfoWindow = new LatLng(marker
+                    .getPosition().latitude + 0.0022f, marker.getPosition().longitude);
+            CameraUpdate cameraUpdate = CameraUpdateFactory
+                    .newLatLngZoom(latLngPositionWithInfoWindow, 15);
             map.animateCamera(cameraUpdate, animationTimer, new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
@@ -163,7 +185,7 @@ public class Driver extends Model implements Comparable<Driver> {
         }
     }
 
-    public Information toDriverInformation(){
+    public Information toDriverInformation() {
         return new Information(this);
     }
 
@@ -178,7 +200,7 @@ public class Driver extends Model implements Comparable<Driver> {
 
     public static Driver findByDriverMarker(List<Driver> list, Marker marker) {
         for (Driver object : list) {
-            if (object.marker != null){
+            if (object.marker != null) {
                 if (object.marker.equals(marker)) {
                     return object;
                 }
@@ -199,13 +221,11 @@ public class Driver extends Model implements Comparable<Driver> {
     @Override
     public int compareTo(@NonNull Driver another) {
         return this.externalId.compareTo(another.externalId);
-
     }
 
     public void updatePositionOnMap() {
-        if(map != null){
+        if (map != null) {
             marker.setPosition(new LatLng(lat, lng));
         }
     }
-
 }
