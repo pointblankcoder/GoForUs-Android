@@ -7,13 +7,14 @@
     android:layout_marginRight="@dimen/activity_horizontal_margin"
     android:orientation="vertical">
 
-    <Button
+    <android.support.v7.widget.AppCompatImageButton
         android:id="@+id/messageSendBtn"
-        style="?android:textAppearanceSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="16dp"
-        android:text="@string/send_message"
+        android:padding="@dimen/margin_standard"
+        android:background="@color/accent_material_dark_1"
+        android:src="@drawable/truck_delivery_white_36dp"
         android:textStyle="bold" />
 </LinearLayout>

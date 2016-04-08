@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -22,11 +21,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.ViewHolder;
@@ -34,9 +31,9 @@ import com.orhanobut.logger.Logger;
 
 import org.parceler.Parcels;
 
-import java.util.ArrayList;
-
 import butterknife.ButterKnife;
+import info.goforus.goforus.managers.DriversOnMapManager;
+import info.goforus.goforus.managers.OrderModeManager;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.drivers.InfoWindowAdapter;
@@ -56,8 +53,8 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     boolean mHidden;
     private DialogPlus mMiniProfileDriverTipDialog;
     private DriversOnMapManager driversOnMapManager;
-    private DialogPlus quickLocationSelectionDialog;
     public int mapMode = BROWSE_MODE;
+    private OrderModeManager orderModeManager = OrderModeManager.getInstance();
 
 
     /* ======================== Fragment Overrides =================== */
@@ -78,36 +75,13 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         this.mapMode = mapMode;
 
         if (mapMode == ORDER_MODE) {
-            ((NavigationActivity) mActivity).showQuickLocationSelectionDialog();
+            // TODO: This should be put in the enterOrderMode but how do I get the original view reference?
             mOriginalView.setBackgroundResource(R.drawable.map_border);
             mOriginalView.setVisibility(View.VISIBLE);
             mOriginalView.setPadding(16, 16, 16, 16);
-            View quickOrderFab = mActivity.findViewById(R.id.quickOrderFab);
-            View messagesFab = mActivity.findViewById(R.id.messageFab);
-            if (quickOrderFab != null) {
-                quickOrderFab.setVisibility(View.GONE);
-            }
-            if (messagesFab != null) {
-                messagesFab.setVisibility(View.GONE);
-            }
 
-
-            Toast.makeText(getContext(), "You're now in Order Mode", Toast.LENGTH_LONG)
-                 .show();
-            final View exitModeFab = mActivity.findViewById(R.id.exitModeFab);
-
-
-            // we are in order mode only show that driver on the map
-            driversOnMapManager.hideAllDriversExcept(true, driversOnMapManager.selectedDriver);
-            driversOnMapManager.blockIndicatorsExcept(driversOnMapManager.selectedDriver);
-            driversOnMapManager.selectedDriver.updatePositionOnMap();
-
-            ((NavigationActivity)getContext()).showQuickLocationSelectionDialog();
-
-
-            if (exitModeFab != null) {
-                exitModeFab.setVisibility(View.VISIBLE);
-            }
+            orderModeManager.setup((BaseActivity) getActivity(), this, mMap);
+            orderModeManager.enterOrderMode();
         } else {
             View quickOrderFab = mActivity.findViewById(R.id.quickOrderFab);
             View messagesFab = mActivity.findViewById(R.id.messageFab);
@@ -312,9 +286,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     /* ======================== Marker Listeners =================== */
 
-    ArrayList<Marker> pickupPoints = new ArrayList<>();
-    ArrayList<Marker> dropOffPoints = new ArrayList<>();
-
     @Override
     public void onMapLongClick(LatLng point) {
     }
@@ -349,7 +320,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     @SuppressWarnings("ConstantConditions")
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (pickupPoints.contains(marker) || dropOffPoints.contains(marker)) {
+        if (orderModeManager.getPickupPoints().contains(marker) || orderModeManager.getDropOffPoints().contains(marker)) {
             mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
                 @Override
                 public View getInfoWindow(Marker marker) {
@@ -393,7 +364,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         driversOnMapManager.updateIndicators();
     }
 
-    protected void dropPinEffect(final Marker marker) {
+    public void dropPinEffect(final Marker marker) {
         final Handler handler = new Handler();
         final long start = SystemClock.uptimeMillis();
         final long duration = 1500;

@@ -1,4 +1,4 @@
-package info.goforus.goforus;
+package info.goforus.goforus.managers;
 
 import com.google.android.gms.maps.GoogleMap;
 
@@ -8,6 +8,8 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 
+import info.goforus.goforus.BaseActivity;
+import info.goforus.goforus.MapFragment;
 import info.goforus.goforus.event_results.DriverUpdateResult;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.drivers.Indicator;

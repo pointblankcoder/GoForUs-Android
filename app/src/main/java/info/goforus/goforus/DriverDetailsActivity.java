@@ -28,12 +28,15 @@ import butterknife.BindDimen;
 import butterknife.BindDrawable;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import info.goforus.goforus.managers.ContactDriverManager;
+import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.drivers.Information;
 
 public class DriverDetailsActivity extends BaseActivity implements ObservableScrollViewCallbacks {
     private static final String TAG = "DriverDetailsActivity";
     private static final float MAX_TEXT_SCALE_DELTA = 0.3f;
 
+    private final ContactDriverManager contactDriverManager = ContactDriverManager.getInstance();
     public static Information mDriver;
     @Bind(R.id.scroll) ObservableScrollView mScrollView;
     @Bind(R.id.driverBrief) View mBriefView;
@@ -73,13 +76,6 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
         mScrollView.setScrollViewCallbacks(this);
         mContentSpacerView.getLayoutParams().height = mFlexibleSpaceImageHeight;
 
-        // Dialogs
-        contactDialog = DialogPlus.newDialog(this)
-                                  .setContentHolder(new ViewHolder(R.layout.dialog_contact_driver_content))
-                                  .setFooter(R.layout.dialog_contact_driver_footer)
-                                  .setGravity(Gravity.CENTER).setCancelable(true).create();
-
-
         // Trigger init for views requiring scroll to position themselves
         ScrollUtils.addOnGlobalLayoutListener(mScrollView, new Runnable() {
             @Override
@@ -94,7 +90,8 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
 
     @OnClick(R.id.fabContact)
     public void onContactClick() {
-        contactDialog.show();
+        contactDriverManager.setup(this, Driver.findByExternalId(mDriver.externalId));
+        contactDriverManager.show();
     }
 
     @OnClick(R.id.fabOrder)

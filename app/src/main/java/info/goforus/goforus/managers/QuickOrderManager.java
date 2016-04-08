@@ -1,4 +1,4 @@
-package info.goforus.goforus;
+package info.goforus.goforus.managers;
 
 import android.location.Location;
 import android.view.View;
@@ -16,11 +16,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import info.goforus.goforus.MapFragment;
+import info.goforus.goforus.NavigationActivity;
+import info.goforus.goforus.R;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.drivers.Vehicle;
 
-public class QuickOrderHandler implements OnClickListener {
+public class QuickOrderManager implements OnClickListener {
     final NavigationActivity activity;
     private final DriversOnMapManager driversOnMapManager;
     MapFragment mapFragment;
@@ -40,7 +43,7 @@ public class QuickOrderHandler implements OnClickListener {
     float[] closetDriverResults = new float[1];
 
 
-    public QuickOrderHandler(NavigationActivity activity) {
+    public QuickOrderManager(NavigationActivity activity) {
         this.activity = activity;
         driversOnMapManager = DriversOnMapManager.getInstance();
     }

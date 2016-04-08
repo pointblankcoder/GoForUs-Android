@@ -68,6 +68,10 @@ public class Driver extends Model implements Comparable<Driver> {
     }
 
 
+    public static Driver findByExternalId(Integer externalId) {
+        return new Select().from(Driver.class).where("externalId = ?", externalId).executeSingle();
+    }
+
     public static Driver updateOrCreateFromJson(JSONObject json) {
         int externalId = 0;
 
@@ -284,4 +288,5 @@ public class Driver extends Model implements Comparable<Driver> {
             marker.setPosition(new LatLng(lat, lng));
         }
     }
+
 }

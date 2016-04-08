@@ -1,5 +1,6 @@
 package info.goforus.goforus;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -19,25 +20,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlacePicker;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.SphericalUtil;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnDismissListener;
@@ -47,8 +37,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
-
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -57,21 +45,19 @@ import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.event_results.NewMessagesResult;
 import info.goforus.goforus.jobs.AttemptLogoutJob;
+import info.goforus.goforus.managers.OrderModeManager;
+import info.goforus.goforus.managers.QuickOrderManager;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
-import info.goforus.goforus.models.drivers.Driver;
 
 public class NavigationActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
-    private static final int FIND_PICKUP_LOCATION = 0;
-    private static final int FIND_DROPOFF_LOCATION = 1;
-
     ActionBarDrawerToggle mDrawerToggle;
     InboxFragment inboxFragment;
     MapFragment mapFragment;
     MessagesFragment messagesFragment;
     FragmentManager mFragmentManager;
     DialogPlus mTipDialog;
-    DriversOnMapManager driversOnMapManager = DriversOnMapManager.getInstance();
+    OrderModeManager orderModeManager = OrderModeManager.getInstance();
 
     @Bind(R.id.exitModeFab) View exitModeFab;
     @Bind(R.id.quickOrderFab) FloatingActionButton mQuickOrderFab;
@@ -79,12 +65,6 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.drawer_layout) DrawerLayout mDrawer;
     @Bind(R.id.nav_view) NavigationView mNavigationView;
-    @Bind(R.id.quickLocationSelection) LinearLayout quickLocationSelection;
-    @Bind(R.id.findDropOff) View findDropOff;
-    @Bind(R.id.removeDropOff) View removeDropOff;
-    @Bind(R.id.findPickup) View findPickup;
-    @Bind(R.id.removePickup) View removePickup;
-    @Bind(R.id.complete) View complete;
 
     public NavigationActivity() {
     }
@@ -159,140 +139,27 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == FIND_DROPOFF_LOCATION || requestCode == FIND_PICKUP_LOCATION) {
+        if (requestCode == OrderModeManager.FIND_DROP_OFF_LOCATION || requestCode == OrderModeManager.FIND_PICKUP_LOCATION) {
             if (resultCode == RESULT_OK) {
                 Place place = PlacePicker.getPlace(this, data);
 
-                if (requestCode == FIND_PICKUP_LOCATION) {
-                    Marker marker = mapFragment.mMap
-                            .addMarker(new MarkerOptions().position(place.getLatLng())
-                                                          .title("Pickup Point").draggable(true)
-                                                          .icon(BitmapDescriptorFactory
-                                                                  .fromResource(R.drawable.ic_nature_black_36dp)));
-                    mapFragment.pickupPoints.add(marker);
-                    CameraUpdate cameraUpdate = CameraUpdateFactory
-                            .newLatLngZoom(marker.getPosition(), 15);
-                    mapFragment.mMap.animateCamera(cameraUpdate, 1, null);
-                    mapFragment.dropPinEffect(marker);
-
-                    Toast.makeText(this, "Pickup point added", Toast.LENGTH_SHORT).show();
-
-                    findPickup.setVisibility(View.GONE);
-                    removePickup.setVisibility(View.VISIBLE);
+                if (requestCode == OrderModeManager.FIND_PICKUP_LOCATION) {
+                    orderModeManager.addPickupPoint(place.getLatLng());
                 }
 
-                if (requestCode == FIND_DROPOFF_LOCATION) {
-                    Marker marker = mapFragment.mMap
-                            .addMarker(new MarkerOptions().position(place.getLatLng())
-                                                          .title("Dropoff Point").draggable(true)
-                                                          .icon(BitmapDescriptorFactory
-                                                                  .fromResource(R.drawable.ic_person_pin_circle_black_36dp)));
-                    mapFragment.dropOffPoints.add(marker);
-                    CameraUpdate cameraUpdate = CameraUpdateFactory
-                            .newLatLngZoom(marker.getPosition(), 15);
-                    mapFragment.mMap.animateCamera(cameraUpdate, 1, null);
-                    mapFragment.dropPinEffect(marker);
-
-                    Toast.makeText(this, "Dropoff point added", Toast.LENGTH_SHORT).show();
-
-                    findDropOff.setVisibility(View.GONE);
-                    removeDropOff.setVisibility(View.VISIBLE);
-                }
-
-                if (mapFragment.pickupPoints.size() == 1 && mapFragment.dropOffPoints.size() == 1) {
-                    View complete = findViewById(R.id.complete);
-                    if (complete != null) complete.setVisibility(View.VISIBLE);
+                if (requestCode == OrderModeManager.FIND_DROP_OFF_LOCATION) {
+                    orderModeManager.addDropOffPoint(place.getLatLng());
                 }
             }
-        }
-    }
-
-    @OnClick(R.id.exitModeFab)
-    public void onExitModeClick() {
-        exitModeFab.setVisibility(View.GONE);
-        driversOnMapManager.setSelectedDriver(null);
-        driversOnMapManager.hideAllDrivers(false);
-        driversOnMapManager.unblockIndicators();
-        for (Driver d : driversOnMapManager.getCurrentlyDisplayedDrivers()) {
-            d.marker.remove();
-        }
-        for (Driver d : driversOnMapManager.getCurrentlyDisplayedDrivers()) {
-            d.addToMap(mapFragment.mMap);
+        } if (resultCode == RESULT_CANCELED) {
+            orderModeManager.explainToUserAboutLongPress();
+            View view = this.getCurrentFocus();
+            if (view != null) {
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
         }
 
-        for (Marker m : mapFragment.pickupPoints) {
-            m.remove();
-        }
-        for (Marker m : mapFragment.dropOffPoints) {
-            m.remove();
-        }
-
-        mapFragment.pickupPoints = new ArrayList<>();
-        mapFragment.dropOffPoints = new ArrayList<>();
-
-        quickLocationSelection.setVisibility(View.GONE);
-
-        Toast.makeText(this, "You have cancelled your order", Toast.LENGTH_LONG).show();
-
-        mapFragment.switchMapMode(MapFragment.BROWSE_MODE);
-    }
-
-    @OnClick(R.id.complete)
-    public void onCompleteClick() {
-        quickLocationSelection.setVisibility(View.GONE);
-        complete.setVisibility(View.GONE);
-    }
-
-    @OnClick(R.id.removePickup)
-    public void onRemovePickupClick() {
-        findPickup.setVisibility(View.VISIBLE);
-        removePickup.setVisibility(View.GONE);
-        complete.setVisibility(View.GONE);
-        for (Marker m : mapFragment.pickupPoints)
-            m.remove();
-        mapFragment.pickupPoints = new ArrayList<>();
-    }
-
-    @OnClick(R.id.findPickup)
-    public void onFindPickupClick() {
-        openLocationFinder(FIND_PICKUP_LOCATION);
-    }
-
-
-    @OnClick(R.id.removeDropOff)
-    public void onRemoveDropOffClick() {
-        findDropOff.setVisibility(View.VISIBLE);
-        removeDropOff.setVisibility(View.GONE);
-        complete.setVisibility(View.GONE);
-        for (Marker m : mapFragment.dropOffPoints)
-            m.remove();
-        mapFragment.dropOffPoints = new ArrayList<>();
-    }
-
-    @OnClick(R.id.findDropOff)
-    public void onFindDropOffClick() {
-        openLocationFinder(FIND_DROPOFF_LOCATION);
-    }
-
-    public void openLocationFinder(int requestId) {
-        try {
-            PlaceAutocomplete.IntentBuilder builder = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY);
-            builder.setBoundsBias(toBounds(Account.currentAccount().location(), 5_000));
-
-            Intent intent = builder.build(this);
-            startActivityForResult(intent, requestId);
-        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
-        }
-    }
-
-    public void showQuickLocationSelectionDialog() {
-        quickLocationSelection.setVisibility(View.VISIBLE);
-    }
-
-    public LatLngBounds toBounds(LatLng center, double radius) {
-        LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);
-        LatLng northeast = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 45);
-        return new LatLngBounds(southwest, northeast);
     }
 
     @OnClick(R.id.messageFab)
@@ -306,19 +173,13 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
                                                 .setContentHolder(new ViewHolder(R.layout.dialog_quick_order))
                                                 .setGravity(Gravity.TOP).setCancelable(true)
                                                 .setContentBackgroundResource(R.color.primary_material_dark_1)
-                                                .setOnClickListener(new QuickOrderHandler(this))
                                                 .setOnDismissListener(new OnDismissListener() {
                                                     @Override
                                                     public void onDismiss(DialogPlus dialog) {
-                                                        /* WTF? WHY IS THIS HERE.. Well now, looks like the library (DialogPlus) is kinda buggy with multiple
-                                                         dialogs being shown on the same ui rendering cycle, causing the internals to say it's showing the newly
-                                                          created dialog even though is not showing or has not even being created for that matter. A way around this is to listen to the on dismiss callback
-                                                          not the best way around it but the only way to ensure that the animation does not interfere with wanting make a new dialog.
-                                                           */
-                                                        if (mapFragment.mapMode == MapFragment.ORDER_MODE) {
-                                                        }
+                                                        orderModeManager.showTips();
                                                     }
-                                                }).create();
+                                                })
+                                                .setOnClickListener(new QuickOrderManager(this)).create();
         quickOrderDialog.show();
     }
 
@@ -456,16 +317,11 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         } else {
             ft.add(R.id.content, inboxFragment, "Inbox");
         }
-        if (messagesFragment.isAdded()) {
-            ft.hide(messagesFragment);
-        }
-        if (mapFragment.isAdded()) {
-            ft.hide(mapFragment);
-        }
 
-        if (mMessageFab.isShown()) {
-            mMessageFab.hide();
-        }
+        if (messagesFragment.isAdded()) ft.hide(messagesFragment);
+        if (mapFragment.isAdded()) ft.hide(mapFragment);
+        if (mMessageFab.isShown()) mMessageFab.hide();
+        if (mQuickOrderFab.isShown()) mQuickOrderFab.hide();
 
         mNavigationView.setCheckedItem(R.id.nav_inbox);
         setTitle("Inbox");
@@ -482,16 +338,10 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
             ft.add(R.id.content, messagesFragment, "Messages");
         }
 
-        if (inboxFragment.isAdded()) {
-            ft.hide(inboxFragment);
-        }
-        if (mapFragment.isAdded()) {
-            ft.hide(mapFragment);
-        }
-
-        if (mMessageFab.isShown()) {
-            mMessageFab.hide();
-        }
+        if (inboxFragment.isAdded()) ft.hide(inboxFragment);
+        if (mapFragment.isAdded()) ft.hide(mapFragment);
+        if (mMessageFab.isShown()) mMessageFab.hide();
+        if (mQuickOrderFab.isShown()) mQuickOrderFab.hide();
 
         mNavigationView.setCheckedItem(R.id.nav_inbox);
         setTitle(getString(R.string.messages_fragment_title));
@@ -507,16 +357,10 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         } else {
             ft.add(R.id.content, mapFragment, "Map");
         }
-        if (inboxFragment.isAdded()) {
-            ft.hide(inboxFragment);
-        }
-        if (messagesFragment.isAdded()) {
-            ft.hide(messagesFragment);
-        }
-
-        if (!mMessageFab.isShown()) {
-            mMessageFab.show();
-        }
+        if (inboxFragment.isAdded()) ft.hide(inboxFragment);
+        if (messagesFragment.isAdded()) ft.hide(messagesFragment);
+        if (!mMessageFab.isShown()) mMessageFab.show();
+        if (!mQuickOrderFab.isShown() && mapFragment.mapMode != MapFragment.ORDER_MODE) mQuickOrderFab.show();
 
         mNavigationView.setCheckedItem(R.id.nav_map);
         setTitle(getString(R.string.map_fragment_title));

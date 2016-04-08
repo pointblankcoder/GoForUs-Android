@@ -33,6 +33,7 @@ public class Account extends Model {
     @Column(name = "lng") public double lng;
     @Column(name = "loggedIn") public boolean loggedIn = false;
     @Column(name = "showMapTips") public boolean showMapTips = true;
+    @Column(name = "showOrderModeTips") public boolean showOrderModeTips = true;
     @Column(name = "showMiniProfileDriverTip") public boolean showMiniProfileDriverTip = true;
 
     public Account() {
