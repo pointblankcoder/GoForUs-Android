@@ -12,6 +12,12 @@ import us.monoid.json.JSONObject;
 @Table(name = "Vehicles")
 public class Vehicle extends Model {
 
+    public static final String SCOOTER = "Scooter";
+    public static final String ROAD_BIKE = "Road Bike";
+    public static final String STANDARD_CAR = "Standard Car";
+    public static final String SMALL_VAN = "Small Van";
+    public static final String LARGE_VAN = "Large Van";
+
     @Column(name = "externalId", index = true) public Integer externalId;
     @Column(name = "registration") public String registration;
     @Column(name = "make") public String make;

@@ -48,7 +48,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     public static final int ORDER_MODE = 0;
     public static final int BROWSE_MODE = 1;
 
-    View mOriginalView;
+    public View mOriginalView;
     MapWrapperLayout mMapWrapperLayout;
     BaseActivity mActivity;
     GoogleMap mMap;
@@ -56,6 +56,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     boolean mHidden;
     private DialogPlus mMiniProfileDriverTipDialog;
     private DriversOnMapManager driversOnMapManager;
+    private DialogPlus quickLocationSelectionDialog;
     public int mapMode = BROWSE_MODE;
 
 
@@ -77,16 +78,21 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         this.mapMode = mapMode;
 
         if (mapMode == ORDER_MODE) {
+            ((NavigationActivity) mActivity).showQuickLocationSelectionDialog();
             mOriginalView.setBackgroundResource(R.drawable.map_border);
             mOriginalView.setVisibility(View.VISIBLE);
             mOriginalView.setPadding(16, 16, 16, 16);
             View quickOrderFab = mActivity.findViewById(R.id.quickOrderFab);
-            quickOrderFab.setVisibility(View.GONE);
+            View messagesFab = mActivity.findViewById(R.id.messageFab);
+            if (quickOrderFab != null) {
+                quickOrderFab.setVisibility(View.GONE);
+            }
+            if (messagesFab != null) {
+                messagesFab.setVisibility(View.GONE);
+            }
 
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
-            mOriginalView.setLayoutParams(params);
 
-            Toast.makeText(getContext(), "You're now in Order Mode, set your pickup point by holding down anywhere on the map", Toast.LENGTH_LONG)
+            Toast.makeText(getContext(), "You're now in Order Mode", Toast.LENGTH_LONG)
                  .show();
             final View exitModeFab = mActivity.findViewById(R.id.exitModeFab);
 
@@ -96,41 +102,22 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
             driversOnMapManager.blockIndicatorsExcept(driversOnMapManager.selectedDriver);
             driversOnMapManager.selectedDriver.updatePositionOnMap();
 
-            exitModeFab.setVisibility(View.VISIBLE);
-            exitModeFab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    View exitModeFab = mActivity.findViewById(R.id.exitModeFab);
-                    exitModeFab.setVisibility(View.GONE);
-                    driversOnMapManager.setSelectedDriver(null);
-                    driversOnMapManager.hideAllDrivers(false);
-                    driversOnMapManager.unblockIndicators();
-                    for (Driver d : driversOnMapManager.getCurrentlyDisplayedDrivers()) {
-                        d.marker.remove();
-                    }
-                    for (Driver d : driversOnMapManager.getCurrentlyDisplayedDrivers()) {
-                        d.addToMap(mMap);
-                    }
+            ((NavigationActivity)getContext()).showQuickLocationSelectionDialog();
 
-                    for (Marker m : pickupPoints) {
-                        m.remove();
-                    }
-                    for (Marker m : dropOffPoints) {
-                        m.remove();
-                    }
 
-                    pickupPoints = new ArrayList<>();
-                    dropOffPoints =  new ArrayList<>();
-
-                    Toast.makeText(getContext(), "You have cancelled your order", Toast.LENGTH_LONG)
-                         .show();
-
-                    switchMapMode(BROWSE_MODE);
-                }
-            });
+            if (exitModeFab != null) {
+                exitModeFab.setVisibility(View.VISIBLE);
+            }
         } else {
             View quickOrderFab = mActivity.findViewById(R.id.quickOrderFab);
-            quickOrderFab.setVisibility(View.VISIBLE);
+            View messagesFab = mActivity.findViewById(R.id.messageFab);
+            if (quickOrderFab != null) {
+                quickOrderFab.setVisibility(View.VISIBLE);
+            }
+
+            if (messagesFab != null) {
+                messagesFab.setVisibility(View.VISIBLE);
+            }
 
             mOriginalView.setBackgroundResource(android.R.color.transparent);
             mOriginalView.setPadding(0, 0, 0, 0);
@@ -330,28 +317,6 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     @Override
     public void onMapLongClick(LatLng point) {
-        if (mapMode == ORDER_MODE) {
-            if (pickupPoints.size() == 0) {
-                Marker marker = mMap
-                        .addMarker(new MarkerOptions().position(point).title("Pickup Point")
-                                                      .draggable(true).icon(BitmapDescriptorFactory
-                                        .fromResource(R.drawable.ic_nature_black_36dp)));
-                pickupPoints.add(marker);
-                dropPinEffect(marker);
-                Toast.makeText(getContext(), "Pickup point added", Toast.LENGTH_SHORT).show();
-            } else if (pickupPoints.size() == 1 && dropOffPoints.size() == 0) {
-                Marker marker = mMap
-                        .addMarker(new MarkerOptions().position(point).title("Dropoff Point")
-                                                      .draggable(true).icon(BitmapDescriptorFactory
-                                        .fromResource(R.drawable.ic_person_pin_circle_black_36dp)));
-                dropOffPoints.add(marker);
-                dropPinEffect(marker);
-                Toast.makeText(getContext(), "Dropoff point added", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(), "You can not add more than 1 dropoff point and 1 pickup point", Toast.LENGTH_SHORT)
-                     .show();
-            }
-        }
     }
 
 
@@ -428,7 +393,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
         driversOnMapManager.updateIndicators();
     }
 
-    private void dropPinEffect(final Marker marker) {
+    protected void dropPinEffect(final Marker marker) {
         final Handler handler = new Handler();
         final long start = SystemClock.uptimeMillis();
         final long duration = 1500;

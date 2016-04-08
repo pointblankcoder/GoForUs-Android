@@ -22,24 +22,28 @@
             />
 
         <RadioGroup
+            android:id="@+id/vehicleTypeSelection"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_standard"
             android:tag="selectionGroup">
 
             <android.support.v7.widget.AppCompatRadioButton
+                android:id="@+id/vehicleTypeSomethingSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Just need something quick (small items)"
                 android:textColor="@color/secondary_text_material_dark"/>
 
             <android.support.v7.widget.AppCompatRadioButton
+                android:id="@+id/vehicleTypeMiniVan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Requires Mini Van (medium size items)"
                 android:textColor="@color/secondary_text_material_dark"/>
 
             <android.support.v7.widget.AppCompatRadioButton
+                android:id="@+id/vehicleTypeLargeVan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Requires Large Van (large items, e.g Sofa)"

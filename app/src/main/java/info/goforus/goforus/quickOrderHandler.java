@@ -10,14 +10,15 @@ import android.widget.TextView;
 import com.google.android.gms.maps.model.LatLng;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
+import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
 
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
+import info.goforus.goforus.models.drivers.Vehicle;
 
 public class QuickOrderHandler implements OnClickListener {
     final NavigationActivity activity;
@@ -32,6 +33,7 @@ public class QuickOrderHandler implements OnClickListener {
     Button nextDriverButton;
     ArrayList<View> mSteps;
     ArrayList<Driver> excludedDrivers = new ArrayList<>();
+    ArrayList<String> vehiclePreferenceTypes = new ArrayList<>();
     LinearLayout driverFoundStep;
     TextView driverFoundText;
     Driver closestDriver = null;
@@ -64,10 +66,30 @@ public class QuickOrderHandler implements OnClickListener {
 
             RadioGroup selectionGroup = (RadioGroup) currentStep()
                     .findViewWithTag("selectionGroup");
-            if (selectionGroup != null && selectionGroup
-                    .getCheckedRadioButtonId() == -1) { // nothing was selected
-                // TODO: show error message on the group to show it's required users may just keep clicking thinking it's broken
-                return;
+            if (selectionGroup != null) { // nothing was selected
+                int id = selectionGroup.getCheckedRadioButtonId();
+                if (selectionGroup.getCheckedRadioButtonId() == -1) {
+                    // TODO: show error message on the group to show it's required users may just keep clicking thinking it's broken
+                    return;
+                } else {
+                    Logger.d("SelectionGroup ID: %s", id);
+                    Logger.d("Checked ID: %s", id);
+                    if (selectionGroup.getId() == R.id.vehicleTypeSelection) {
+                        vehiclePreferenceTypes = new ArrayList<>();
+                        Logger.d("R.id.vehicleTypeSomethingSmall: %s", id);
+                        if (id == R.id.vehicleTypeLargeVan)
+                            vehiclePreferenceTypes.add(Vehicle.LARGE_VAN);
+                        if (id == R.id.vehicleTypeMiniVan)
+                            vehiclePreferenceTypes.add(Vehicle.SMALL_VAN);
+                        if (id == R.id.vehicleTypeSomethingSmall) {
+                            vehiclePreferenceTypes.add(Vehicle.SCOOTER);
+                            vehiclePreferenceTypes.add(Vehicle.STANDARD_CAR);
+                            vehiclePreferenceTypes.add(Vehicle.ROAD_BIKE);
+                        }
+                    }
+                }
+
+                Logger.d("%s", selectionGroup.getCheckedRadioButtonId());
             }
 
             View nextStep = nextStep(currentStep());
@@ -112,7 +134,7 @@ public class QuickOrderHandler implements OnClickListener {
     private void showBestDriverResults(Driver driver) {
         if (driver == null) {
             driverFoundText
-                    .setText("There's no available driver right now. The Pre-Booking feature is Work In Progress");
+                    .setText("There's no other available driver right now. The Pre-Booking feature is Work In Progress");
             showBackButton();
             hideNextDriverButton();
             hideProceedButton();
@@ -138,9 +160,13 @@ public class QuickOrderHandler implements OnClickListener {
 
         Iterator<Driver> driversToCycleIterator = driversToCycle.iterator();
 
-        while(driversToCycleIterator.hasNext()) {
+        while (driversToCycleIterator.hasNext()) {
             Driver driver = driversToCycleIterator.next();
-            if (!driver.available) driversToCycleIterator.remove();
+            if (!driver.available) {
+                driversToCycleIterator.remove();
+            } else if (!vehiclePreferenceTypes.contains(driver.getCurrentVehicle().vehicleType)) {
+                driversToCycleIterator.remove();
+            }
         }
 
 
@@ -171,6 +197,7 @@ public class QuickOrderHandler implements OnClickListener {
             closestDriver = null;
             closetDriverResults = new float[1];
         }
+
 
         driverCycleCount++;
         return closestDriver;

@@ -137,10 +137,10 @@ public class Driver extends Model implements Comparable<Driver> {
         this.map = map;
         Drawable vehicleIcon;
         if (getCurrentVehicle() != null) {
-            if (getCurrentVehicle().vehicleType.equals("Standard Car")) {
+            if (getCurrentVehicle().vehicleType.equals(Vehicle.STANDARD_CAR)) {
                 vehicleIcon = ActivityCompat
                         .getDrawable(GoForUs.getInstance(), R.drawable.car_black_36dp);
-            } else if (getCurrentVehicle().vehicleType.equals("Scooter")) {
+            } else if (getCurrentVehicle().vehicleType.equals(Vehicle.SCOOTER)) {
                 vehicleIcon = ActivityCompat.getDrawable(GoForUs
                         .getInstance(), R.drawable.ic_directions_bike_black_36dp);
             } else {
