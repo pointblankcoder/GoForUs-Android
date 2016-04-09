@@ -116,7 +116,7 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
 
         if (mConversations.contains(resultConversation) && result.getMessages().size() > 0) {
             for (Message message : result.getMessages()) {
-                if (!message.readByReceiver) {
+                if (!message.isRead && message.isMe) {
                     final int position = mAdapter.getPosition(resultConversation);
 
                     mConversations.remove(position);

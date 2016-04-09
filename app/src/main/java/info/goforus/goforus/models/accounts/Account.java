@@ -23,6 +23,8 @@ import us.monoid.json.JSONObject;
 @Table(name = "Accounts")
 public class Account extends Model {
     private static final String TAG = "Account";
+    public static final String CUSTOMER = "Customer";
+    public static final String PARTNER = "Partner";
 
     @Column(name = "externalId", index = true, unique = true) public Integer externalId;
     @Column(name = "name") public String name;

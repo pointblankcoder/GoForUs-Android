@@ -20,22 +20,13 @@ import us.monoid.json.JSONObject;
 @Table(name = "Messages")
 public class Message extends Model {
 
-    @Column(name = "externalId", index = true, unique = true)
-    public int externalId;
-    @Column(name = "isMe", index = true)
-    public boolean isMe;
-    @Column(name = "readByReceiver", index = true)
-    public boolean readByReceiver;
-    @Column(name = "readBySender", index = true)
-    public boolean readBySender;
-    @Column(name = "body")
-    public String body;
-    @Column(name = "Conversation")
-    public Conversation conversation;
-    @Column(name = "notificationSent")
-    public boolean notificationSent = false;
-    @Column(name = "confirmedReceived", index = true)
-    public boolean confirmedReceived = false;
+    @Column(name = "externalId", index = true, unique = true) public int externalId;
+    @Column(name = "isMe", index = true) public boolean isMe;
+    @Column(name = "isRead", index = true) public boolean isRead;
+    @Column(name = "body") public String body;
+    @Column(name = "Conversation") public Conversation conversation;
+    @Column(name = "notificationSent") public boolean notificationSent = false;
+    @Column(name = "confirmedReceived", index = true) public boolean confirmedReceived = false;
 
     public boolean shouldAnimateIn = false;
 
@@ -48,8 +39,7 @@ public class Message extends Model {
         try {
             this.externalId = message.getInt("id");
             this.isMe = message.getBoolean("is_me");
-            this.readBySender = message.getBoolean("is_read_by_sender");
-            this.readByReceiver = message.getBoolean("is_read_by_receiver");
+            this.isRead = message.getBoolean("is_read");
             this.body = message.getString("body");
             this.conversation = conversation;
             this.confirmedReceived = true;
@@ -84,8 +74,9 @@ public class Message extends Model {
             Logger.e(e.toString());
         }
 
-        Message existingMessage =
-                new Select().from(Message.class).where("body = ? AND confirmedReceived = ?", body, false).executeSingle();
+        Message existingMessage = new Select().from(Message.class)
+                                              .where("body = ? AND confirmedReceived = ?", body, false)
+                                              .executeSingle();
         if (existingMessage != null) {
 
             existingMessage.body = body;

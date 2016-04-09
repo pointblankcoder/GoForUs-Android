@@ -17,7 +17,5 @@ public class ConversationsFromApiResult {
         }
     }
 
-    public List<Conversation> getConversations() {
-        return mConversations;
-    }
+    public List<Conversation> getConversations() { return mConversations; }
 }

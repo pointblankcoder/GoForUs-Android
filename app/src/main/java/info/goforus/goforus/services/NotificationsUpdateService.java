@@ -41,7 +41,7 @@ public class NotificationsUpdateService extends IntentService implements InboxRe
         for (Conversation c : conversations) {
             for (Message m : c.messages()) {
                 // TODO: Change how we should send notifications and when (not while in app etc)
-                if (m.isMe && m.readByReceiver && !m.notificationSent) {
+                if (!m.isMe && !m.isRead && !m.notificationSent) {
                     createNotification(
                             m.externalId,
                             R.drawable.message_alert,

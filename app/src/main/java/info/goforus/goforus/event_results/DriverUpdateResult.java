@@ -6,11 +6,7 @@ public class DriverUpdateResult {
 
     Driver mDriver;
 
-    public DriverUpdateResult(Driver driver) {
-        mDriver = driver;
-    }
+    public DriverUpdateResult(Driver driver) { mDriver = driver; }
 
-    public Driver getDriver() {
-        return mDriver;
-    }
+    public Driver getDriver() { return mDriver; }
 }

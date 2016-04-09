@@ -6,6 +6,7 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 
 import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.models.conversations.Conversation;
 
 @Table(name = "Orders")
 public class Order extends Model {
@@ -34,5 +35,10 @@ public class Order extends Model {
         return new Select().from(Order.class)
                            .where("partnerId = ? AND accepted = ? AND customerId = ?", partnerId, false, Account
                                    .currentAccount().externalId).executeSingle();
+    }
+
+    public static Order findByConversation(Conversation conversation) {
+        return new Select().from(Order.class).where("customerId = ? AND conversationId = ?", Account
+                .currentAccount().externalId, conversation.externalId).executeSingle();
     }
 }

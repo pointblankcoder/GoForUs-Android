@@ -89,7 +89,7 @@ public class MessagesFragment extends Fragment {
     }
 
     @OnClick(R.id.btSend)
-    public void onSendClick(){
+    public void onSendClick() {
         String data = etMessage.getText().toString();
 
         if (TextUtils.isEmpty(data) || data.trim().length() <= 2) {
@@ -193,13 +193,13 @@ public class MessagesFragment extends Fragment {
                     }
                 }
 
-                GoForUs.getInstance().getJobManager()
-                       .addJobInBackground(new MarkReadMessageJob(mConversation.externalId, message.externalId));
-                message.confirmedReceived = true;
-                if (isVisible()) {
-                    message.readByReceiver = true;
+                if (isVisible() && !message.isMe) {
+                    message.isRead = true;
+                    GoForUs.getInstance().getJobManager()
+                           .addJobInBackground(new MarkReadMessageJob(mConversation.externalId, message.externalId));
+                    message.confirmedReceived = true;
+                    message.save();
                 }
-                message.save();
             }
 
             mAdapter.notifyDataSetChanged();

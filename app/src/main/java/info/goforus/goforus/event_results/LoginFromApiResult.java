@@ -37,24 +37,14 @@ public class LoginFromApiResult {
             failed = false;
         }
     }
-    public String failedMessage() {
-        return mFailedMessage;
-    }
+    public String failedMessage() { return mFailedMessage; }
 
-    public String failedEmailMessage() {
-        return mFailedEmailMessage;
-    }
+    public String failedEmailMessage() { return mFailedEmailMessage; }
 
-    public String failedPasswordMessage() {
-        return mFailedPasswordMessage;
-    }
+    public String failedPasswordMessage() { return mFailedPasswordMessage; }
 
-    public boolean hasFailure() {
-        return failed;
-    }
+    public boolean hasFailure() { return failed; }
 
-    public JSONObject getResponse(){
-        return mResponse;
-    }
+    public JSONObject getResponse(){ return mResponse; }
 }
 

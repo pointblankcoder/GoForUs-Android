@@ -20,12 +20,10 @@ import us.monoid.json.JSONObject;
 @Parcel(Parcel.Serialization.BEAN)
 @Table(name = "Conversations")
 public class Conversation extends Model {
-    @Column(name = "externalId", index = true, unique = true)
-    public int externalId;
-    @Column(name = "subject")
-    public String subject;
-    @Column(name = "Account", index = true)
-    public long account;
+    @Column(name = "externalId", index = true, unique = true)  public int externalId;
+    @Column(name = "partnerId", index = true) public int partnerId;
+    @Column(name = "customerId", index = true) public int customerId;
+    @Column(name = "Account", index = true)  public long account;
 
     public Conversation() {
         super();
@@ -36,7 +34,8 @@ public class Conversation extends Model {
 
         try {
             this.externalId = conversation.getInt("id");
-            this.subject = conversation.getString("subject");
+            this.customerId = conversation.getInt("customer_id");
+            this.partnerId = conversation.getInt("partner_id");
             this.account = Account.currentAccount().getId();
         } catch (JSONException e) {
             e.printStackTrace();
@@ -110,15 +109,19 @@ public class Conversation extends Model {
         return new Select().from(Message.class).where("Conversation = ? AND confirmedReceived = ?", getId(), true).orderBy("externalId DESC").executeSingle();
     }
 
+    public Message firstMessage() {
+        return new Select().from(Message.class).where("Conversation = ? AND confirmedReceived = ?", getId(), true).orderBy("externalId ASC").executeSingle();
+    }
+
     public int unreadMessageCount() {
-        return new Select().from(Message.class).where("Conversation = ? AND readByReceiver = ? AND isMe = ?", getId(), false, false).count();
+        return new Select().from(Message.class).where("Conversation = ? AND isRead = ? AND isMe = ?", getId(), false, false).count();
     }
 
     public static int totalUnreadMessagesCount() {
         int count = 0;
         for (Conversation c : Account.currentAccount().conversations()) {
             for (Message m : c.messages()) {
-                if (!m.readByReceiver && !m.isMe)
+                if (!m.isRead && !m.isMe)
                     count++;
             }
         }

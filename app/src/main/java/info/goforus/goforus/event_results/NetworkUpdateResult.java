@@ -12,11 +12,7 @@ public class NetworkUpdateResult {
         mIsConnected = isConnected;
     }
 
-    public boolean getIsConnected() {
-        return mIsConnected;
-    }
+    public boolean getIsConnected() { return mIsConnected; }
 
-    public NetworkInfo getActveNetwork() {
-        return mActiveNetwork;
-    }
+    public NetworkInfo getActveNetwork() { return mActiveNetwork; }
 }

@@ -34,6 +34,7 @@ public class CreateOrderFromApiResult {
             int partnerId = mResponse.getInt("partner_id");
             mOrder = Order.lastAwaitingConfirmed(partnerId);
             mOrder.externalId = response.getInt("id");
+            mOrder.conversationId = conversation.externalId;
             mOrder.save();
 
         } catch (JSONException e) {

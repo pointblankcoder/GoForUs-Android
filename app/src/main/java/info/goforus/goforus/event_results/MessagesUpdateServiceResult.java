@@ -7,7 +7,6 @@ import info.goforus.goforus.models.conversations.Message;
 
 public class MessagesUpdateServiceResult {
 
-    int mChannelId;
     int mConversationId;
     List<Message> mMessages;
 
@@ -16,11 +15,7 @@ public class MessagesUpdateServiceResult {
         mMessages = messages;
     }
 
-    public int getConversationId() {
-        return mConversationId;
-    }
+    public int getConversationId() { return mConversationId; }
 
-    public List<Message> getMessages() {
-        return mMessages;
-    }
+    public List<Message> getMessages() { return mMessages; }
 }
