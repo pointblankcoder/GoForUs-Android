@@ -26,6 +26,7 @@ public class Utils {
     public final static Sessions SessionsApi = Sessions.getInstance();
     public final static Conversations ConversationsApi = Conversations.getInstance();
     public final static Messages MessagesApi = Messages.getInstance();
+    public final static Orders OrdersApi = Orders.getInstance();
 
     protected static String tokenParams() {
         Account account = Account.currentAccount();

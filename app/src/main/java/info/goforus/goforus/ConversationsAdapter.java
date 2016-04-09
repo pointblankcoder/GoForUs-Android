@@ -70,7 +70,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
         // Populate the data into the template view using the data object
         viewHolder.subject.setText(conversation.subject);
         if (conversation.lastMessage() != null) {
-            viewHolder.lastMessageSummary.setText(conversation.lastMessage().body);
+            viewHolder.lastMessageSummary.setText(withoutLineBreaks(conversation.lastMessage().body));
         }
 
         if (conversation.unreadMessageCount() > 0) {
@@ -82,5 +82,10 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
 
         // Return the completed view to render on screen
         return view;
+    }
+
+    private String withoutLineBreaks(String body) {
+        String newBody = body.replaceAll("\r", "..").replaceAll("\n", "..");
+        return newBody;
     }
 }

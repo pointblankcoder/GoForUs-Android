@@ -21,21 +21,23 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import info.goforus.goforus.BaseActivity;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
+import info.goforus.goforus.jobs.PostOrderJob;
 import info.goforus.goforus.models.drivers.Driver;
+import info.goforus.goforus.models.orders.Order;
 
 public class ContactDriverManager implements OnDismissListener {
     private static ContactDriverManager ourInstance = new ContactDriverManager();
     private boolean dismissedContactThroughMessageClick = false;
     private final OrderModeManager orderModelManager = OrderModeManager.getInstance();
 
-    public static ContactDriverManager getInstance() {
-        return ourInstance;
-    }
+    public static ContactDriverManager getInstance() { return ourInstance; }
 
     private ContactDriverManager() {
     }
 
+    Order mOrder;
     BaseActivity mActivity;
     Driver mDriver;
     DialogPlus contactDialog;
@@ -48,9 +50,10 @@ public class ContactDriverManager implements OnDismissListener {
     @Nullable @Bind(R.id.declined) ImageView declined;
     @Nullable @Bind(R.id.progress) ProgressBar progress;
 
-    public void setup(BaseActivity activity, Driver driver) {
-        this.mDriver = driver;
-        this.mActivity = activity;
+    public void setup(BaseActivity activity, Order order, Driver driver) {
+        mDriver = driver;
+        mActivity = activity;
+        mOrder = order;
 
         contactDialog = DialogPlus.newDialog(mActivity)
                                   .setContentBackgroundResource(R.color.primary_material_dark_1)
@@ -77,8 +80,15 @@ public class ContactDriverManager implements OnDismissListener {
     @Nullable
     @OnClick(R.id.messageSendBtn)
     public void onMessageSendClick() {
+        mOrder.description = message.getText().toString();
+        if (mOrder.description.isEmpty()) {
+            return;
+        }
+
         contactDialog.dismiss();
         dismissedContactThroughMessageClick = true;
+        mOrder.save();
+        GoForUs.getInstance().getJobManager().addJobInBackground(new PostOrderJob(mOrder.getId()));
     }
 
     @Override
@@ -95,7 +105,7 @@ public class ContactDriverManager implements OnDismissListener {
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
 
-
+            // TODO: Replace this with actual feedback from the server.
             final Handler handler = new Handler();
             Runnable runnable = new Runnable(){
 
@@ -111,7 +121,7 @@ public class ContactDriverManager implements OnDismissListener {
                             @Override
                             public void run() {
                                 waitingForReplyDialog.dismiss();
-                                orderModelManager.exitMode();
+                                OrderModeManager.getInstance().exitOrderMode();
                                 Toast.makeText(mActivity, "Keep an on your inbox in case the driver has any complications or questions!", Toast.LENGTH_LONG).show();
                                 Toast.makeText(mActivity, "You can also contact the driver by heading to your inbox!", Toast.LENGTH_LONG).show();
                             }

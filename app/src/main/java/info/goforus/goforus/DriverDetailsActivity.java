@@ -90,8 +90,8 @@ public class DriverDetailsActivity extends BaseActivity implements ObservableScr
 
     @OnClick(R.id.fabContact)
     public void onContactClick() {
-        contactDriverManager.setup(this, Driver.findByExternalId(mDriver.externalId));
-        contactDriverManager.show();
+        //contactDriverManager.setup(this, Driver.findByExternalId(mDriver.externalId));
+        //contactDriverManager.show();
     }
 
     @OnClick(R.id.fabOrder)

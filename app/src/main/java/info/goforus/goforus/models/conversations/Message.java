@@ -72,7 +72,7 @@ public class Message extends Model {
 
     // Finds existing Message based on remoteId or creates new user and returns
     public static Message updateOrCreateFromJson(JSONObject json, int conversationId) {
-        Conversation conversation =Conversation.findByExternalId(conversationId);
+        Conversation conversation = Conversation.findByExternalId(conversationId);
 
         String body = "";
         int externalId = 0;

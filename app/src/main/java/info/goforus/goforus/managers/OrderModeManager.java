@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.birbit.android.jobqueue.JobManager;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
@@ -30,10 +31,13 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import info.goforus.goforus.BaseActivity;
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.MapFragment;
 import info.goforus.goforus.R;
+import info.goforus.goforus.jobs.PostOrderJob;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
+import info.goforus.goforus.models.orders.Order;
 
 public class OrderModeManager {
     private static OrderModeManager ourInstance = new OrderModeManager();
@@ -134,12 +138,12 @@ public class OrderModeManager {
     }
 
     public void showTips(){
-        if (Account.currentAccount().showOrderModeTips) {
+        if (Account.currentAccount().showOrderModeTips && mTipDialog != null) {
             mTipDialog.show();
         }
     }
 
-    public void exitMode(){
+    public void exitOrderMode(){
         exitModeFab.setVisibility(View.GONE);
         exitModeFabVisible = false;
 
@@ -170,14 +174,14 @@ public class OrderModeManager {
         completeVisible = false;
 
 
-        Toast.makeText(mActivity, "You have cancelled your order", Toast.LENGTH_LONG).show();
-
         mMapFragment.switchMapMode(MapFragment.BROWSE_MODE);
     }
 
     @OnClick(R.id.exitModeFab)
     public void onExitModeClick() {
-        exitMode();
+        exitOrderMode();
+        Toast.makeText(mActivity, "You have cancelled your order", Toast.LENGTH_LONG).show();
+
     }
 
     @OnClick(R.id.complete)
@@ -187,7 +191,16 @@ public class OrderModeManager {
         quickLocationSelectionVisibile = false;
         completeVisible = false;
 
-        contactDriverManager.setup(mActivity, driversOnMapManager.getSelectedDriver());
+        Order order = new Order();
+        order.dropOffLocationLat = dropOffPoints.get(0).getPosition().latitude;
+        order.dropOffLocationLng = dropOffPoints.get(0).getPosition().longitude;
+        order.pickupLocationLat = pickupPoints.get(0).getPosition().latitude;
+        order.pickupLocationLng = pickupPoints.get(0).getPosition().longitude;
+        order.customerId = Account.currentAccount().externalId;
+        order.partnerId = driversOnMapManager.selectedDriver.externalId;
+        order.save();
+
+        contactDriverManager.setup(mActivity, order, driversOnMapManager.getSelectedDriver());
         contactDriverManager.show();
     }
 

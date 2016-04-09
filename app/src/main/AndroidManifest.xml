@@ -23,7 +23,7 @@
 
         <meta-data
             android:name="AA_MODELS"
-            android:value="info.goforus.goforus.models.accounts.Account, info.goforus.goforus.models.conversations.Conversation, info.goforus.goforus.models.conversations.Message, info.goforus.goforus.models.drivers.Driver, info.goforus.goforus.models.drivers.Vehicle"/>
+            android:value="info.goforus.goforus.models.accounts.Account, info.goforus.goforus.models.conversations.Conversation, info.goforus.goforus.models.conversations.Message, info.goforus.goforus.models.drivers.Driver, info.goforus.goforus.models.drivers.Vehicle, info.goforus.goforus.models.orders.Order"/>
 
         <activity android:name=".BrandExposure">
             <intent-filter>

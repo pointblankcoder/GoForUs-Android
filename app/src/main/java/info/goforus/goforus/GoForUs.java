@@ -3,10 +3,12 @@ package info.goforus.goforus;
 import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
 import com.birbit.android.jobqueue.JobManager;
 import com.birbit.android.jobqueue.config.Configuration;
+import com.birbit.android.jobqueue.log.CustomLogger;
 import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
@@ -26,9 +28,11 @@ public class GoForUs extends com.activeandroid.app.Application {
     private JobManager jobManager;
 
     private Activity mCurrentActivity = null;
+
     public Activity getCurrentActivity() {
         return mCurrentActivity;
     }
+
     public void setCurrentActivity(Activity mCurrentActivity) {
         this.mCurrentActivity = mCurrentActivity;
     }
@@ -37,12 +41,13 @@ public class GoForUs extends com.activeandroid.app.Application {
         return Gps.turnedOn();
     }
 
-    public static GoForUs getInstance(){
+    public static GoForUs getInstance() {
         return instance;
     }
 
 
     public static boolean isConnected = true;
+
     @Override
     @SuppressWarnings("ResourceType")
     public void onCreate() {
@@ -58,7 +63,8 @@ public class GoForUs extends com.activeandroid.app.Application {
         ServicesManager.scheduleRuntimeRequirments();
 
         LocationUpdateHandler = info.goforus.goforus.tasks.LocationUpdateHandler.getInstance();
-        ConnectivityManager   = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager = (ConnectivityManager) getApplicationContext()
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkUpdateHandler.getInstance().startUpdates();
 
         configureJobManager();
@@ -70,6 +76,29 @@ public class GoForUs extends com.activeandroid.app.Application {
                 .maxConsumerCount(3)//up to 3 consumers at a time
                 .loadFactor(3)//3 jobs per consumer
                 .consumerKeepAlive(120);//wait 2 minute
+        builder.customLogger(new CustomLogger() {
+            private static final String TAG = "JOBS";
+
+            @Override
+            public boolean isDebugEnabled() {
+                return true;
+            }
+
+            @Override
+            public void d(String text, Object... args) {
+                Log.d(TAG, String.format(text, args));
+            }
+
+            @Override
+            public void e(Throwable t, String text, Object... args) {
+                Log.e(TAG, String.format(text, args), t);
+            }
+
+            @Override
+            public void e(String text, Object... args) {
+                Log.e(TAG, String.format(text, args));
+            }
+        });
         jobManager = new JobManager(builder.build());
     }
 

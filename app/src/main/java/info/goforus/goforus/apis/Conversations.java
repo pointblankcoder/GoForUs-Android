@@ -20,22 +20,15 @@ public class Conversations {
 
     private static final Conversations conversation = new Conversations();
 
-    private Conversations() {
-    }
+    private Conversations() {}
 
-    public static Conversations getInstance() {
-        return conversation;
-    }
+    public static Conversations getInstance() { return conversation; }
 
-    public static String getConversationsUri(){
-        return Utils.getBaseUri() + "conversations";
-    }
-    public static String getInboxUri(){
-        return Utils.getBaseUri() + "conversations/inbox";
-    }
-    public static String getReplyUri(){
-        return Utils.getBaseUri() + "conversations/reply";
-    }
+    public static String getConversationsUri() { return Utils.getBaseUri() + "conversations"; }
+
+    public static String getInboxUri() { return Utils.getBaseUri() + "conversations/inbox"; }
+
+    public static String getReplyUri() { return Utils.getBaseUri() + "conversations/reply"; }
 
     public JSONArray getInbox() {
         JSONArray response;
@@ -55,7 +48,8 @@ public class Conversations {
         JSONArray response;
 
         try {
-            response = Utils.resty.json(inboxURI + Utils.tokenParams() + "&since_id=" + sinceId).array();
+            response = Utils.resty.json(inboxURI + Utils.tokenParams() + "&since_id=" + sinceId)
+                                  .array();
         } catch (Exception e) {
             response = new JSONArray();
             Logger.e(e.toString());
@@ -71,15 +65,19 @@ public class Conversations {
         baseJson.put("conversation_id", conversationId);
         baseJson.put("message", messageToSend);
 
-        response = Utils.resty.json(replyURI + Utils.tokenParams(), put(content(baseJson))).toObject();
+        response = Utils.resty.json(replyURI + Utils.tokenParams(), put(content(baseJson)))
+                              .toObject();
 
         if (response.getString("status").equals("ok")) {
-            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_OK, GoForUs.getInstance().getString(R.string.message_sent)));
+            EventBus.getDefault()
+                    .post(new MessageSentResult(MessageSentResult.RESULT_OK, GoForUs.getInstance()
+                                                                                    .getString(R.string.message_sent)));
         } else {
             Logger.e("something went wrong");
             Logger.e(String.valueOf(response));
-            EventBus.getDefault().post(new MessageSentResult(MessageSentResult.RESULT_FAILURE, GoForUs
-                    .getInstance().getString(R.string.standard_failure_response)));
+            EventBus.getDefault()
+                    .post(new MessageSentResult(MessageSentResult.RESULT_FAILURE, GoForUs
+                            .getInstance().getString(R.string.standard_failure_response)));
         }
     }
 }
