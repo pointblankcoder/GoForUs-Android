@@ -129,7 +129,7 @@
     </string>
     <string name="messages_fragment_title">Message</string>
     <string name="inbox_fragment_title">Inbox (%s)</string>
-    <string name="map_fragment_title">Map</string>
+    <string name="map_fragment_title">Live Map</string>
     <string name="standard_failure_response">Something went wrong, please try again later.</string>
     <string name="message_sent">message was sent successully</string>
     <string name="losing_connection">Losing Connection - hang tight!</string>
@@ -152,4 +152,6 @@
     <string name="ok">Ok</string>
     <string name="tip_text_read_message_fab">This button means that you have an empty inbox, clicking this icon will take you straight to your inbox where you can contact Drivers you\'ve already started a discussion with</string>
     <string name="tip_text_mini_drivers_profile">Here you see basic information related to this driver. Click on the box and you can read reviews and more in-depth information about this driver such as what their typical pickup points are. You will be able to contact the driver if you have a query or start a delivery with this driver.</string>
+    <string name="jobs_fragment_title">My Jobs</string>
+    <string name="offline_online">Offline/Online</string>
 </resources>

@@ -130,25 +130,16 @@ public class LoginActivity extends BaseActivity {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-    }
+    public void onStart() { super.onStart(); }
 
     @Override
-    public void onStop() {
-        super.onStop();
-    }
-
+    public void onStop() { super.onStop(); }
 
     @Override
-    public void onResume() {
-        super.onResume();
-    }
+    public void onResume() { super.onResume(); }
 
     @Override
-    public void onPause() {
-        super.onPause();
-    }
+    public void onPause() { super.onPause(); }
 
 
     // TODO: check text color of the error message

@@ -22,7 +22,8 @@
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"/>
+                android:layout_height="?attr/actionBarSize">
+            </android.support.v7.widget.Toolbar>
         </android.support.design.widget.AppBarLayout>
 
         <!-- What will be replaced for a fragment -->
@@ -39,12 +40,12 @@
             android:id="@+id/exitModeFab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="64dp"
-            android:layout_marginRight="8dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="64dp"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_highlight_off_black_48dp"
             android:visibility="gone"
-            android:background="@android:color/transparent"
             app:layout_anchor="@id/toolbar"
             app:layout_anchorGravity="bottom|end"
             />
@@ -54,9 +55,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_drafts_white_24dp"
-            tools:visibility="gone"
             app:layout_anchor="@+id/divider"
             app:layout_anchorGravity="bottom|center"
+            tools:visibility="gone"
             />
 
         <ImageView
@@ -73,9 +74,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/truck_delivery_white_24dp"
-            tools:visibility="gone"
             app:layout_anchor="@id/divider"
-            app:layout_anchorGravity="top|center"/>
+            app:layout_anchorGravity="top|center"
+            tools:visibility="gone"/>
 
 
         <RelativeLayout
@@ -90,8 +91,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:background="@color/primary_material_dark_1"
             android:layout_margin="@dimen/margin_standard"
+            android:background="@color/primary_material_dark_1"
             android:orientation="horizontal"
             android:visibility="gone"
             tools:visibility="visible">
@@ -111,8 +112,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/margin_standard_small"
                 android:background="@color/accent_material_dark_1"
-                android:visibility="gone"
-                android:text="Remove Pickup"/>
+                android:text="Remove Pickup"
+                android:visibility="gone"/>
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/findDropOff"
@@ -129,8 +130,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/margin_standard_small"
                 android:background="@color/accent_material_dark_1"
-                android:visibility="gone"
-                android:text="Remove Dropoff"/>
+                android:text="Remove Dropoff"
+                android:visibility="gone"/>
 
         </LinearLayout>
 
@@ -138,11 +139,11 @@
             android:id="@+id/complete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="12dp"
-            android:layout_marginEnd="12dp"
             android:layout_marginBottom="11dp"
-            android:src="@drawable/ic_check_circle_white_48dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginRight="12dp"
             android:background="@color/accent_material_dark_1"
+            android:src="@drawable/ic_check_circle_white_48dp"
             android:visibility="gone"
             app:layout_anchor="@id/quickLocationSelection"
             app:layout_anchorGravity="bottom|end"/>

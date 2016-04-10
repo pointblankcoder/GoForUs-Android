@@ -31,12 +31,17 @@ public class Account extends Model {
     @Column(name = "email") public String email;
     @Column(name = "phoneNumber") public String phoneNumber;
     @Column(name = "apiToken") public String apiToken;
+    @Column(name = "type") public String type;
+    @Column(name = "gcmToken") public String gcmToken;
     @Column(name = "lat") public double lat;
     @Column(name = "lng") public double lng;
     @Column(name = "loggedIn") public boolean loggedIn = false;
+    @Column(name = "online") public boolean online = false;
+    @Column(name = "available") public boolean available = false;
     @Column(name = "showMapTips") public boolean showMapTips = true;
     @Column(name = "showOrderModeTips") public boolean showOrderModeTips = true;
     @Column(name = "showMiniProfileDriverTip") public boolean showMiniProfileDriverTip = true;
+
 
     public Account() {
         super();
@@ -51,6 +56,9 @@ public class Account extends Model {
             this.externalId = accountObject.getInt("id");
             this.email = accountObject.getString("email");
             this.apiToken = accountObject.getString("authentication_token");
+            this.type = accountObject.getString("user_type");
+            this.online = accountObject.getBoolean("online");
+            this.available = accountObject.getBoolean("available");
 
             if (accountObject.has("mobile_number"))
                 this.phoneNumber = accountObject.getString("mobile_number");
@@ -63,6 +71,14 @@ public class Account extends Model {
     public static Account currentAccount() {
         return new Select().from(Account.class).where("loggedIn = ?", true).orderBy("id DESC")
                            .executeSingle();
+    }
+
+    public boolean isPartner(){
+        return type.equals(PARTNER);
+    }
+
+    public boolean isCustomer(){
+        return type.equals(CUSTOMER);
     }
 
     public static Account findByExternalId(int externalId) {
@@ -88,6 +104,9 @@ public class Account extends Model {
         this.name = json.getString("name");
         this.email = json.getString("email");
         this.phoneNumber = json.getString("mobile_number");
+        this.type = json.getString("user_type");
+        this.online = json.getBoolean("online");
+        this.available = json.getBoolean("available");
     }
 
     // order our conversations by the ones with the most recent messages within them
@@ -124,6 +143,8 @@ public class Account extends Model {
 
     public void markAsLoggedOut() {
         this.loggedIn = false;
+        this.available = false;
+        this.online = false;
         this.save();
     }
 

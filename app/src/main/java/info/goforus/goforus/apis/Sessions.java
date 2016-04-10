@@ -14,24 +14,19 @@ public class Sessions {
 
     private static final Sessions sessions = new Sessions();
 
-    private Sessions() {
-    }
+    private Sessions() {}
 
-    public static String getLoginUri() {
-        return Utils.getBaseUri() + "login";
-    }
+    public static String getLoginUri() { return Utils.getBaseUri() + "login"; }
 
-    public static Sessions getInstance() {
-        return sessions;
-    }
+    public static Sessions getInstance() { return sessions; }
 
     public JSONObject logIn(final String email, final String password) throws JSONException, IOException {
         JSONObject baseJson = new JSONObject();
-        JSONObject customerData = new JSONObject();
+        JSONObject userData = new JSONObject();
 
-        customerData.put("email", email);
-        customerData.put("password", password);
-        baseJson.put("customer", customerData);
+        userData.put("email", email);
+        userData.put("password", password);
+        baseJson.put("user", userData);
 
         return Utils.resty.json(loginURI, put(content(baseJson))).object();
     }

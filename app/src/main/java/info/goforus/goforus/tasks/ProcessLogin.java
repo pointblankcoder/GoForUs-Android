@@ -3,11 +3,14 @@ package info.goforus.goforus.tasks;
 import android.content.Intent;
 import android.os.AsyncTask;
 
+import com.google.android.gms.gcm.GcmPubSub;
 import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.IOException;
 
 import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.LoginActivity;
@@ -16,12 +19,14 @@ import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;
 import info.goforus.goforus.event_results.LoginFromApiResult;
 import info.goforus.goforus.jobs.AttemptLoginJob;
-import info.goforus.goforus.jobs.AttemptRegisterJob;
 import info.goforus.goforus.jobs.GetConversationsJob;
+import info.goforus.goforus.managers.GCMTokenManager;
 import info.goforus.goforus.models.accounts.Account;
 import us.monoid.json.JSONException;
 
 public class ProcessLogin extends AsyncTask<Object, String, Void> {
+    private static final String[] TOPICS = {"global", "conversations", "messages", "jobs"};
+
     private final LoginActivity mLoginActivity;
     private final String mEmail;
     private final String mPassword;
@@ -50,7 +55,7 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
         if (mRegistering) {
             publishProgress("Getting you registered");
             goForUs.getJobManager()
-                   .addJobInBackground(new AttemptRegisterJob(mEmail, mPassword));
+                   .addJobInBackground(new GetConversationsJob.AttemptRegisterJob(mEmail, mPassword));
         } else {
             publishProgress("Logging In");
             goForUs.getJobManager().addJobInBackground(new AttemptLoginJob(mEmail, mPassword));
@@ -91,13 +96,21 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
             }
         }
 
+        publishProgress("Seeing if Google likes you");
+
+        if (!GCMTokenManager.getInstance().update()) cancel(true);
+        try {
+            subscribeTopics();
+        } catch (IOException e) {
+            Logger.e(e.toString());
+        }
+
         if (!isCancelled()) {
             publishProgress("All done, enjoy!");
         }
 
         return null;
     }
-
 
     protected void onProgressUpdate(String... status) {
         mLoginActivity.tvLoginStatus.setText(status[0]);
@@ -150,11 +163,17 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
         }
     }
 
+    private void subscribeTopics() throws IOException {
+        GcmPubSub pubSub = GcmPubSub.getInstance(GoForUs.getInstance());
+        if (pubSub != null && Account.currentAccount() != null) {
+            for (String topic : TOPICS) {
+                pubSub.subscribe(Account.currentAccount().gcmToken, "/topics/" + topic, null);
+            }
+        }
+    }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
-    public void onLocationUpdated(LocationUpdateServiceResult result) {
-        hasGpsLocation = true;
-    }
+    public void onLocationUpdated(LocationUpdateServiceResult result) { hasGpsLocation = true; }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onConversationsUpdate(ConversationsFromApiResult result) {

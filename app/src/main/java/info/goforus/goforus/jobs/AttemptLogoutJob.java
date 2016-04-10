@@ -26,8 +26,12 @@ public class AttemptLogoutJob extends Job {
 
     @Override
     public void onRun() throws Throwable {
+        if(Account.currentAccount().isPartner()) {
+            Utils.PartnerApi.goOnline(false);
+        }
         JSONObject response = Utils.SessionsApi.logOut();
         Account.currentAccount().markAsLoggedOut();
+
         EventBus.getDefault().post(new LogoutFromApiResult(response));
     }
 

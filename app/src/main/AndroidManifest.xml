@@ -6,6 +6,13 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="info.goforus.goforus.permission.C2D_MESSAGE"/>
+
+    <permission
+        android:name="info.goforus.goforus.permission.C2D_MESSAGE"
+        android:protectionLevel="signature"/>
+
 
     <application
         android:name=".GoForUs"
@@ -23,7 +30,7 @@
 
         <meta-data
             android:name="AA_MODELS"
-            android:value="info.goforus.goforus.models.accounts.Account, info.goforus.goforus.models.conversations.Conversation, info.goforus.goforus.models.conversations.Message, info.goforus.goforus.models.drivers.Driver, info.goforus.goforus.models.drivers.Vehicle, info.goforus.goforus.models.orders.Order"/>
+            android:value="info.goforus.goforus.models.accounts.Account, info.goforus.goforus.models.conversations.Conversation, info.goforus.goforus.models.conversations.Message, info.goforus.goforus.models.drivers.Driver, info.goforus.goforus.models.drivers.Vehicle, info.goforus.goforus.models.orders.Order, info.goforus.goforus.models.jobs.Job"/>
 
         <activity android:name=".BrandExposure">
             <intent-filter>
@@ -56,14 +63,9 @@
 
         <!-- Services -->
         <!-- TODO: Enable this once notifications are working as intended -->
-        <receiver
-            android:name=".services.receivers.NotificationsUpdateReceiver"
-            android:exported="false"/>
-        <service
-            android:name=".services.NotificationsUpdateService"
-            android:exported="false"/>
 
         <receiver android:name=".services.receivers.ConversationsUpdateReceiver"/>
+
         <service
             android:name=".services.ConversationsUpdateService"
             android:exported="false"/>
@@ -86,6 +88,32 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key"/>
+
+
+        <receiver
+            android:name="com.google.android.gms.gcm.GcmReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+                <category android:name="info.goforus.goforus"/>
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".services.GCMListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name=".services.GCMInstanceIDListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.iid.InstanceID"/>
+            </intent-filter>
+        </service>
 
     </application>
 
