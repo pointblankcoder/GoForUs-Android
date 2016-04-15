@@ -10,12 +10,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.birbit.android.jobqueue.JobQueue;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnDismissListener;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
@@ -34,6 +31,7 @@ public class JobsAdapter extends ArrayAdapter<Job> {
     static class ViewHolder {
         @Bind(R.id.tvSubject) TextView subject;
         @Bind(R.id.actionIndication) ImageView actionIndication;
+        @Bind(R.id.tvJobSummary) TextView jobSummary;
         View view;
 
         public ViewHolder(View view) {
@@ -73,6 +71,15 @@ public class JobsAdapter extends ArrayAdapter<Job> {
         } else {
             viewHolder.view.setBackgroundResource(R.color.accent_material_dark_1);
             viewHolder.actionIndication.setImageResource(R.drawable.ic_chevron_right_white_48dp);
+        }
+
+        Order order = Order.findByExternalId(job.orderId);
+        if (order != null) {
+            String pickupText = String.format("Pickup: %s", order.pickupAddress);
+            String dropOffText = String.format("Drop Off: %s", order.dropOffAddress);
+            String summaryText = String.format("%s\n%s", pickupText, dropOffText);
+
+            viewHolder.jobSummary.setText(summaryText);
         }
 
 

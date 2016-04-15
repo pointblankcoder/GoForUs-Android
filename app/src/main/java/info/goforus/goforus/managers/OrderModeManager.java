@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.birbit.android.jobqueue.JobManager;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
@@ -31,10 +30,8 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import info.goforus.goforus.BaseActivity;
-import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.MapFragment;
 import info.goforus.goforus.R;
-import info.goforus.goforus.jobs.PostOrderJob;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.orders.Order;
@@ -65,6 +62,8 @@ public class OrderModeManager {
     private final ContactDriverManager contactDriverManager = ContactDriverManager.getInstance();
     private ArrayList<Marker> pickupPoints = new ArrayList<>();
     private ArrayList<Marker> dropOffPoints = new ArrayList<>();
+    private String pickupAddress;
+    private String dropOffAddress;
 
     @Bind(R.id.messageFab) View messagesFab;
     @Bind(R.id.quickOrderFab) View quickOrderFab;
@@ -196,12 +195,22 @@ public class OrderModeManager {
         order.dropOffLocationLng = dropOffPoints.get(0).getPosition().longitude;
         order.pickupLocationLat = pickupPoints.get(0).getPosition().latitude;
         order.pickupLocationLng = pickupPoints.get(0).getPosition().longitude;
+        order.pickupAddress = pickupAddress;
+        order.dropOffAddress = dropOffAddress;
         order.customerId = Account.currentAccount().externalId;
         order.partnerId = driversOnMapManager.selectedDriver.externalId;
         order.save();
 
         contactDriverManager.setup(mActivity, order, driversOnMapManager.getSelectedDriver());
         contactDriverManager.show();
+    }
+
+
+    public void addAddress(String address, boolean pickupPoint) {
+        if (pickupPoint)
+            pickupAddress = address;
+        else
+            dropOffAddress = address;
     }
 
     @OnClick(R.id.removePickup)
@@ -314,4 +323,6 @@ public class OrderModeManager {
         LatLng northeast = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 45);
         return new LatLngBounds(southwest, northeast);
     }
+
+
 }

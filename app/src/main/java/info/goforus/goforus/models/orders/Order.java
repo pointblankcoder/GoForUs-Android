@@ -26,9 +26,11 @@ public class Order extends Model {
 
     @Column(name = "pickupLocationLat") public double pickupLocationLat;
     @Column(name = "pickupLocationLng") public double pickupLocationLng;
+    @Column(name = "pickupAddress") public String pickupAddress;
 
     @Column(name = "dropOffLocationLat") public double dropOffLocationLat;
     @Column(name = "dropOffLocationLng") public double dropOffLocationLng;
+    @Column(name = "dropOffAddress") public String dropOffAddress;
 
     public Order() {
         super();
@@ -48,10 +50,14 @@ public class Order extends Model {
             inProgress = jsonObject.getBoolean("in_progress");
             if (jsonObject.has("description"))
                 description = jsonObject.getString("description");
+
             pickupLocationLat = jsonObject.getDouble("pickup_location_lat");
             pickupLocationLng = jsonObject.getDouble("pickup_location_lng");
+            pickupAddress = jsonObject.getString("pickup_address");
+
             dropOffLocationLat = jsonObject.getDouble("dropoff_location_lat");
             dropOffLocationLng = jsonObject.getDouble("dropoff_location_lng");
+            dropOffAddress  = jsonObject.getString("dropoff_address");
         } catch (JSONException e) {
             Logger.e(e.toString());
         }

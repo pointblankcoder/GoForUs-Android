@@ -28,8 +28,10 @@ public class Orders {
         orderJson.put("customer_id", order.customerId);
         orderJson.put("pickup_location_lat", order.pickupLocationLat);
         orderJson.put("pickup_location_lng", order.pickupLocationLng);
+        orderJson.put("pickup_address", order.pickupAddress);
         orderJson.put("dropoff_location_lat", order.dropOffLocationLat);
         orderJson.put("dropoff_location_lng", order.dropOffLocationLng);
+        orderJson.put("dropoff_address", order.dropOffAddress);
         orderJson.put("estimated_cost", order.estimatedCost);
         orderJson.put("message", order.description);
         baseJson.put("order", orderJson);

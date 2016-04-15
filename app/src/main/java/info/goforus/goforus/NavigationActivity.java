@@ -161,10 +161,12 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
                 Place place = PlacePicker.getPlace(this, data);
 
                 if (requestCode == OrderModeManager.FIND_PICKUP_LOCATION) {
+                    orderModeManager.addAddress(place.getAddress().toString(), true);
                     orderModeManager.addPickupPoint(place.getLatLng());
                 }
 
                 if (requestCode == OrderModeManager.FIND_DROP_OFF_LOCATION) {
+                    orderModeManager.addAddress(place.getAddress().toString(), false);
                     orderModeManager.addDropOffPoint(place.getLatLng());
                 }
             }
