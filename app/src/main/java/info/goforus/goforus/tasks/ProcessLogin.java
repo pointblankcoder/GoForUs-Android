@@ -18,7 +18,7 @@ import info.goforus.goforus.NavigationActivity;
 import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;
 import info.goforus.goforus.event_results.LoginFromApiResult;
-import info.goforus.goforus.jobs.AttemptLoginJob;
+import info.goforus.goforus.jobs.LoginJob;
 import info.goforus.goforus.jobs.GetConversationsJob;
 import info.goforus.goforus.managers.GCMTokenManager;
 import info.goforus.goforus.models.accounts.Account;
@@ -58,7 +58,7 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
                    .addJobInBackground(new GetConversationsJob.AttemptRegisterJob(mEmail, mPassword));
         } else {
             publishProgress("Logging In");
-            goForUs.getJobManager().addJobInBackground(new AttemptLoginJob(mEmail, mPassword));
+            goForUs.getJobManager().addJobInBackground(new LoginJob(mEmail, mPassword));
         }
 
 

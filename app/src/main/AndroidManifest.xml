@@ -64,12 +64,6 @@
         <!-- Services -->
         <!-- TODO: Enable this once notifications are working as intended -->
 
-        <receiver android:name=".services.receivers.ConversationsUpdateReceiver"/>
-
-        <service
-            android:name=".services.ConversationsUpdateService"
-            android:exported="false"/>
-
         <receiver android:name=".services.receivers.LocationUpdateReceiver"/>
         <service
             android:name=".services.LocationUpdateService"

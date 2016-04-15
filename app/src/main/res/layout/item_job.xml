@@ -35,6 +35,7 @@
             tools:text="Job Subject here and this is long so it will cut off" />
 
         <ImageView
+            android:id="@+id/actionIndication"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_alignParentEnd="true"

@@ -1,5 +1,7 @@
 package info.goforus.goforus.jobs;
 
+import android.renderscript.RenderScript;
+
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.RetryConstraint;
@@ -8,16 +10,18 @@ import org.greenrobot.eventbus.EventBus;
 
 import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.LoginFromApiResult;
-import info.goforus.goforus.event_results.LogoutFromApiResult;
-import info.goforus.goforus.models.accounts.Account;
 import us.monoid.json.JSONObject;
 
-public class AttemptLogoutJob extends Job {
+public class LoginJob extends Job {
     private static final int PRIORITY = 20;
+    private final String email;
+    private final String password;
 
 
-    public AttemptLogoutJob() {
+    public LoginJob(String email, String password) {
         super(new Params(PRIORITY).requireNetwork());
+        this.email = email;
+        this.password = password;
     }
 
     @Override
@@ -26,13 +30,8 @@ public class AttemptLogoutJob extends Job {
 
     @Override
     public void onRun() throws Throwable {
-        if(Account.currentAccount().isPartner()) {
-            Utils.PartnerApi.goOnline(false);
-        }
-        JSONObject response = Utils.SessionsApi.logOut();
-        Account.currentAccount().markAsLoggedOut();
-
-        EventBus.getDefault().post(new LogoutFromApiResult(response));
+        JSONObject response = Utils.SessionsApi.logIn(email, password);
+        EventBus.getDefault().post(new LoginFromApiResult(response));
     }
 
     @Override
@@ -42,7 +41,7 @@ public class AttemptLogoutJob extends Job {
     @Override
     protected RetryConstraint shouldReRunOnThrowable(Throwable throwable, int runCount, int maxRunCount) {
         JSONObject error = Utils.errorToJson(throwable.getMessage());
-        EventBus.getDefault().post(new LogoutFromApiResult(error));
+        EventBus.getDefault().post(new LoginFromApiResult(error));
         return RetryConstraint.CANCEL;
     }
 }

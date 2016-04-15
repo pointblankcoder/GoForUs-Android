@@ -19,7 +19,10 @@ import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import info.goforus.goforus.event_results.AcceptJobResult;
+import info.goforus.goforus.event_results.DeclineJobResult;
 import info.goforus.goforus.event_results.JobsFromApiResult;
+import info.goforus.goforus.jobs.AcceptJobJob;
 import info.goforus.goforus.jobs.GetJobsJob;
 import info.goforus.goforus.models.jobs.Job;
 
@@ -92,9 +95,40 @@ public class JobsFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onJobsUpdate(JobsFromApiResult result) {
 
+        if (result.getJobs().size() > 0) {
+            List<Job> jobs = result.getJobs();
+
+            // we don't add messages that are stored already locally. We just confirm that they have been received.
+            for (Job job : jobs) {
+                if (!mJobs.contains(job))
+                    mJobs.add(0, job);
+            }
+
+            mAdapter.notifyDataSetChanged();
+        }
+
+
         if (swipeRefreshLayout.isRefreshing()) {
             Toast.makeText(getContext(), "Jobs Refreshed", Toast.LENGTH_SHORT).show();
             swipeRefreshLayout.setRefreshing(false);
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onJobAccepted(AcceptJobResult result) {
+        final int position = mAdapter.getPosition(result.getJob());
+
+        mJobs.remove(position);
+        mJobs.add(position, result.getJob());
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onJobDeclined(DeclineJobResult result) {
+        final int position = mAdapter.getPosition(result.getJob());
+
+        mJobs.remove(position);
+        mJobs.add(position, result.getJob());
+        mAdapter.notifyDataSetChanged();
     }
 }

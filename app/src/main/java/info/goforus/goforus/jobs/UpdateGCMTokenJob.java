@@ -1,7 +1,5 @@
 package info.goforus.goforus.jobs;
 
-import android.renderscript.RenderScript;
-
 import com.birbit.android.jobqueue.Job;
 import com.birbit.android.jobqueue.Params;
 import com.birbit.android.jobqueue.RetryConstraint;
@@ -12,16 +10,16 @@ import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.LoginFromApiResult;
 import us.monoid.json.JSONObject;
 
-public class AttemptLoginJob extends Job {
+public class UpdateGCMTokenJob extends Job {
     private static final int PRIORITY = 20;
-    private final String email;
-    private final String password;
+    private final int userId;
+    private final String gcmToken;
 
 
-    public AttemptLoginJob(String email, String password) {
+    public UpdateGCMTokenJob(int userId, String gcmToken) {
         super(new Params(PRIORITY).requireNetwork());
-        this.email = email;
-        this.password = password;
+        this.userId = userId;
+        this.gcmToken = gcmToken;
     }
 
     @Override
@@ -30,8 +28,7 @@ public class AttemptLoginJob extends Job {
 
     @Override
     public void onRun() throws Throwable {
-        JSONObject response = Utils.SessionsApi.logIn(email, password);
-        EventBus.getDefault().post(new LoginFromApiResult(response));
+        Utils.SessionsApi.updateGcmToken(userId, gcmToken);
     }
 
     @Override
@@ -40,8 +37,6 @@ public class AttemptLoginJob extends Job {
 
     @Override
     protected RetryConstraint shouldReRunOnThrowable(Throwable throwable, int runCount, int maxRunCount) {
-        JSONObject error = Utils.errorToJson(throwable.getMessage());
-        EventBus.getDefault().post(new LoginFromApiResult(error));
-        return RetryConstraint.CANCEL;
+        return RetryConstraint.createExponentialBackoff(runCount, 500);
     }
 }

@@ -31,7 +31,6 @@ import info.goforus.goforus.jobs.MarkReadMessageJob;
 import info.goforus.goforus.jobs.PostMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
-import info.goforus.goforus.tasks.MessagesUpdateHandler;
 
 public class MessagesFragment extends Fragment {
     @Bind(R.id.etMessage) EditText etMessage;
@@ -51,7 +50,6 @@ public class MessagesFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        MessagesUpdateHandler.getInstance().stopUpdates();
         super.onDestroy();
     }
 
@@ -124,14 +122,12 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        MessagesUpdateHandler.getInstance().startUpdates(mConversation.externalId);
         EventBus.getDefault().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        MessagesUpdateHandler.getInstance().stopUpdates();
         EventBus.getDefault().unregister(this);
     }
 
@@ -140,10 +136,7 @@ public class MessagesFragment extends Fragment {
     // without hooking into the show() hide() methods of the Fragme
     @Override
     public void onHiddenChanged(boolean hidden) {
-        if (hidden) {
-            MessagesUpdateHandler.getInstance().stopUpdates();
-        } else {
-            MessagesUpdateHandler.getInstance().startUpdates(mConversation.externalId);
+        if (!hidden) {
             mAdapter.clear();
             mAdapter.addAll(mConversation.messages());
             mAdapter.notifyDataSetChanged();

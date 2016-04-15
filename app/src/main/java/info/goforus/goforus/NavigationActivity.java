@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -35,7 +34,6 @@ import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnDismissListener;
 import com.orhanobut.dialogplus.ViewHolder;
-import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -48,7 +46,7 @@ import info.goforus.goforus.event_results.LogoutFromApiResult;
 import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.event_results.NewMessagesResult;
-import info.goforus.goforus.jobs.AttemptLogoutJob;
+import info.goforus.goforus.jobs.LogoutJob;
 import info.goforus.goforus.jobs.GoOnlineJob;
 import info.goforus.goforus.managers.OrderModeManager;
 import info.goforus.goforus.managers.QuickOrderManager;
@@ -204,21 +202,18 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
     @Override
     public void onDestroy() {
-        mGoForUs.ServicesManager.cancelConversationsUpdateAlarm();
         super.onDestroy();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mGoForUs.ServicesManager.scheduleConversationsUpdateAlarm();
         EventBus.getDefault().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mGoForUs.ServicesManager.cancelConversationsUpdateAlarm();
         EventBus.getDefault().unregister(this);
     }
 
@@ -277,12 +272,14 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
                 onlineSwitchActionItem.setVisible(true);
 
                 Switch onlineSwitch = (Switch) onlineSwitchActionItem.getActionView();
-                onlineSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        mGoForUs.getJobManager().addJobInBackground(new GoOnlineJob(isChecked));
-                    }
-                });
+                onlineSwitch
+                        .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                mGoForUs.getJobManager()
+                                        .addJobInBackground(new GoOnlineJob(isChecked));
+                            }
+                        });
 
                 onlineSwitch.setChecked(Account.currentAccount().available && Account
                         .currentAccount().online);
@@ -300,7 +297,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
         switch (id) {
             case R.id.action_logout:
-                mGoForUs.getJobManager().addJobInBackground(new AttemptLogoutJob());
+                mGoForUs.getJobManager().addJobInBackground(new LogoutJob());
                 break;
             case R.id.action_tips:
                 mTipDialog.show();
@@ -472,17 +469,11 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageRead(MessageMarkReadResult result) {
-        updateMessageFAB();
-    }
+    public void onMessageRead(MessageMarkReadResult result) { updateMessageFAB(); }
 
     @Override
-    public void onStart() {
-        super.onStart();
-    }
+    public void onStart() { super.onStart(); }
 
     @Override
-    public void onStop() {
-        super.onStop();
-    }
+    public void onStop() { super.onStop(); }
 }

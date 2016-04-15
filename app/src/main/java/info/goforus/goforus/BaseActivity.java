@@ -34,9 +34,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart(){
-        super.onStart();
-    }
+    protected void onStart() { super.onStart(); }
 
     @Override
     protected void onResume() {
@@ -75,13 +73,11 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[], @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PermissionsHandler.GPS_PERMISSIONS_REQUEST: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     PermissionsHandler.gpsPermissionGranted();
                 } else {
                     PermissionsHandler.alertUserGpsIsRequired(this);
@@ -117,7 +113,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     /* ============================ Layout Related =========================== */
     public int getActionBarSize() {
         TypedValue typedValue = new TypedValue();
-        int[] textSizeAttr = new int[]{R.attr.actionBarSize};
+        int[] textSizeAttr = new int[] {R.attr.actionBarSize};
         int indexOfAttrTextSize = 0;
         TypedArray a = obtainStyledAttributes(typedValue.data, textSizeAttr);
         int actionBarSize = a.getDimensionPixelSize(indexOfAttrTextSize, -1);

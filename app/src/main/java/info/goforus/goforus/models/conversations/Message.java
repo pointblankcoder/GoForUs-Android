@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import info.goforus.goforus.models.accounts.Account;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
@@ -38,11 +39,13 @@ public class Message extends Model {
         super();
         try {
             this.externalId = message.getInt("id");
-            this.isMe = message.getBoolean("is_me");
+            this.isMe = message.getInt("sender_id") == Account.currentAccount().externalId;
             this.isRead = message.getBoolean("is_read");
             this.body = message.getString("body");
             this.conversation = conversation;
             this.confirmedReceived = true;
+
+            Logger.e("Is read: %s", isRead);
         } catch (JSONException e) {
             Logger.e(e.toString());
         }

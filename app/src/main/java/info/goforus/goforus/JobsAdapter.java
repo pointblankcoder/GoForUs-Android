@@ -1,17 +1,31 @@
 package info.goforus.goforus;
 
 import android.content.Context;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.birbit.android.jobqueue.JobQueue;
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.OnClickListener;
+import com.orhanobut.dialogplus.OnDismissListener;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import info.goforus.goforus.jobs.AcceptJobJob;
+import info.goforus.goforus.jobs.DeclineJobJob;
+import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.jobs.Job;
+import info.goforus.goforus.models.orders.Order;
 
 public class JobsAdapter extends ArrayAdapter<Job> {
     private final NavigationActivity mContext;
@@ -19,9 +33,12 @@ public class JobsAdapter extends ArrayAdapter<Job> {
     // View lookup cache
     static class ViewHolder {
         @Bind(R.id.tvSubject) TextView subject;
+        @Bind(R.id.actionIndication) ImageView actionIndication;
+        View view;
 
         public ViewHolder(View view) {
             ButterKnife.bind(this, view);
+            this.view = view;
         }
     }
 
@@ -45,10 +62,75 @@ public class JobsAdapter extends ArrayAdapter<Job> {
             viewHolder = (ViewHolder) view.getTag();
         }
 
+        if (job.respondedTo) {
+            if (job.declined) {
+                viewHolder.view.setBackgroundResource(R.color.accent_material_red_400);
+                viewHolder.actionIndication.setImageResource(R.drawable.ic_cancel_white_48dp);
+            } else if (job.accepted) {
+                viewHolder.view.setBackgroundResource(R.color.accent_material_light_green_400);
+                viewHolder.actionIndication.setImageResource(R.drawable.ic_check_circle_white_48dp);
+            }
+        }
+
+
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: show popup menue with more information and so they can accept it or not
+                Order order = Order.findByExternalId(job.orderId);
+                if (order != null && !job.declined) {
+                    final Conversation conversation = Conversation
+                            .findByExternalId((int) order.conversationId);
+                    if (conversation != null && conversation.messagesCount() > 0 && !conversation
+                            .lastMessage().isMe) {
+                        DialogPlus replyDialog = DialogPlus.newDialog(getContext())
+                                                           .setContentHolder(new com.orhanobut.dialogplus.ViewHolder(R.layout.dialog_reply_to_order))
+                                                           .setGravity(Gravity.CENTER)
+                                                           .setCancelable(true)
+                                                           .setContentBackgroundResource(R.color.primary_material_dark_1)
+                                                           .setOnClickListener(new OnClickListener() {
+                                                               @Override
+                                                               public void onClick(DialogPlus dialog, View view) {
+                                                                   Button acceptBtn = (Button) dialog
+                                                                           .findViewById(R.id.acceptBtn);
+                                                                   Button declineBtn = (Button) dialog
+                                                                           .findViewById(R.id.declineBtn);
+                                                                   Button messageBtn = (Button) dialog
+                                                                           .findViewById(R.id.messageBtn);
+                                                                   if (view == acceptBtn) {
+                                                                       GoForUs.getInstance()
+                                                                              .getJobManager()
+                                                                              .addJobInBackground(new AcceptJobJob(job.externalId));
+                                                                       dialog.dismiss();
+                                                                   } else if (view == declineBtn) {
+                                                                       GoForUs.getInstance()
+                                                                              .getJobManager()
+                                                                              .addJobInBackground(new DeclineJobJob(job.externalId));
+                                                                       dialog.dismiss();
+                                                                   } else if (view == messageBtn) {
+                                                                       mContext.showMessagesFragment(conversation);
+                                                                       dialog.dismiss();
+                                                                   }
+                                                               }
+                                                           })
+                                                           .setOnDismissListener(new OnDismissListener() {
+                                                               @Override
+                                                               public void onDismiss(DialogPlus dialog) {
+                                                               }
+                                                           }).create();
+                        if (job.respondedTo) {
+                            Button acceptBtn = (Button) replyDialog.findViewById(R.id.acceptBtn);
+                            Button declineBtn = (Button) replyDialog.findViewById(R.id.declineBtn);
+                            Button messageBtn = (Button) replyDialog.findViewById(R.id.messageBtn);
+
+                            acceptBtn.setVisibility(View.GONE);
+                            declineBtn.setVisibility(View.GONE);
+                        }
+                        replyDialog.show();
+                    } else if (conversation.lastMessage() != null && conversation
+                            .lastMessage().isMe) {
+                        // TODO: link to the conversation
+                    }
+                }
             }
         });
 

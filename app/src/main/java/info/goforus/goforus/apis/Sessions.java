@@ -20,6 +20,11 @@ public class Sessions {
 
     public static Sessions getInstance() { return sessions; }
 
+    public static final String logoutURI = Utils.getBaseUri() + "logout";
+    public static final String registerURI = Utils.getBaseUri() + "register";
+    public static final String updateTokenURI = Utils.getBaseUri() + "update";
+
+
     public JSONObject logIn(final String email, final String password) throws JSONException, IOException {
         JSONObject baseJson = new JSONObject();
         JSONObject userData = new JSONObject();
@@ -32,13 +37,9 @@ public class Sessions {
     }
 
 
-    public static final String logoutURI = Utils.getBaseUri() + "logout";
-
     public JSONObject logOut() throws IOException, JSONException {
         return Utils.resty.json(logoutURI + Utils.tokenParams(), put(content(""))).object();
     }
-
-    public static final String registerURI = Utils.getBaseUri() + "register";
 
     public JSONObject register(String email, String password) throws JSONException, IOException {
         JSONObject response;
@@ -52,5 +53,14 @@ public class Sessions {
         response = Utils.resty.json(registerURI, put(content(baseJson))).object();
 
         return response;
+    }
+
+    public JSONObject updateGcmToken(int userId, String gcmToken) throws JSONException, IOException {
+        JSONObject baseJson = new JSONObject();
+        JSONObject userData = new JSONObject();
+
+        userData.put("gcm_token", gcmToken);
+        baseJson.put("user", userData);
+        return  Utils.resty.json(updateTokenURI + Utils.tokenParams(), put(content(baseJson))).object();
     }
 }

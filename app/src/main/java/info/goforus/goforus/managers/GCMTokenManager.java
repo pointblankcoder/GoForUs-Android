@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
+import info.goforus.goforus.jobs.UpdateGCMTokenJob;
 import info.goforus.goforus.models.accounts.Account;
 
 public class GCMTokenManager {
@@ -30,6 +31,8 @@ public class GCMTokenManager {
             Account account = Account.currentAccount();
             account.gcmToken = token;
             account.save();
+
+            GoForUs.getInstance().getJobManager().addJobInBackground(new UpdateGCMTokenJob(account.externalId, token));
             return true;
         } catch (IOException e) {
             Logger.d("Failed to complete token refresh", e);

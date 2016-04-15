@@ -37,15 +37,21 @@ public class Job extends Model {
             this.customerId = job.getInt("customer_id");
             this.accepted = job.getBoolean("accepted");
             this.declined = job.getBoolean("declined");
-            this.respondedTo = job.getBoolean("respondedTo");
+            this.respondedTo = job.getBoolean("responded_to");
 
         } catch (JSONException e) {
             Logger.e(e.toString());
         }
     }
+
     public static Job findByOrder(Order order) {
         return new Select().from(Job.class).where("partnerId = ? AND orderId = ? AND customerId = ?", Account
                 .currentAccount().externalId, order.externalId, order.customerId).executeSingle();
+    }
+
+    public static Job findByExternalId(int externalId) {
+        return new Select().from(Job.class).where("partnerId = ? AND externalId = ?", Account
+                .currentAccount().externalId, externalId).executeSingle();
     }
 
     public static List<Job> orderedByRecent() {
