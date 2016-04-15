@@ -55,7 +55,7 @@ public class Job extends Model {
     }
 
     public static List<Job> orderedByRecent() {
-        return new Select().from(Job.class).where("partnerId = ?", Account.currentAccount().externalId).orderBy("externalId ASC").execute();
+        return new Select().from(Job.class).where("partnerId = ?", Account.currentAccount().externalId).orderBy("externalId DESC").execute();
     }
 
     public static int count() {

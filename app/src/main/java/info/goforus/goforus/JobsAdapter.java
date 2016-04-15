@@ -70,6 +70,9 @@ public class JobsAdapter extends ArrayAdapter<Job> {
                 viewHolder.view.setBackgroundResource(R.color.accent_material_light_green_400);
                 viewHolder.actionIndication.setImageResource(R.drawable.ic_check_circle_white_48dp);
             }
+        } else {
+            viewHolder.view.setBackgroundResource(R.color.accent_material_dark_1);
+            viewHolder.actionIndication.setImageResource(R.drawable.ic_chevron_right_white_48dp);
         }
 
 
