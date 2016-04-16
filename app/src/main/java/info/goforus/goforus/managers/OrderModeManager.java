@@ -1,6 +1,7 @@
 package info.goforus.goforus.managers;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.view.Gravity;
 import android.view.View;
@@ -8,6 +9,17 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.akexorcist.googledirection.DirectionCallback;
+import com.akexorcist.googledirection.GoogleDirection;
+import com.akexorcist.googledirection.constant.AvoidType;
+import com.akexorcist.googledirection.constant.Language;
+import com.akexorcist.googledirection.constant.TransportMode;
+import com.akexorcist.googledirection.constant.Unit;
+import com.akexorcist.googledirection.model.Direction;
+import com.akexorcist.googledirection.model.Leg;
+import com.akexorcist.googledirection.model.Route;
+import com.akexorcist.googledirection.model.Step;
+import com.akexorcist.googledirection.util.DirectionConverter;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
@@ -19,12 +31,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.SphericalUtil;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.ViewHolder;
+import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -34,19 +50,25 @@ import info.goforus.goforus.MapFragment;
 import info.goforus.goforus.R;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
+import info.goforus.goforus.models.drivers.Vehicle;
 import info.goforus.goforus.models.orders.Order;
 
 public class OrderModeManager {
     private static OrderModeManager ourInstance = new OrderModeManager();
     private boolean findDropOffVisible = true;
     private boolean findPickupVisible = true;
-    private boolean removeDropOffVisible =  false;
-    private boolean removePickupVisible =  false;
+    private boolean removeDropOffVisible = false;
+    private boolean removePickupVisible = false;
     private boolean completeVisible = false;
     private boolean messagesFabVisible = false;
     private boolean quickOrderFabVisible = false;
     private boolean exitModeFabVisible = true;
     private boolean quickLocationSelectionVisibile = true;
+    private List<Polyline> displayedPolylines = new ArrayList<>();
+    private int distanceValue;
+    private String distanceText;
+    private int durationInSeconds;
+    private String durationText;
 
     public static OrderModeManager getInstance() { return ourInstance; }
 
@@ -136,13 +158,13 @@ public class OrderModeManager {
         exitModeFabVisible = true;
     }
 
-    public void showTips(){
+    public void showTips() {
         if (Account.currentAccount().showOrderModeTips && mTipDialog != null) {
             mTipDialog.show();
         }
     }
 
-    public void exitOrderMode(){
+    public void exitOrderMode() {
         exitModeFab.setVisibility(View.GONE);
         exitModeFabVisible = false;
 
@@ -179,8 +201,39 @@ public class OrderModeManager {
     @OnClick(R.id.exitModeFab)
     public void onExitModeClick() {
         exitOrderMode();
+        removeAllPolylines();
         Toast.makeText(mActivity, "You have cancelled your order", Toast.LENGTH_LONG).show();
+    }
 
+    public float calculateCost(){
+        // Standard Charge
+        float cost;
+        float standardCharge = 0.50f;
+
+        // Distance
+        float perKm;
+        String type = driversOnMapManager.getSelectedDriver().getCurrentVehicle().vehicleType;
+
+        if (type.equals(Vehicle.LARGE_VAN)) {
+            perKm = 1.60f;
+        } else {
+            perKm = 1.20f;
+        }
+
+        float perMeter = perKm / 1000;
+        float distanceCost = distanceValue * perMeter;
+
+        // Time
+        float perHour = 6.0f;
+        float perMinute = perHour / 60;
+        float perSecond = perMinute / 60;
+        float standardWaitTimeAtPickup = 600;
+        float durationCost = (durationInSeconds + standardWaitTimeAtPickup) * perSecond;
+
+        cost = standardCharge + durationCost + distanceCost;
+
+        Logger.i("Estimated Cost of Order: %s", cost);
+        return cost;
     }
 
     @OnClick(R.id.complete)
@@ -197,24 +250,31 @@ public class OrderModeManager {
         order.pickupLocationLng = pickupPoints.get(0).getPosition().longitude;
         order.pickupAddress = pickupAddress;
         order.dropOffAddress = dropOffAddress;
+        order.estimatedCost = calculateCost();
         order.customerId = Account.currentAccount().externalId;
         order.partnerId = driversOnMapManager.selectedDriver.externalId;
         order.save();
 
         contactDriverManager.setup(mActivity, order, driversOnMapManager.getSelectedDriver());
         contactDriverManager.show();
+        removeAllPolylines();
     }
 
 
+    public void removeAllPolylines(){
+        for(Polyline polyline : displayedPolylines) {
+            polyline.remove();
+        }
+    }
+
     public void addAddress(String address, boolean pickupPoint) {
-        if (pickupPoint)
-            pickupAddress = address;
-        else
-            dropOffAddress = address;
+        if (pickupPoint) pickupAddress = address;
+        else dropOffAddress = address;
     }
 
     @OnClick(R.id.removePickup)
     public void onRemovePickupClick() {
+        removeAllPolylines();
         findPickup.setVisibility(View.VISIBLE);
         removePickup.setVisibility(View.GONE);
         complete.setVisibility(View.GONE);
@@ -233,6 +293,7 @@ public class OrderModeManager {
 
     @OnClick(R.id.removeDropOff)
     public void onRemoveDropOffClick() {
+        removeAllPolylines();
         findDropOff.setVisibility(View.VISIBLE);
         removeDropOff.setVisibility(View.GONE);
         complete.setVisibility(View.GONE);
@@ -310,6 +371,43 @@ public class OrderModeManager {
         if (pickupPoints.size() == 1 && dropOffPoints.size() == 1) {
             complete.setVisibility(View.VISIBLE);
             completeVisible = true;
+            GoogleDirection.withServerKey("AIzaSyDhoDj9FGx61Bw3BGo56fbRowgi7IDDryg")
+                           .from(pickupPoints.get(0).getPosition())
+                           .to(dropOffPoints.get(0).getPosition()).avoid(AvoidType.FERRIES)
+                           .avoid(AvoidType.INDOOR).avoid(AvoidType.TOLLS)
+                           .transitMode(TransportMode.DRIVING)
+                           .language(Language.ENGLISH_GREAT_BRITAIN).unit(Unit.METRIC)
+                           .execute(new DirectionCallback() {
+
+                               @Override
+                               public void onDirectionSuccess(Direction direction, String rawBody) {
+                                   if (direction.isOK()) {
+                                       Logger.i(rawBody);
+                                       for (Route route : direction.getRouteList()) {
+                                           for (Leg leg : route.getLegList()) {
+                                               ArrayList<LatLng> directionPositionList = leg
+                                                       .getDirectionPoint();
+                                               PolylineOptions polylineOptions = DirectionConverter
+                                                       .createPolyline(mActivity, directionPositionList, 5, Color.RED);
+                                               displayedPolylines.add(mMap.addPolyline(polylineOptions));
+                                               durationText = leg.getDuration().getText();
+                                               durationInSeconds = Integer.parseInt(leg.getDuration().getValue());
+
+                                               distanceText = leg.getDistance().getText();
+                                               // TODO: Why is this returning back without *10 to become meters of the the distance text?
+                                               distanceValue = Integer.parseInt(leg.getDuration().getValue()) * 10;
+
+                                               calculateCost();
+                                           }
+                                       }
+                                   } else {
+                                   }
+                               }
+
+                               @Override
+                               public void onDirectionFailure(Throwable t) {
+                               }
+                           });
         }
     }
 
@@ -323,6 +421,4 @@ public class OrderModeManager {
         LatLng northeast = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 45);
         return new LatLngBounds(southwest, northeast);
     }
-
-
 }

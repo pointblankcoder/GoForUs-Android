@@ -79,7 +79,6 @@ public class QuickOrderManager implements OnClickListener {
                     Logger.d("Checked ID: %s", id);
                     if (selectionGroup.getId() == R.id.vehicleTypeSelection) {
                         vehiclePreferenceTypes = new ArrayList<>();
-                        Logger.d("R.id.vehicleTypeSomethingSmall: %s", id);
                         if (id == R.id.vehicleTypeLargeVan)
                             vehiclePreferenceTypes.add(Vehicle.LARGE_VAN);
                         if (id == R.id.vehicleTypeMiniVan)
