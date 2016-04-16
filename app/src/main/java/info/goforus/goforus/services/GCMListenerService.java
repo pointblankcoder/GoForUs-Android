@@ -32,7 +32,9 @@ import org.greenrobot.eventbus.EventBus;
 
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.R;
+import info.goforus.goforus.event_results.AcceptedOrderResult;
 import info.goforus.goforus.event_results.ConversationsFromApiResult;
+import info.goforus.goforus.event_results.DeclinedOrderResult;
 import info.goforus.goforus.event_results.JobsFromApiResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.models.orders.Order;
@@ -47,6 +49,8 @@ public class GCMListenerService extends GcmListenerService {
     private static final String NEW_MESSAGE = "New Message";
     private static final String NEW_JOB = "New Job";
     private static final String NEW_ORDER = "New Order";
+    private static final String ACCEPTED_ORDER = "Accepted Order";
+    private static final String DECLINED_ORDER = "Declined Order";
 
     /**
      * Called when message is received.
@@ -108,7 +112,30 @@ public class GCMListenerService extends GcmListenerService {
                         try {
                             Logger.i("Received a new order");
                             JSONObject jobJSON = new JSONObject(data.getString("order"));
-                            EventBus.getDefault().post(new Order(jobJSON).save());
+                            new Order(jobJSON).save();
+
+                        } catch (JSONException e) {
+                            Logger.e(e.toString());
+                        }
+                        break;
+                    case ACCEPTED_ORDER:
+                        try {
+                            Logger.i("Received an accepted order");
+                            JSONObject jobJSON = new JSONObject(data.getString("order"));
+
+                            Order order = Order.updateOrder(jobJSON);
+                            EventBus.getDefault().post(new AcceptedOrderResult(order));
+                        } catch (JSONException e) {
+                            Logger.e(e.toString());
+                        }
+                        break;
+                    case DECLINED_ORDER:
+                        try {
+                            Logger.i("Received an declined order");
+                            JSONObject jobJSON = new JSONObject(data.getString("order"));
+
+                            Order order = Order.updateOrder(jobJSON);
+                            EventBus.getDefault().post(new DeclinedOrderResult(order));
                         } catch (JSONException e) {
                             Logger.e(e.toString());
                         }

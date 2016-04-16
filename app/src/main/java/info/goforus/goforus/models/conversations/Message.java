@@ -44,8 +44,6 @@ public class Message extends Model {
             this.body = message.getString("body");
             this.conversation = conversation;
             this.confirmedReceived = true;
-
-            Logger.e("Is read: %s", isRead);
         } catch (JSONException e) {
             Logger.e(e.toString());
         }

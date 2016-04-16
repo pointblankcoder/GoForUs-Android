@@ -17,12 +17,18 @@ import com.orhanobut.dialogplus.DialogPlusBuilder;
 import com.orhanobut.dialogplus.OnDismissListener;
 import com.orhanobut.dialogplus.ViewHolder;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.R;
+import info.goforus.goforus.event_results.AcceptedOrderResult;
+import info.goforus.goforus.event_results.DeclinedOrderResult;
 import info.goforus.goforus.jobs.PostOrderJob;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.orders.Order;
@@ -35,6 +41,7 @@ public class ContactDriverManager implements OnDismissListener {
     public static ContactDriverManager getInstance() { return ourInstance; }
 
     private ContactDriverManager() {
+        EventBus.getDefault().register(this);
     }
 
     Order mOrder;
@@ -63,10 +70,10 @@ public class ContactDriverManager implements OnDismissListener {
                                   .setGravity(Gravity.TOP).setCancelable(true).create();
 
         waitingForReplyDialogBuilder = DialogPlus.newDialog(mActivity)
-                                  .setContentBackgroundResource(R.color.primary_material_dark_1)
-                                  .setContentHolder(new ViewHolder(R.layout.dialog_wait_for_driver_response_content))
-                                  .setOnDismissListener(this)
-                                  .setGravity(Gravity.CENTER).setCancelable(false);
+                                                 .setContentBackgroundResource(R.color.primary_material_dark_1)
+                                                 .setContentHolder(new ViewHolder(R.layout.dialog_wait_for_driver_response_content))
+                                                 .setOnDismissListener(this)
+                                                 .setGravity(Gravity.CENTER).setCancelable(false);
 
         ButterKnife.bind(this, contactDialog.getFooterView());
         ButterKnife.bind(this, contactDialog.getHolderView());
@@ -93,7 +100,7 @@ public class ContactDriverManager implements OnDismissListener {
 
     @Override
     public void onDismiss(DialogPlus dialog) {
-        if(dialog == contactDialog && dismissedContactThroughMessageClick) {
+        if (dialog == contactDialog && dismissedContactThroughMessageClick) {
             waitingForReplyDialog = waitingForReplyDialogBuilder.create();
 
             ButterKnife.bind(this, waitingForReplyDialog.getHolderView());
@@ -101,36 +108,63 @@ public class ContactDriverManager implements OnDismissListener {
 
             View view = mActivity.getCurrentFocus();
             if (view != null) {
-                InputMethodManager imm = (InputMethodManager)mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                InputMethodManager imm = (InputMethodManager) mActivity
+                        .getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
-
-            // TODO: Replace this with actual feedback from the server.
-            final Handler handler = new Handler();
-            Runnable runnable = new Runnable(){
-
-                @Override
-                public void run() {
-                    if (progress != null) progress.setVisibility(View.GONE);
-                    if (accepted != null) accepted.setVisibility(View.VISIBLE);
-                    if (status != null) {
-                        status.setText("Accepted!");
-
-                        handler.postDelayed(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                waitingForReplyDialog.dismiss();
-                                OrderModeManager.getInstance().exitOrderMode();
-                                Toast.makeText(mActivity, "Keep an on your inbox in case the driver has any complications or questions!", Toast.LENGTH_LONG).show();
-                                Toast.makeText(mActivity, "You can also contact the driver by heading to your inbox!", Toast.LENGTH_LONG).show();
-                            }
-                        }, 2000);
-                    }
-                }
-            };
-
-            handler.postDelayed(runnable, 2000);
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onAccepted(AcceptedOrderResult result) {
+        if (status != null) {
+            status.setText("Accepted!");
+        }
+
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if (progress != null) progress.setVisibility(View.GONE);
+                if (accepted != null) accepted.setVisibility(View.VISIBLE);
+                if (status != null) {
+                    handler.postDelayed(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            waitingForReplyDialog.dismiss();
+                            OrderModeManager.getInstance().exitOrderMode();
+                            Toast.makeText(mActivity, "Keep an on your inbox in case the driver has any complications or questions!", Toast.LENGTH_LONG)
+                                 .show();
+                            Toast.makeText(mActivity, "You can also contact the driver by heading to your inbox!", Toast.LENGTH_LONG)
+                                 .show();
+                        }
+                    }, 2000);
+                }
+            }
+        };
+
+        handler.postDelayed(runnable, 2000);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onDeclined(DeclinedOrderResult result) {
+        if (status != null) status.setText("Declined!");
+        if (progress != null) progress.setVisibility(View.GONE);
+        if (accepted != null) accepted.setVisibility(View.GONE);
+        if (declined != null) declined.setVisibility(View.VISIBLE);
+
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                waitingForReplyDialog.dismiss();
+                OrderModeManager.getInstance().exitOrderMode();
+                Toast.makeText(mActivity, "Sorry for the inconvenience, you have to do that all over again!", Toast.LENGTH_LONG)
+                     .show();
+            }
+        };
+
+        handler.postDelayed(runnable, 2000);
     }
 }

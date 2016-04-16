@@ -48,8 +48,7 @@ public class Order extends Model {
             finalCost = (float) jsonObject.getDouble("final_cost");
             accepted = jsonObject.getBoolean("accepted");
             inProgress = jsonObject.getBoolean("in_progress");
-            if (jsonObject.has("description"))
-                description = jsonObject.getString("description");
+            if (jsonObject.has("description")) description = jsonObject.getString("description");
 
             pickupLocationLat = jsonObject.getDouble("pickup_location_lat");
             pickupLocationLng = jsonObject.getDouble("pickup_location_lng");
@@ -57,12 +56,33 @@ public class Order extends Model {
 
             dropOffLocationLat = jsonObject.getDouble("dropoff_location_lat");
             dropOffLocationLng = jsonObject.getDouble("dropoff_location_lng");
-            dropOffAddress  = jsonObject.getString("dropoff_address");
+            dropOffAddress = jsonObject.getString("dropoff_address");
         } catch (JSONException e) {
             Logger.e(e.toString());
         }
     }
 
+
+    public static Order updateOrder(JSONObject jsonObject) {
+        Order tmpOrder = new Order(jsonObject);
+        Order order = Order.findByExternalId(tmpOrder.externalId);
+        order.partnerId = tmpOrder.partnerId;
+        order.customerId = tmpOrder.customerId;
+        order.conversationId = tmpOrder.conversationId;
+        order.estimatedCost = tmpOrder.estimatedCost;
+        order.finalCost = tmpOrder.finalCost;
+        order.accepted = tmpOrder.accepted;
+        order.inProgress = tmpOrder.inProgress;
+        order.description = tmpOrder.description;
+        order.pickupLocationLat = tmpOrder.pickupLocationLat;
+        order.pickupLocationLng = tmpOrder.pickupLocationLng;
+        order.pickupAddress = tmpOrder.pickupAddress;
+        order.dropOffLocationLat = tmpOrder.dropOffLocationLat;
+        order.dropOffLocationLng = tmpOrder.dropOffLocationLng;
+        order.dropOffAddress = tmpOrder.dropOffAddress;
+        order.save();
+        return order;
+    }
 
     public static Order lastAwaitingConfirmed(int partnerId) {
         return new Select().from(Order.class)
@@ -71,7 +91,8 @@ public class Order extends Model {
     }
 
     public static Order findByConversation(Conversation conversation) {
-        return new Select().from(Order.class).where("conversationId = ?", conversation.externalId).executeSingle();
+        return new Select().from(Order.class).where("conversationId = ?", conversation.externalId)
+                           .executeSingle();
     }
 
     public static Order findByExternalId(int externalId) {
