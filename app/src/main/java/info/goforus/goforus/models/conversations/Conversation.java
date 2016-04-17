@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.models.orders.Order;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
@@ -126,6 +127,10 @@ public class Conversation extends Model {
             }
         }
         return count;
+    }
+
+    public Order getOrder(){
+        return new Select().from(Order.class).where("conversationId = ?", externalId).executeSingle();
     }
 
 }

@@ -10,6 +10,7 @@ import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.AcceptJobResult;
 import info.goforus.goforus.event_results.JobsFromApiResult;
 import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.models.orders.Order;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONObject;
 
@@ -36,6 +37,10 @@ public class AcceptJobJob extends Job {
         job.accepted = true;
         job.declined = false;
         job.save();
+        Order order = Order.findByExternalId(job.orderId);
+        order.accepted = true;
+        order.respondedTo = true;
+        order.save();
         EventBus.getDefault().post(new AcceptJobResult(job));
     }
 

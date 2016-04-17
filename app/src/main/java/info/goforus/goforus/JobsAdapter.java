@@ -90,56 +90,50 @@ public class JobsAdapter extends ArrayAdapter<Job> {
                 if (order != null && !job.declined) {
                     final Conversation conversation = Conversation
                             .findByExternalId((int) order.conversationId);
-                    if (conversation != null && conversation.messagesCount() > 0 && !conversation
-                            .lastMessage().isMe) {
-                        DialogPlus replyDialog = DialogPlus.newDialog(getContext())
-                                                           .setContentHolder(new com.orhanobut.dialogplus.ViewHolder(R.layout.dialog_reply_to_order))
-                                                           .setGravity(Gravity.CENTER)
-                                                           .setCancelable(true)
-                                                           .setContentBackgroundResource(R.color.primary_material_dark_1)
-                                                           .setOnClickListener(new OnClickListener() {
-                                                               @Override
-                                                               public void onClick(DialogPlus dialog, View view) {
-                                                                   Button acceptBtn = (Button) dialog
-                                                                           .findViewById(R.id.acceptBtn);
-                                                                   Button declineBtn = (Button) dialog
-                                                                           .findViewById(R.id.declineBtn);
-                                                                   Button messageBtn = (Button) dialog
-                                                                           .findViewById(R.id.messageBtn);
-                                                                   if (view == acceptBtn) {
-                                                                       GoForUs.getInstance()
-                                                                              .getJobManager()
-                                                                              .addJobInBackground(new AcceptJobJob(job.externalId));
-                                                                       dialog.dismiss();
-                                                                   } else if (view == declineBtn) {
-                                                                       GoForUs.getInstance()
-                                                                              .getJobManager()
-                                                                              .addJobInBackground(new DeclineJobJob(job.externalId));
-                                                                       dialog.dismiss();
-                                                                   } else if (view == messageBtn) {
-                                                                       mContext.showMessagesFragment(conversation);
-                                                                       dialog.dismiss();
-                                                                   }
+                    DialogPlus replyDialog = DialogPlus.newDialog(getContext())
+                                                       .setContentHolder(new com.orhanobut.dialogplus.ViewHolder(R.layout.dialog_reply_to_order))
+                                                       .setGravity(Gravity.CENTER)
+                                                       .setCancelable(true)
+                                                       .setContentBackgroundResource(R.color.primary_material_dark_1)
+                                                       .setOnClickListener(new OnClickListener() {
+                                                           @Override
+                                                           public void onClick(DialogPlus dialog, View view) {
+                                                               Button acceptBtn = (Button) dialog
+                                                                       .findViewById(R.id.acceptBtn);
+                                                               Button declineBtn = (Button) dialog
+                                                                       .findViewById(R.id.declineBtn);
+                                                               Button messageBtn = (Button) dialog
+                                                                       .findViewById(R.id.messageBtn);
+                                                               if (view == acceptBtn) {
+                                                                   GoForUs.getInstance()
+                                                                          .getJobManager()
+                                                                          .addJobInBackground(new AcceptJobJob(job.externalId));
+                                                                   dialog.dismiss();
+                                                               } else if (view == declineBtn) {
+                                                                   GoForUs.getInstance()
+                                                                          .getJobManager()
+                                                                          .addJobInBackground(new DeclineJobJob(job.externalId));
+                                                                   dialog.dismiss();
+                                                               } else if (view == messageBtn) {
+                                                                   mContext.showMessagesFragment(conversation);
+                                                                   dialog.dismiss();
                                                                }
-                                                           })
-                                                           .setOnDismissListener(new OnDismissListener() {
-                                                               @Override
-                                                               public void onDismiss(DialogPlus dialog) {
-                                                               }
-                                                           }).create();
-                        if (job.respondedTo) {
-                            Button acceptBtn = (Button) replyDialog.findViewById(R.id.acceptBtn);
-                            Button declineBtn = (Button) replyDialog.findViewById(R.id.declineBtn);
-                            Button messageBtn = (Button) replyDialog.findViewById(R.id.messageBtn);
+                                                           }
+                                                       })
+                                                       .setOnDismissListener(new OnDismissListener() {
+                                                           @Override
+                                                           public void onDismiss(DialogPlus dialog) {
+                                                           }
+                                                       }).create();
+                    if (job.respondedTo) {
+                        Button acceptBtn = (Button) replyDialog.findViewById(R.id.acceptBtn);
+                        Button declineBtn = (Button) replyDialog.findViewById(R.id.declineBtn);
+                        Button messageBtn = (Button) replyDialog.findViewById(R.id.messageBtn);
 
-                            acceptBtn.setVisibility(View.GONE);
-                            declineBtn.setVisibility(View.GONE);
-                        }
-                        replyDialog.show();
-                    } else if (conversation.lastMessage() != null && conversation
-                            .lastMessage().isMe) {
-                        // TODO: link to the conversation
+                        acceptBtn.setVisibility(View.GONE);
+                        declineBtn.setVisibility(View.GONE);
                     }
+                    replyDialog.show();
                 }
             }
         });

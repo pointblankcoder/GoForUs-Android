@@ -26,6 +26,7 @@ import info.goforus.goforus.jobs.GetConversationsJob;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
+import info.goforus.goforus.models.orders.Order;
 
 public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
     public static final String TAG = "Inbox Activity";
@@ -103,7 +104,8 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     public void onConversationsUpdate(ConversationsFromApiResult result) {
         if (result.getConversations().size() > 0) {
             for (Conversation c : result.getConversations()) {
-                if(!mConversations.contains(c)) {
+                Order order = c.getOrder();
+                if(!mConversations.contains(c) && order != null && order.partnerId != Account.currentAccount().externalId) {
                     mAdapter.add(c);
                     mAdapter.notifyDataSetChanged();
                 }

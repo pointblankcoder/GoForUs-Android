@@ -8,6 +8,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import info.goforus.goforus.apis.Utils;
 import info.goforus.goforus.event_results.DeclineJobResult;
+import info.goforus.goforus.models.orders.Order;
 import us.monoid.json.JSONObject;
 
 public class DeclineJobJob extends Job {
@@ -33,6 +34,12 @@ public class DeclineJobJob extends Job {
         job.accepted = false;
         job.declined = true;
         job.save();
+
+        Order order = Order.findByExternalId(job.orderId);
+        order.accepted = false;
+        order.respondedTo = true;
+        order.save();
+
         EventBus.getDefault().post(new DeclineJobResult(job));
     }
 

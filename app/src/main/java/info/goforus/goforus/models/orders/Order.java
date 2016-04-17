@@ -22,6 +22,7 @@ public class Order extends Model {
     @Column(name = "finalCost") public float finalCost;
     @Column(name = "accepted") public boolean accepted = false;
     @Column(name = "inProgress") public boolean inProgress = false;
+    @Column(name = "respondedTo") public boolean respondedTo = false;
     @Column(name = "description") public String description;
 
     @Column(name = "pickupLocationLat") public double pickupLocationLat;
@@ -48,6 +49,7 @@ public class Order extends Model {
             finalCost = (float) jsonObject.getDouble("final_cost");
             accepted = jsonObject.getBoolean("accepted");
             inProgress = jsonObject.getBoolean("in_progress");
+            respondedTo = jsonObject.getBoolean("responded_to");
             if (jsonObject.has("description")) description = jsonObject.getString("description");
 
             pickupLocationLat = jsonObject.getDouble("pickup_location_lat");
@@ -73,6 +75,7 @@ public class Order extends Model {
         order.finalCost = tmpOrder.finalCost;
         order.accepted = tmpOrder.accepted;
         order.inProgress = tmpOrder.inProgress;
+        order.respondedTo = tmpOrder.respondedTo;
         order.description = tmpOrder.description;
         order.pickupLocationLat = tmpOrder.pickupLocationLat;
         order.pickupLocationLng = tmpOrder.pickupLocationLng;

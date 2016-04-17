@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.birbit.android.jobqueue.JobManager;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -31,11 +32,13 @@ import info.goforus.goforus.jobs.MarkReadMessageJob;
 import info.goforus.goforus.jobs.PostMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
+import info.goforus.goforus.models.orders.Order;
 
 public class MessagesFragment extends Fragment {
     @Bind(R.id.etMessage) EditText etMessage;
     @Bind(R.id.btSend) ImageButton btSend;
     @Bind(R.id.lvChat) ListView lvChat;
+    @Bind(R.id.llSend) View sendWrapper;
     BaseActivity mActivity;
     JobManager mJobManager;
     private MessagesAdapter mAdapter;
@@ -84,6 +87,13 @@ public class MessagesFragment extends Fragment {
         mAdapter = new MessagesAdapter(mActivity, mConversation.messages());
         lvChat.setAdapter(mAdapter);
         lvChat.setSelection(mAdapter.getCount() - 1);
+
+        Order order = mConversation.getOrder();
+        if (order != null && order.respondedTo && !order.accepted){
+            sendWrapper.setVisibility(View.GONE);
+        } else {
+            sendWrapper.setVisibility(View.VISIBLE);
+        }
     }
 
     @OnClick(R.id.btSend)
@@ -143,6 +153,14 @@ public class MessagesFragment extends Fragment {
 
             // Request focus without starting up the keyboard
             etMessage.requestFocus();
+
+
+            Order order = mConversation.getOrder();
+            if (order != null && order.respondedTo && !order.accepted){
+                sendWrapper.setVisibility(View.GONE);
+            } else {
+                sendWrapper.setVisibility(View.VISIBLE);
+            }
         }
     }
 

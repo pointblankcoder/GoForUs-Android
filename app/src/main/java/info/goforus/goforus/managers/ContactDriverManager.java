@@ -30,6 +30,7 @@ import info.goforus.goforus.R;
 import info.goforus.goforus.event_results.AcceptedOrderResult;
 import info.goforus.goforus.event_results.DeclinedOrderResult;
 import info.goforus.goforus.jobs.PostOrderJob;
+import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.orders.Order;
 
@@ -148,20 +149,23 @@ public class ContactDriverManager implements OnDismissListener {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onDeclined(DeclinedOrderResult result) {
+    public void onDeclined(final DeclinedOrderResult result) {
         if (status != null) status.setText("Declined!");
         if (progress != null) progress.setVisibility(View.GONE);
         if (accepted != null) accepted.setVisibility(View.GONE);
         if (declined != null) declined.setVisibility(View.VISIBLE);
 
         final Handler handler = new Handler();
-        Runnable runnable = new Runnable() {
+        final Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                waitingForReplyDialog.dismiss();
-                OrderModeManager.getInstance().exitOrderMode();
-                Toast.makeText(mActivity, "Sorry for the inconvenience, you have to do that all over again!", Toast.LENGTH_LONG)
-                     .show();
+                // We are not the customer this does not need to trigger
+                if (result.getOrder().customerId == Account.currentAccount().externalId) {
+                    if (waitingForReplyDialog != null) waitingForReplyDialog.dismiss();
+                    OrderModeManager.getInstance().exitOrderMode();
+                    Toast.makeText(mActivity, "Sorry for the inconvenience, you have to do that all over again!", Toast.LENGTH_LONG)
+                         .show();
+                }
             }
         };
 

@@ -140,7 +140,7 @@
     <string name="send_message">Send</string>
 
     <string name="queryTypePrompt">Select Message Type</string>
-    <string name="write_message_hint">write your message here&#8320;</string>
+    <string name="write_message_hint">write your message here &#8320;</string>
     <string name="small_lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
     <string name="difficulty_sending_failure_response">We are experiencing network issues, we will keep trying for now. Please wait&#8320;</string>
     <string name="login_register_seperator">or</string>

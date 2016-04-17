@@ -65,6 +65,7 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
                         m.save();
                     }
                 }
+
                 mContext.showMessagesFragment(conversation);
             }
         });
