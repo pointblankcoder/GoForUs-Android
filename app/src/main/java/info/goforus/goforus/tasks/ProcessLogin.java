@@ -16,8 +16,12 @@ import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.LoginActivity;
 import info.goforus.goforus.NavigationActivity;
 import info.goforus.goforus.event_results.ConversationsFromApiResult;
+import info.goforus.goforus.event_results.JobsFromApiResult;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;
 import info.goforus.goforus.event_results.LoginFromApiResult;
+import info.goforus.goforus.event_results.OrdersFromApiResult;
+import info.goforus.goforus.jobs.GetJobsJob;
+import info.goforus.goforus.jobs.GetOrdersJob;
 import info.goforus.goforus.jobs.LoginJob;
 import info.goforus.goforus.jobs.GetConversationsJob;
 import info.goforus.goforus.managers.GCMTokenManager;
@@ -34,7 +38,9 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
     private final ProcessLogin me;
     private boolean loggedIn = false;
     private boolean collectMessagesComplete = false;
-    private boolean hasGpsLocation;
+    private boolean collectOrdersComplete = false;
+    private boolean collectJobsComplete = false;
+    private boolean hasGpsLocation = false;
 
     public ProcessLogin(LoginActivity activity, String email, String password, boolean registering) {
         this.mLoginActivity = activity;
@@ -71,6 +77,26 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
         }
 
         while (!collectMessagesComplete && !isCancelled()) {
+        }
+
+
+        if (!isCancelled()) {
+            publishProgress("Getting your orders");
+            GoForUs.getInstance().getJobManager().addJobInBackground(new GetOrdersJob());
+        }
+
+
+        while (!collectOrdersComplete && !isCancelled()) {
+        }
+
+        if (Account.currentAccount().isPartner()) {
+            if (!isCancelled()) {
+                publishProgress("Getting your jobs");
+                GoForUs.getInstance().getJobManager().addJobInBackground(new GetJobsJob());
+            }
+
+            while (!collectJobsComplete && !isCancelled()) {
+            }
         }
 
         if (!isCancelled()) {
@@ -171,6 +197,12 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
             }
         }
     }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    public void onJobsUpdated(JobsFromApiResult result) { collectJobsComplete = true; }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    public void onOrdersUpdated(OrdersFromApiResult result) { collectOrdersComplete = true; }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onLocationUpdated(LocationUpdateServiceResult result) { hasGpsLocation = true; }

@@ -6,8 +6,12 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.orhanobut.logger.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
+import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
@@ -45,8 +49,11 @@ public class Order extends Model {
             partnerId = jsonObject.getInt("partner_id");
             customerId = jsonObject.getInt("customer_id");
             conversationId = jsonObject.getInt("conversation_id");
-            estimatedCost = (float) jsonObject.getDouble("estimated_cost");
-            finalCost = (float) jsonObject.getDouble("final_cost");
+            if (!jsonObject.getString("estimated_cost").equals("null"))
+                estimatedCost = Float.parseFloat(jsonObject.getString("estimated_cost"));
+            if (!jsonObject.getString("final_cost").equals("null"))
+                finalCost = Float.parseFloat(jsonObject.getString("final_cost"));
+
             accepted = jsonObject.getBoolean("accepted");
             inProgress = jsonObject.getBoolean("in_progress");
             respondedTo = jsonObject.getBoolean("responded_to");
@@ -85,6 +92,36 @@ public class Order extends Model {
         order.dropOffAddress = tmpOrder.dropOffAddress;
         order.save();
         return order;
+    }
+
+
+    public static Order updateOrCreateOrder(JSONObject jsonObject) {
+        Order order =  new Order(jsonObject);
+        Order existingOrder = new Select().from(Order.class)
+                                      .where("externalId = ?", order.externalId)
+                                      .executeSingle();
+
+        if (existingOrder == null) {
+            order.save();
+        } else {
+            updateOrder(jsonObject);
+        }
+        return order;
+    }
+
+    public static List<Order> updateOrCreateAllFromJson(JSONArray ordersJSON) {
+        List<Order> orders = new ArrayList<>();
+
+        for (int i = 0; i < ordersJSON.length(); i++) {
+            try {
+                JSONObject orderJSON = ordersJSON.getJSONObject(i);
+                Order order = updateOrCreateOrder(orderJSON);
+                orders.add(order);
+            } catch (JSONException e) {
+                Logger.e(e.toString());
+            }
+        }
+        return orders;
     }
 
     public static Order lastAwaitingConfirmed(int partnerId) {

@@ -3,6 +3,7 @@ package info.goforus.goforus.apis;
 import java.io.IOException;
 
 import info.goforus.goforus.models.orders.Order;
+import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
@@ -11,6 +12,8 @@ import static us.monoid.web.Resty.put;
 
 public class Orders {
     private static Orders ourInstance = new Orders();
+    private JSONArray orders;
+
     public static Orders getInstance() { return ourInstance; }
     private Orders() {}
 
@@ -41,4 +44,8 @@ public class Orders {
         return response;
     }
 
+    public JSONArray getOrders() throws IOException, JSONException {
+        JSONArray response = Utils.resty.json(getOrdersUri() + Utils.tokenParams()).array();
+        return response;
+    }
 }
