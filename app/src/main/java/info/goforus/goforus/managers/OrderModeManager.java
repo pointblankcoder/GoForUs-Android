@@ -404,7 +404,7 @@ public class OrderModeManager {
                                                           .icon(BitmapDescriptorFactory
                                                                   .fromResource(R.drawable.ic_nature_black_36dp)));
 
-
+        pickupPoints.add(marker);
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15);
         mMap.animateCamera(cameraUpdate, 1, null);
         mMapFragment.dropPinEffect(marker);
@@ -417,7 +417,11 @@ public class OrderModeManager {
         findPickupVisible = false;
         removePickupVisible = true;
 
-        pickupPoints.add(marker);
+        if (pickupPoints.size() == 1 && dropOffPoints.size() == 1 && mMapFragment.mapMode == MapFragment.ORDER_MODE) {
+            showJourneyOnMap();
+            complete.setVisibility(View.VISIBLE);
+            completeVisible = true;
+        }
     }
 
     public void addDropOffPoint(LatLng location) {
@@ -438,6 +442,7 @@ public class OrderModeManager {
         removeDropOffVisible = true;
 
         if (pickupPoints.size() == 1 && dropOffPoints.size() == 1 && mMapFragment.mapMode == MapFragment.ORDER_MODE) {
+            showJourneyOnMap();
             complete.setVisibility(View.VISIBLE);
             completeVisible = true;
         }
