@@ -11,11 +11,16 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.parceler.Parcel;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;
+import info.goforus.goforus.models.orders.Order;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
 
@@ -73,11 +78,11 @@ public class Account extends Model {
                            .executeSingle();
     }
 
-    public boolean isPartner(){
+    public boolean isPartner() {
         return type.equals(PARTNER);
     }
 
-    public boolean isCustomer(){
+    public boolean isCustomer() {
         return type.equals(CUSTOMER);
     }
 
@@ -109,17 +114,38 @@ public class Account extends Model {
         this.available = json.getBoolean("available");
     }
 
+    // TODO: move this to the conversations model
     // order our conversations by the ones with the most recent messages within them
     public List<Conversation> conversationsOrderedByRecentMessages() {
         return new Select().from(Conversation.class).as("conversations").
-                leftJoin(Message.class).on("Messages.Conversation = conversations.id").
-                                   where("conversations.Account = ?", getId())
-                           .groupBy("conversations.id").
-                                   orderBy("Messages.externalId DESC").execute();
+                leftJoin(Message.class).on("Messages.Conversation = conversations.id")
+                           .where("conversations.Account = ?", getId()).groupBy("conversations.id")
+                           .orderBy("Messages.externalId DESC").execute();
     }
 
     public List<Conversation> conversations() {
         return getMany(Conversation.class, "Account");
+    }
+
+    public List<Conversation> conversationsForInbox() {
+        List<Conversation> conversations = conversationsOrderedByRecentMessages();
+        ListIterator<Conversation> conversationsIterator = conversations.listIterator();
+        int myExternalId = Account.currentAccount().externalId;
+
+        List<Conversation> conversationsToReturn = new ArrayList<>();
+
+        while (conversationsIterator.hasNext()) {
+            Conversation conversation = conversationsIterator.next();
+            Order order = Order.findByConversation(conversation);
+            if (order != null && order.partnerId == myExternalId && conversation
+                    .messagesCount() != 1) {
+                conversationsToReturn.add(conversation);
+            } else if (order != null && order.partnerId != myExternalId) {
+                conversationsToReturn.add(conversation);
+            }
+        }
+
+        return conversationsToReturn;
     }
 
     public int conversationsCount() {

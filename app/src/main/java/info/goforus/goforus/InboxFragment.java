@@ -52,13 +52,18 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
         return view;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        mConversations = Account.currentAccount().conversationsOrderedByRecentMessages();
+    public void setList(){
+        mConversations = Account.currentAccount().conversationsForInbox();
         mAdapter = new ConversationsAdapter(mActivity, mConversations);
         listView.setAdapter(mAdapter);
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        setList();
+    }
+
 
     @Override
     public void onPause() {
@@ -76,6 +81,7 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     public void onHiddenChanged(boolean hidden) {
         if (hidden) {
         } else {
+            setList();
             mAdapter.notifyDataSetChanged();
         }
     }
