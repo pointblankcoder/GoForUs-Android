@@ -154,4 +154,9 @@
     <string name="tip_text_mini_drivers_profile">Here you see basic information related to this driver. Click on the box and you can read reviews and more in-depth information about this driver such as what their typical pickup points are. You will be able to contact the driver if you have a query or start a delivery with this driver.</string>
     <string name="jobs_fragment_title">My Jobs</string>
     <string name="offline_online">Offline/Online</string>
+
+    <string name="gcm_server_key">AIzaSyDhoDj9FGx61Bw3BGo56fbRowgi7IDDryg</string>
+    <string name="estimated_price">Estimated Price:</string>
+    <string name="drop_off_at">Drop Off At:</string>
+    <string name="pickup_from">Pickup From:</string>
 </resources>

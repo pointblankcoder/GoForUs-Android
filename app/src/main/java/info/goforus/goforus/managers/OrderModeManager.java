@@ -38,6 +38,7 @@ import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.ViewHolder;
 import com.orhanobut.logger.Logger;
 
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +47,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.MapFragment;
+import info.goforus.goforus.NavigationActivity;
 import info.goforus.goforus.R;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
@@ -63,11 +65,11 @@ public class OrderModeManager {
     private boolean quickOrderFabVisible = false;
     private boolean exitModeFabVisible = true;
     private boolean quickLocationSelectionVisibile = true;
-    private List<Polyline> displayedPolylines = new ArrayList<>();
-    private int distanceValue;
-    private String distanceText;
-    private int durationInSeconds;
-    private String durationText;
+    public List<Polyline> displayedPolylines = new ArrayList<>();
+    public int distanceValue;
+    public String distanceText;
+    public int durationInSeconds;
+    public String durationText;
 
     public static OrderModeManager getInstance() { return ourInstance; }
 
@@ -100,9 +102,9 @@ public class OrderModeManager {
 
     public void setup(BaseActivity activity, MapFragment mapFragment, GoogleMap map) {
         this.mActivity = activity;
-        this.mMap = map;
+        this.mMapFragment = mapFragment;
+        this.mMap = mMapFragment.mMap;
         ButterKnife.bind(this, mActivity);
-        mMapFragment = mapFragment;
 
         mTipDialog = DialogPlus.newDialog(mActivity).setHeader(R.layout.dialog_tips_main_header)
                                .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -137,6 +139,66 @@ public class OrderModeManager {
                 .setVisibility(quickLocationSelectionVisibile ? View.VISIBLE : View.GONE);
     }
 
+
+    public void showJourneyOnMap() {
+        removeAllPolylines();
+
+        GoogleDirection.withServerKey(mActivity.getString(R.string.gcm_server_key))
+                       .from(pickupPoints.get(0).getPosition())
+                       .to(dropOffPoints.get(0).getPosition()).avoid(AvoidType.FERRIES)
+                       .avoid(AvoidType.INDOOR).avoid(AvoidType.TOLLS)
+                       .transitMode(TransportMode.DRIVING).language(Language.ENGLISH_GREAT_BRITAIN)
+                       .unit(Unit.METRIC).execute(new DirectionCallback() {
+
+            @Override
+            public void onDirectionSuccess(Direction direction, String rawBody) {
+                if (direction.isOK()) {
+                    Logger.i(rawBody);
+                    for (Route route : direction.getRouteList()) {
+                        for (Leg leg : route.getLegList()) {
+                            ArrayList<LatLng> directionPositionList = leg.getDirectionPoint();
+                            PolylineOptions polylineOptions = DirectionConverter
+                                    .createPolyline(mActivity, directionPositionList, 5, Color.RED);
+
+                            displayedPolylines.add(mMap.addPolyline(polylineOptions));
+                            durationText = leg.getDuration().getText();
+                            durationInSeconds = Integer.parseInt(leg.getDuration().getValue());
+
+                            distanceText = leg.getDistance().getText();
+                            // TODO: Why is this returning back without *10 to become meters of the the distance text?
+                            distanceValue = Integer.parseInt(leg.getDuration().getValue()) * 10;
+                        }
+                    }
+                } else {
+                }
+            }
+
+            @Override
+            public void onDirectionFailure(Throwable t) {
+            }
+        });
+    }
+
+    public void loadFromOrder(BaseActivity activity, Order order) {
+        mActivity = activity;
+        mMapFragment = ((NavigationActivity) activity).mapFragment;
+        mMap = mMapFragment.mMap;
+
+        ButterKnife.bind(this, mActivity);
+
+        // Pickup/DropOff Points
+        removeDropOffPoints();
+        removePickupPoints();
+        addPickupPoint(new LatLng(order.pickupLocationLat, order.pickupLocationLng));
+        addDropOffPoint(new LatLng(order.dropOffLocationLat, order.dropOffLocationLng));
+
+        pickupAddress = order.pickupAddress;
+        dropOffAddress = order.dropOffAddress;
+        driversOnMapManager.selectedDriver = Driver.findByExternalId(order.partnerId);
+
+        showJourneyOnMap();
+    }
+
     public void enterOrderMode() {
         quickOrderFab.setVisibility(View.GONE);
         messagesFab.setVisibility(View.GONE);
@@ -163,6 +225,21 @@ public class OrderModeManager {
         }
     }
 
+    public void removePickupPoints() {
+        for (Marker m : pickupPoints) {
+            m.remove();
+        }
+
+        pickupPoints = new ArrayList<>();
+    }
+
+    public void removeDropOffPoints() {
+        for (Marker m : dropOffPoints) {
+            m.remove();
+        }
+        dropOffPoints = new ArrayList<>();
+    }
+
     public void exitOrderMode() {
         exitModeFab.setVisibility(View.GONE);
         exitModeFabVisible = false;
@@ -178,15 +255,8 @@ public class OrderModeManager {
             d.addToMap(mMap);
         }
 
-        for (Marker m : pickupPoints) {
-            m.remove();
-        }
-        for (Marker m : dropOffPoints) {
-            m.remove();
-        }
-
-        pickupPoints = new ArrayList<>();
-        dropOffPoints = new ArrayList<>();
+        removePickupPoints();
+        removeDropOffPoints();
 
         quickLocationSelection.setVisibility(View.GONE);
         complete.setVisibility(View.GONE);
@@ -204,7 +274,7 @@ public class OrderModeManager {
         Toast.makeText(mActivity, "You have cancelled your order", Toast.LENGTH_LONG).show();
     }
 
-    public float calculateCost(){
+    public float calculateCost() {
         // Standard Charge
         float cost;
         float standardCharge = 0.50f;
@@ -260,8 +330,8 @@ public class OrderModeManager {
     }
 
 
-    public void removeAllPolylines(){
-        for(Polyline polyline : displayedPolylines) {
+    public void removeAllPolylines() {
+        for (Polyline polyline : displayedPolylines) {
             polyline.remove();
         }
     }
@@ -367,46 +437,9 @@ public class OrderModeManager {
         findDropOffVisible = false;
         removeDropOffVisible = true;
 
-        if (pickupPoints.size() == 1 && dropOffPoints.size() == 1) {
+        if (pickupPoints.size() == 1 && dropOffPoints.size() == 1 && mMapFragment.mapMode == MapFragment.ORDER_MODE) {
             complete.setVisibility(View.VISIBLE);
             completeVisible = true;
-            GoogleDirection.withServerKey("AIzaSyDhoDj9FGx61Bw3BGo56fbRowgi7IDDryg")
-                           .from(pickupPoints.get(0).getPosition())
-                           .to(dropOffPoints.get(0).getPosition()).avoid(AvoidType.FERRIES)
-                           .avoid(AvoidType.INDOOR).avoid(AvoidType.TOLLS)
-                           .transitMode(TransportMode.DRIVING)
-                           .language(Language.ENGLISH_GREAT_BRITAIN).unit(Unit.METRIC)
-                           .execute(new DirectionCallback() {
-
-                               @Override
-                               public void onDirectionSuccess(Direction direction, String rawBody) {
-                                   if (direction.isOK()) {
-                                       Logger.i(rawBody);
-                                       for (Route route : direction.getRouteList()) {
-                                           for (Leg leg : route.getLegList()) {
-                                               ArrayList<LatLng> directionPositionList = leg
-                                                       .getDirectionPoint();
-                                               PolylineOptions polylineOptions = DirectionConverter
-                                                       .createPolyline(mActivity, directionPositionList, 5, Color.RED);
-                                               displayedPolylines.add(mMap.addPolyline(polylineOptions));
-                                               durationText = leg.getDuration().getText();
-                                               durationInSeconds = Integer.parseInt(leg.getDuration().getValue());
-
-                                               distanceText = leg.getDistance().getText();
-                                               // TODO: Why is this returning back without *10 to become meters of the the distance text?
-                                               distanceValue = Integer.parseInt(leg.getDuration().getValue()) * 10;
-
-                                               calculateCost();
-                                           }
-                                       }
-                                   } else {
-                                   }
-                               }
-
-                               @Override
-                               public void onDirectionFailure(Throwable t) {
-                               }
-                           });
         }
     }
 

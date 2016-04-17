@@ -56,7 +56,7 @@ import info.goforus.goforus.models.conversations.Conversation;
 public class NavigationActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
     ActionBarDrawerToggle mDrawerToggle;
     InboxFragment inboxFragment;
-    MapFragment mapFragment;
+    public MapFragment mapFragment;
     MessagesFragment messagesFragment;
     JobsFragment jobsFragment;
     FragmentManager mFragmentManager;
@@ -395,7 +395,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     }
 
 
-    private void showMapFragment() {
+    public MapFragment showMapFragment() {
         FragmentTransaction ft = mFragmentManager.beginTransaction();
 
         if (mapFragment.isAdded()) {
@@ -413,6 +413,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         mNavigationView.setCheckedItem(R.id.nav_map);
         setTitle(getString(R.string.map_fragment_title));
         ft.commit();
+        return mapFragment;
     }
 
     private void showJobsFragment() {

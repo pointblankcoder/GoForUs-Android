@@ -18,6 +18,7 @@ import android.widget.FrameLayout;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
@@ -37,6 +38,7 @@ import info.goforus.goforus.managers.OrderModeManager;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.drivers.InfoWindowAdapter;
+import info.goforus.goforus.models.orders.Order;
 import info.goforus.goforus.tasks.DriversUpdateHandler;
 
 public class MapFragment extends SupportMapFragment implements OnMapReadyCallback, GoogleMap.OnMapLoadedCallback, MapWrapperLayout.GestureListener, GoogleMap.OnCameraChangeListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnInfoWindowCloseListener, GoogleMap.OnInfoWindowLongClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapLongClickListener {
@@ -48,8 +50,10 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     public View mOriginalView;
     MapWrapperLayout mMapWrapperLayout;
     BaseActivity mActivity;
-    GoogleMap mMap;
+    public GoogleMap mMap;
     boolean firstLoad = true;
+    boolean shouldShowJourney = false;
+    Order journeyToShow;
     boolean mHidden;
     private DialogPlus mMiniProfileDriverTipDialog;
     private DriversOnMapManager driversOnMapManager;
@@ -57,11 +61,17 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
     private OrderModeManager orderModeManager = OrderModeManager.getInstance();
 
 
+    public void setJourneyToShow(Order order){
+        shouldShowJourney = true;
+        journeyToShow = order;
+    }
+
     /* ======================== Fragment Overrides =================== */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        MapsInitializer.initialize(getContext());
     }
 
     @Override
@@ -194,6 +204,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
             DriversUpdateHandler.getInstance().stopUpdates();
         } else {
             DriversUpdateHandler.getInstance().startUpdates();
+            showJourney();
         }
 
         driversOnMapManager.hideAllDrivers(hidden);
@@ -263,7 +274,7 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
 
     @Override
     public void onMapLoaded() {
-        if (firstLoad) {
+        if (firstLoad && !shouldShowJourney) {
             Account account = Account.currentAccount();
             LatLng latLng = new LatLng(account.lat, account.lng);
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 14);
@@ -282,6 +293,16 @@ public class MapFragment extends SupportMapFragment implements OnMapReadyCallbac
             firstLoad = false;
         }
         driversOnMapManager.updateIndicators();
+        showJourney();
+    }
+
+    public void showJourney(){
+        if (shouldShowJourney) {
+            OrderModeManager.getInstance()
+                            .loadFromOrder((NavigationActivity) getContext(), journeyToShow);
+            shouldShowJourney = false;
+            journeyToShow = null;
+        }
     }
 
     /* ======================== Marker Listeners =================== */

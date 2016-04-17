@@ -20,12 +20,14 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import info.goforus.goforus.jobs.AcceptJobJob;
 import info.goforus.goforus.jobs.DeclineJobJob;
+import info.goforus.goforus.managers.OrderModeManager;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.jobs.Job;
 import info.goforus.goforus.models.orders.Order;
 
 public class JobsAdapter extends ArrayAdapter<Job> {
     private final NavigationActivity mContext;
+    private boolean shouldShowMap = false;
 
     // View lookup cache
     static class ViewHolder {
@@ -83,10 +85,10 @@ public class JobsAdapter extends ArrayAdapter<Job> {
         }
 
 
-        view.setOnClickListener(new View.OnClickListener() {
+        viewHolder.view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Order order = Order.findByExternalId(job.orderId);
+                final Order order = Order.findByExternalId(job.orderId);
                 if (order != null && !job.declined) {
                     final Conversation conversation = Conversation
                             .findByExternalId((int) order.conversationId);
@@ -104,6 +106,8 @@ public class JobsAdapter extends ArrayAdapter<Job> {
                                                                        .findViewById(R.id.declineBtn);
                                                                Button messageBtn = (Button) dialog
                                                                        .findViewById(R.id.messageBtn);
+                                                               Button showOnMapBtn = (Button) dialog
+                                                                       .findViewById(R.id.showOnMap);
                                                                if (view == acceptBtn) {
                                                                    GoForUs.getInstance()
                                                                           .getJobManager()
@@ -116,6 +120,11 @@ public class JobsAdapter extends ArrayAdapter<Job> {
                                                                    dialog.dismiss();
                                                                } else if (view == messageBtn) {
                                                                    mContext.showMessagesFragment(conversation);
+                                                                   dialog.dismiss();
+                                                               } else if (view == showOnMapBtn) {
+                                                                   MapFragment mapFragment = mContext
+                                                                           .showMapFragment();
+                                                                   mapFragment.setJourneyToShow(order);
                                                                    dialog.dismiss();
                                                                }
                                                            }
@@ -133,7 +142,22 @@ public class JobsAdapter extends ArrayAdapter<Job> {
                         acceptBtn.setVisibility(View.GONE);
                         declineBtn.setVisibility(View.GONE);
                     }
+
                     replyDialog.show();
+
+                    TextView dropOffAt = (TextView) replyDialog.getHolderView()
+                                                               .findViewById(R.id.dropOffAt);
+                    TextView pickupFrom = (TextView) replyDialog.getHolderView()
+                                                                .findViewById(R.id.pickupFrom);
+                    TextView estimatedPrice = (TextView) replyDialog.getHolderView()
+                                                                    .findViewById(R.id.estimatedPrice);
+
+                    dropOffAt.setText(String.format("%s %s", mContext
+                            .getString(R.string.drop_off_at), order.dropOffAddress));
+                    pickupFrom.setText(String.format("%s %s", mContext
+                            .getString(R.string.pickup_from), order.pickupAddress));
+                    estimatedPrice.setText(String.format("%s %s", mContext
+                            .getString(R.string.estimated_price), order.estimatedCost));
                 }
             }
         });

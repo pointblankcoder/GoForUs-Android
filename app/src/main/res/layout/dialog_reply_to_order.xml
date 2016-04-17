@@ -11,14 +11,20 @@
         android:id="@+id/pickupFrom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Pickup From: "/>
+        android:text="@string/pickup_from"/>
 
 
     <TextView
         android:id="@+id/dropOffAt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Drop Off At: "/>
+        android:text="@string/drop_off_at"/>
+
+    <TextView
+        android:id="@+id/estimatedPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/estimated_price"/>
 
     <android.support.v7.widget.GridLayout
         android:layout_width="match_parent"
@@ -27,7 +33,7 @@
         android:layout_margin="@dimen/margin_standard_large"
         app:columnCount="3"
         app:orientation="horizontal"
-        app:rowCount="1">
+        app:rowCount="2">
 
         <Button
             android:id="@+id/declineBtn"
@@ -37,19 +43,7 @@
             android:text="DECLINE"
             app:layout_column="0"
             app:layout_columnWeight="1"
-            app:layout_gravity="center"
-            app:layout_row="0"
-            />
-
-        <Button
-            android:id="@+id/messageBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/accent_material_dark_1"
-            android:text="MESSAGE"
-            app:layout_column="1"
-            app:layout_columnWeight="1"
-            app:layout_gravity="center"
+            app:layout_gravity="start"
             app:layout_row="0"
             />
 
@@ -59,9 +53,36 @@
             android:layout_height="wrap_content"
             android:background="@color/accent_material_dark_1"
             android:text="ACCEPT"
-            app:layout_column="2"
+            app:layout_column="1"
             app:layout_columnWeight="1"
             app:layout_gravity="center"
             app:layout_row="0"/>
+
+        <Button
+            android:id="@+id/showOnMap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/accent_material_dark_1"
+            android:padding="8dp"
+            android:text="SHOW ON MAP"
+            app:layout_column="0"
+            app:layout_row="1"
+            />
+
+        <Button
+            android:layout_marginTop="16dp"
+            android:padding="8dp"
+            android:id="@+id/messageBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/accent_material_dark_1"
+            android:text="MESSAGE"
+            app:layout_column="1"
+            app:layout_columnWeight="1"
+            app:layout_gravity="center"
+            app:layout_row="1"
+            />
+
     </android.support.v7.widget.GridLayout>
 </LinearLayout>
