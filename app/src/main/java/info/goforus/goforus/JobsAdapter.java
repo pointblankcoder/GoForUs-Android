@@ -77,8 +77,8 @@ public class JobsAdapter extends ArrayAdapter<Job> {
 
         Order order = Order.findByExternalId(job.orderId);
         if (order != null) {
-            String pickupText = String.format("Pickup: %s", order.pickupAddress);
-            String dropOffText = String.format("Drop Off: %s", order.dropOffAddress);
+            String pickupText = String.format("Pickup:\n%s", order.pickupAddress);
+            String dropOffText = String.format("Drop Off:\n%s", order.dropOffAddress);
             String summaryText = String.format("%s\n%s", pickupText, dropOffText);
 
             viewHolder.jobSummary.setText(summaryText);
@@ -152,11 +152,11 @@ public class JobsAdapter extends ArrayAdapter<Job> {
                     TextView estimatedPrice = (TextView) replyDialog.getHolderView()
                                                                     .findViewById(R.id.estimatedPrice);
 
-                    dropOffAt.setText(String.format("%s %s", mContext
+                    dropOffAt.setText(String.format("%s\n%s", mContext
                             .getString(R.string.drop_off_at), order.dropOffAddress));
-                    pickupFrom.setText(String.format("%s %s", mContext
+                    pickupFrom.setText(String.format("%s\n%s", mContext
                             .getString(R.string.pickup_from), order.pickupAddress));
-                    estimatedPrice.setText(String.format("%s %s", mContext
+                    estimatedPrice.setText(String.format("%s\n%s", mContext
                             .getString(R.string.estimated_price), order.estimatedCost));
                 }
             }

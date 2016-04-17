@@ -11,18 +11,23 @@
         android:id="@+id/pickupFrom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@color/secondary_text_material_dark"
         android:text="@string/pickup_from"/>
 
 
     <TextView
+        android:layout_marginTop="@dimen/margin_standard_small"
         android:id="@+id/dropOffAt"
         android:layout_width="wrap_content"
+        android:textColor="@color/secondary_text_material_dark"
         android:layout_height="wrap_content"
         android:text="@string/drop_off_at"/>
 
     <TextView
+        android:layout_marginTop="@dimen/margin_standard_small"
         android:id="@+id/estimatedPrice"
         android:layout_width="wrap_content"
+        android:textColor="@color/secondary_text_material_dark"
         android:layout_height="wrap_content"
         android:text="@string/estimated_price"/>
 
