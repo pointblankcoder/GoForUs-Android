@@ -313,11 +313,6 @@ public class OrderModeManager {
 
     @OnClick(R.id.complete)
     public void onCompleteClick() {
-        quickLocationSelection.setVisibility(View.GONE);
-        complete.setVisibility(View.GONE);
-        quickLocationSelectionVisibile = false;
-        completeVisible = false;
-
         Order order = new Order();
         order.dropOffLocationLat = dropOffPoints.get(0).getPosition().latitude;
         order.dropOffLocationLng = dropOffPoints.get(0).getPosition().longitude;
@@ -392,6 +387,7 @@ public class OrderModeManager {
             Intent intent = builder.build(mActivity);
             mActivity.startActivityForResult(intent, requestId);
         } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
+            Logger.e(e.toString());
         }
     }
 
@@ -430,6 +426,7 @@ public class OrderModeManager {
             completeVisible = true;
         }
     }
+
     public void addDropOffPoint(LatLng location) {
         hideEstimatedCost();
         Marker marker = mMap

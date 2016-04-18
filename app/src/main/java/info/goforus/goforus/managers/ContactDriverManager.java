@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,6 +62,9 @@ public class ContactDriverManager implements OnDismissListener {
     @Nullable @Bind(R.id.accepted) ImageView accepted;
     @Nullable @Bind(R.id.declined) ImageView declined;
     @Nullable @Bind(R.id.progress) ProgressBar progress;
+    @Nullable @Bind(R.id.complete) View complete;
+    @Nullable @Bind(R.id.quickLocationSelection) LinearLayout quickLocationSelection;
+    @Nullable @Bind(R.id.estimatedCost) TextView estimatedCost;
 
     public void setup(BaseActivity activity, Order order, Driver driver) {
         mDriver = driver;
@@ -100,6 +104,12 @@ public class ContactDriverManager implements OnDismissListener {
         contactDialog.dismiss();
         dismissedContactThroughMessageClick = true;
         mOrder.save();
+
+        if (quickLocationSelection != null) quickLocationSelection.setVisibility(View.GONE);
+        if (complete != null) complete.setVisibility(View.GONE);
+        if (estimatedCost != null) estimatedCost.setVisibility(View.GONE);
+
+
         GoForUs.getInstance().getJobManager().addJobInBackground(new PostOrderJob(mOrder.getId()));
     }
 
