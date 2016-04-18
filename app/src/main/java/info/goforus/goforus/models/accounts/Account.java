@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import info.goforus.goforus.GoForUs;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
 import info.goforus.goforus.event_results.LocationUpdateServiceResult;

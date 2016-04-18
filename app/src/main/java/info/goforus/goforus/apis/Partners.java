@@ -25,5 +25,4 @@ public class Partners {
 
         return response;
     }
-
 }

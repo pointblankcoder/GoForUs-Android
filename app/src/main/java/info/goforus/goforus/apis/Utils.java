@@ -22,7 +22,7 @@ public class Utils {
     public static Utils getInstance() { return utils; }
 
     // Access our associated APIs
-    public final static Location LocationApi = Location.getInstance();
+    public final static Locations LOCATIONS_API = Locations.getInstance();
     public final static Sessions SessionsApi = Sessions.getInstance();
     public final static Conversations ConversationsApi = Conversations.getInstance();
     public final static Messages MessagesApi = Messages.getInstance();

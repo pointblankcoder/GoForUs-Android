@@ -142,9 +142,12 @@ public class Conversation extends Model {
                            .executeSingle();
     }
 
+    // TODO: Add inProgress check here when in progress work in complete
     public boolean canReply() {
         Order order = getOrder();
         if (order != null && (!order.accepted && !order.declined)) {
+            return true;
+        } else if (order != null && order.respondedTo && order.accepted) {
             return true;
         } else {
             return false;

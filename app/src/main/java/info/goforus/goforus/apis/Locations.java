@@ -1,5 +1,7 @@
 package info.goforus.goforus.apis;
 
+import android.app.usage.UsageEvents;
+
 import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
@@ -17,22 +19,17 @@ import us.monoid.json.JSONObject;
 import static us.monoid.web.Resty.content;
 import static us.monoid.web.Resty.put;
 
-public class Location {
+public class Locations {
 
-    private static final Location location = new Location();
+    private static final Locations LOCATIONS = new Locations();
 
-    private Location() {
-    }
+    private Locations() { EventBus.getDefault().register(this); }
 
-    public static Location getInstance() {
-        return location;
-    }
+    public static Locations getInstance() { return LOCATIONS; }
 
     public static String nearbyDriversURI = getNearbyDriversUri();
 
-    public static String getNearbyDriversUri(){
-        return Utils.getBaseUri() + "partners/nearby";
-    }
+    public static String getNearbyDriversUri(){ return Utils.getBaseUri() + "partners/nearby"; }
 
     public JSONArray getNearbyDrivers(final double lat, final double lng) {
         JSONArray drivers = null;
@@ -63,11 +60,11 @@ public class Location {
 
             Utils.resty.json(updateLocationURI + Utils.tokenParams(), put(content(location)));
         } catch (IOException | JSONException e) {
-            e.printStackTrace();
+            Logger.e(e.toString());
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.POSTING)
+    @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void onLocationUpdate(LocationUpdateServiceResult result) {
         updateMyLocation(result.getLocation().latitude, result.getLocation().longitude);
     }
