@@ -64,14 +64,12 @@ public class JobsAdapter extends ArrayAdapter<Job> {
             viewHolder = (ViewHolder) view.getTag();
         }
 
-        if (job.respondedTo) {
-            if (job.declined) {
-                viewHolder.view.setBackgroundResource(R.color.accent_material_red_400);
-                viewHolder.actionIndication.setImageResource(R.drawable.ic_cancel_white_48dp);
-            } else if (job.accepted) {
-                viewHolder.view.setBackgroundResource(R.color.accent_material_light_green_400);
-                viewHolder.actionIndication.setImageResource(R.drawable.ic_check_circle_white_48dp);
-            }
+        if (job.declined) {
+            viewHolder.view.setBackgroundResource(R.color.accent_material_red_400);
+            viewHolder.actionIndication.setImageResource(R.drawable.ic_cancel_white_48dp);
+        } else if (job.accepted) {
+            viewHolder.view.setBackgroundResource(R.color.accent_material_light_green_400);
+            viewHolder.actionIndication.setImageResource(R.drawable.ic_check_circle_white_48dp);
         } else {
             viewHolder.view.setBackgroundResource(R.color.accent_material_dark_1);
             viewHolder.actionIndication.setImageResource(R.drawable.ic_chevron_right_white_48dp);
@@ -165,19 +163,24 @@ public class JobsAdapter extends ArrayAdapter<Job> {
                         new CountDownTimer(Job
                                 .findByExternalId(job.externalId).timeRemaining, 1000) {
                             public void onTick(long millisUntilFinished) {
-                                long totalSeconds = millisUntilFinished / 1000;
-                                long minutes = (totalSeconds % 3600) / 60;
-                                long seconds = totalSeconds % 60;
-                                timerCountdown
-                                        .setText(String.format("%02d:%02d", minutes, seconds));
+                                if (job.respondedTo) {
+                                    timerCountdown.setText("");
+                                    timerCountdown.setVisibility(View.GONE);
+                                } else {
+                                    long totalSeconds = millisUntilFinished / 1000;
+                                    long minutes = (totalSeconds % 3600) / 60;
+                                    long seconds = totalSeconds % 60;
+                                    timerCountdown
+                                            .setText(String.format("%02d:%02d", minutes, seconds));
+                                }
                             }
 
                             public void onFinish() {
                                 if (!order.respondedTo) {
                                     timerCountdown.setText(R.string.too_late_called_order_for_you);
-                                    acceptBtn.setVisibility(View.GONE);
-                                    declineBtn.setVisibility(View.GONE);
-                                    messageBtn.setVisibility(View.GONE);
+                                    acceptBtn.setVisibility(View.INVISIBLE);
+                                    declineBtn.setVisibility(View.INVISIBLE);
+                                    messageBtn.setVisibility(View.INVISIBLE);
                                 }
                             }
                         }.start();

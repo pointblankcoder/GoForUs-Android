@@ -3,22 +3,16 @@ package info.goforus.goforus.models.jobs;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.test.ApplicationTestCase;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
-import com.birbit.android.jobqueue.JobManager;
 import com.orhanobut.logger.Logger;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import info.goforus.goforus.GoForUs;
-import info.goforus.goforus.jobs.DeclineJobJob;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.orders.Order;
 import us.monoid.json.JSONArray;
@@ -130,10 +124,6 @@ public class Job extends Model {
 
                     public void onFinish() {
                         Logger.i("We are finished the countdown. ");
-                        if (!respondedTo) {
-                            Logger.i("We are finished the countdown. Time to decline the job manually just incase the server is a little slow");
-                            GoForUs.getInstance().getJobManager().addJobInBackground(new DeclineJobJob(externalId));
-                        }
                     }
                 }.start();
             }

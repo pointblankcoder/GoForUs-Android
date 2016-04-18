@@ -88,11 +88,10 @@ public class MessagesFragment extends Fragment {
         lvChat.setAdapter(mAdapter);
         lvChat.setSelection(mAdapter.getCount() - 1);
 
-        Order order = mConversation.getOrder();
-        if (order != null && order.respondedTo && !order.accepted){
-            sendWrapper.setVisibility(View.GONE);
-        } else {
+        if (mConversation.canReply()){
             sendWrapper.setVisibility(View.VISIBLE);
+        } else {
+            sendWrapper.setVisibility(View.GONE);
         }
     }
 
@@ -155,11 +154,10 @@ public class MessagesFragment extends Fragment {
             etMessage.requestFocus();
 
 
-            Order order = mConversation.getOrder();
-            if (order != null && order.respondedTo && !order.accepted){
-                sendWrapper.setVisibility(View.GONE);
-            } else {
+            if (mConversation.canReply()){
                 sendWrapper.setVisibility(View.VISIBLE);
+            } else {
+                sendWrapper.setVisibility(View.GONE);
             }
         }
     }

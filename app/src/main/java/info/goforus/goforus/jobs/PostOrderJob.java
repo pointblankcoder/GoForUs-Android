@@ -36,6 +36,7 @@ public class PostOrderJob extends Job {
             Logger.e("Can't find the Order... orderID = %s", orderId);
         } else {
             JSONObject response = Utils.OrdersApi.postOrder(order);
+            Order.updateOrderFromPost(order, response);
             EventBus.getDefault().post(new CreateOrderFromApiResult(response));
         }
     }

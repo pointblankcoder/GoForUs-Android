@@ -29,14 +29,6 @@ public class CreateOrderFromApiResult {
             Message message = Message.updateOrCreateFromJson(response.getJSONObject("message"), mConversation.externalId);
             messages.add(message);
             EventBus.getDefault().post(new MessagesUpdateServiceResult(mConversation.externalId, messages));
-
-            // TODO: update the order with new details
-            int partnerId = mResponse.getInt("partner_id");
-            mOrder = Order.lastAwaitingConfirmed(partnerId);
-            mOrder.externalId = response.getInt("id");
-            mOrder.conversationId = conversation.externalId;
-            mOrder.save();
-
         } catch (JSONException e) {
             Logger.e(e.toString() + "\n" + mResponse);
         }

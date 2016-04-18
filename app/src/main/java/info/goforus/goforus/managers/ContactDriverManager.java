@@ -16,6 +16,7 @@ import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.DialogPlusBuilder;
 import com.orhanobut.dialogplus.OnDismissListener;
 import com.orhanobut.dialogplus.ViewHolder;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -26,11 +27,14 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import info.goforus.goforus.BaseActivity;
 import info.goforus.goforus.GoForUs;
+import info.goforus.goforus.NavigationActivity;
 import info.goforus.goforus.R;
 import info.goforus.goforus.event_results.AcceptedOrderResult;
 import info.goforus.goforus.event_results.DeclinedOrderResult;
+import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.jobs.PostOrderJob;
 import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.drivers.Driver;
 import info.goforus.goforus.models.orders.Order;
 
@@ -118,9 +122,7 @@ public class ContactDriverManager implements OnDismissListener {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onAccepted(AcceptedOrderResult result) {
-        if (status != null) {
-            status.setText("Accepted!");
-        }
+        if (status != null) status.setText("Accepted!");
 
         final Handler handler = new Handler();
         Runnable runnable = new Runnable() {
@@ -133,7 +135,7 @@ public class ContactDriverManager implements OnDismissListener {
 
                         @Override
                         public void run() {
-                            waitingForReplyDialog.dismiss();
+                            if (waitingForReplyDialog != null) waitingForReplyDialog.dismiss();
                             OrderModeManager.getInstance().exitOrderMode();
                             Toast.makeText(mActivity, "Keep an on your inbox in case the driver has any complications or questions!", Toast.LENGTH_LONG)
                                  .show();
@@ -170,5 +172,29 @@ public class ContactDriverManager implements OnDismissListener {
         };
 
         handler.postDelayed(runnable, 2000);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageReceived(final MessagesFromApiResult result) {
+        final Conversation conversation = Conversation.findByExternalId(result.getConversationId());
+        Order order = Order.findByConversation(conversation);
+        if(order != null && mOrder != null && order.externalId == mOrder.externalId) {
+            Logger.i("We have received a message from the partner related to this order. Let's allow the customer to reply");
+            if (progress != null) progress.setVisibility(View.GONE);
+            if (status != null) status.setText("You've received a message from the Driver!");
+
+            final Handler handler = new Handler();
+            final Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    // We are not the customer this does not need to trigger
+                    if (waitingForReplyDialog != null) waitingForReplyDialog.dismiss();
+                    OrderModeManager.getInstance().exitOrderMode();
+                    ((NavigationActivity)mActivity).showMessagesFragment(conversation);
+                }
+            };
+
+            handler.postDelayed(runnable, 2000);
+        }
     }
 }

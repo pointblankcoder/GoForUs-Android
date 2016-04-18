@@ -21,10 +21,10 @@ import us.monoid.json.JSONObject;
 @Parcel(Parcel.Serialization.BEAN)
 @Table(name = "Conversations")
 public class Conversation extends Model {
-    @Column(name = "externalId", index = true, unique = true)  public int externalId;
+    @Column(name = "externalId", index = true, unique = true) public int externalId;
     @Column(name = "partnerId", index = true) public int partnerId;
     @Column(name = "customerId", index = true) public int customerId;
-    @Column(name = "Account", index = true)  public long account;
+    @Column(name = "Account", index = true) public long account;
 
     public Conversation() {
         super();
@@ -68,8 +68,9 @@ public class Conversation extends Model {
             Logger.e(e.toString());
         }
 
-        Conversation existingConversation =
-                new Select().from(Conversation.class).where("externalId = ?", externalId).executeSingle();
+        Conversation existingConversation = new Select().from(Conversation.class)
+                                                        .where("externalId = ?", externalId)
+                                                        .executeSingle();
         if (existingConversation != null) {
             return existingConversation;
         } else {
@@ -95,11 +96,13 @@ public class Conversation extends Model {
     }
 
     public static Conversation findByExternalId(int externalId) {
-        return new Select().from(Conversation.class).where("externalId = ?", externalId).executeSingle();
+        return new Select().from(Conversation.class).where("externalId = ?", externalId)
+                           .executeSingle();
     }
 
     public List<Message> messages() {
-        return new Select().from(Message.class).where("Conversation = ?", getId()).orderBy("externalId ASC").execute();
+        return new Select().from(Message.class).where("Conversation = ?", getId())
+                           .orderBy("externalId ASC").execute();
     }
 
     public int messagesCount() {
@@ -107,30 +110,44 @@ public class Conversation extends Model {
     }
 
     public Message lastMessage() {
-        return new Select().from(Message.class).where("Conversation = ? AND confirmedReceived = ?", getId(), true).orderBy("externalId DESC").executeSingle();
+        return new Select().from(Message.class)
+                           .where("Conversation = ? AND confirmedReceived = ?", getId(), true)
+                           .orderBy("externalId DESC").executeSingle();
     }
 
     public Message firstMessage() {
-        return new Select().from(Message.class).where("Conversation = ? AND confirmedReceived = ?", getId(), true).orderBy("externalId ASC").executeSingle();
+        return new Select().from(Message.class)
+                           .where("Conversation = ? AND confirmedReceived = ?", getId(), true)
+                           .orderBy("externalId ASC").executeSingle();
     }
 
     public int unreadMessageCount() {
-        return new Select().from(Message.class).where("Conversation = ? AND isRead = ? AND isMe = ?", getId(), false, false).count();
+        return new Select().from(Message.class)
+                           .where("Conversation = ? AND isRead = ? AND isMe = ?", getId(), false, false)
+                           .count();
     }
 
     public static int totalUnreadMessagesCount() {
         int count = 0;
         for (Conversation c : Account.currentAccount().conversations()) {
             for (Message m : c.messages()) {
-                if (!m.isRead && !m.isMe)
-                    count++;
+                if (!m.isRead && !m.isMe) count++;
             }
         }
         return count;
     }
 
-    public Order getOrder(){
-        return new Select().from(Order.class).where("conversationId = ?", externalId).executeSingle();
+    public Order getOrder() {
+        return new Select().from(Order.class).where("conversationId = ?", externalId)
+                           .executeSingle();
     }
 
+    public boolean canReply() {
+        Order order = getOrder();
+        if (order != null && (!order.accepted && !order.declined)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

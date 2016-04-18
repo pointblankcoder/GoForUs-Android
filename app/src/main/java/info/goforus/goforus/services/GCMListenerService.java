@@ -37,6 +37,7 @@ import info.goforus.goforus.event_results.ConversationsFromApiResult;
 import info.goforus.goforus.event_results.DeclinedOrderResult;
 import info.goforus.goforus.event_results.JobsFromApiResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
+import info.goforus.goforus.event_results.OrdersFromApiResult;
 import info.goforus.goforus.models.orders.Order;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
@@ -48,7 +49,9 @@ public class GCMListenerService extends GcmListenerService {
     private static final String NEW_CONVERSATION = "New Conversation";
     private static final String NEW_MESSAGE = "New Message";
     private static final String NEW_JOB = "New Job";
+    private static final String UPDATED_JOB = "Updated Job";
     private static final String NEW_ORDER = "New Order";
+    private static final String UPDATED_ORDER = "Updated Order";
     private static final String ACCEPTED_ORDER = "Accepted Order";
     private static final String DECLINED_ORDER = "Declined Order";
 
@@ -108,15 +111,41 @@ public class GCMListenerService extends GcmListenerService {
                             Logger.e(e.toString());
                         }
                         break;
-                    case NEW_ORDER:
+                    case UPDATED_JOB:
                         try {
-                            Logger.i("Received a new order");
-                            JSONObject jobJSON = new JSONObject(data.getString("order"));
-                            new Order(jobJSON).save();
-
+                            Logger.i("Received a updated job");
+                            JSONObject jobJSON = new JSONObject(data.getString("job"));
+                            JSONArray jobJSONArray = new JSONArray();
+                            jobJSONArray.put(jobJSON);
+                            EventBus.getDefault().post(new JobsFromApiResult(jobJSONArray));
                         } catch (JSONException e) {
                             Logger.e(e.toString());
                         }
+                        break;
+                    case NEW_ORDER:
+                        try {
+                            Logger.i("Received a new order");
+                            JSONObject orderJSON = new JSONObject(data.getString("order"));
+                            JSONArray orderJSONArray = new JSONArray();
+                            orderJSONArray.put(orderJSON);
+
+                            EventBus.getDefault().post(new OrdersFromApiResult(orderJSONArray));
+                        } catch (JSONException e) {
+                            Logger.e(e.toString());
+                        }
+                        break;
+                    case UPDATED_ORDER:
+                        try {
+                            Logger.i("Received a update order");
+                            JSONObject orderJSON = new JSONObject(data.getString("order"));
+                            JSONArray orderJSONArray = new JSONArray();
+                            orderJSONArray.put(orderJSON);
+
+                            EventBus.getDefault().post(new OrdersFromApiResult(orderJSONArray));
+                        } catch (JSONException e) {
+                            Logger.e(e.toString());
+                        }
+
                         break;
                     case ACCEPTED_ORDER:
                         try {
