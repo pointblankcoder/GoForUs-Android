@@ -6,6 +6,8 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 import com.orhanobut.logger.Logger;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -137,5 +139,18 @@ public class Order extends Model {
 
     public static Order findByExternalId(int externalId) {
         return new Select().from(Order.class).where("externalId = ?", externalId).executeSingle();
+    }
+
+    public String estimatedPriceToString(){
+        DecimalFormat df = new DecimalFormat("#.##");
+        df.setRoundingMode(RoundingMode.CEILING);
+        return String.format("Estimated Cost: £%s", df.format(estimatedCost));
+    }
+
+
+    public String finalPriceToString(){
+        DecimalFormat df = new DecimalFormat("#.##");
+        df.setRoundingMode(RoundingMode.CEILING);
+        return String.format("Final Cost: £%s", df.format(finalCost));
     }
 }

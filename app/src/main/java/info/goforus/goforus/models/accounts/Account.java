@@ -140,7 +140,7 @@ public class Account extends Model {
             if (order != null && order.partnerId == myExternalId && conversation
                     .messagesCount() != 1) {
                 conversationsToReturn.add(conversation);
-            } else if (order != null && order.partnerId != myExternalId) {
+            } else if (order != null && order.customerId == myExternalId) {
                 conversationsToReturn.add(conversation);
             }
         }

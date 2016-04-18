@@ -7,6 +7,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.akexorcist.googledirection.DirectionCallback;
@@ -38,7 +39,9 @@ import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.ViewHolder;
 import com.orhanobut.logger.Logger;
 
+import java.math.RoundingMode;
 import java.nio.channels.FileChannel;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,6 +100,7 @@ public class OrderModeManager {
     @Bind(R.id.findPickup) View findPickup;
     @Bind(R.id.removePickup) View removePickup;
     @Bind(R.id.complete) View complete;
+    @Bind(R.id.estimatedCost) TextView estimatedCost;
 
     DialogPlus mTipDialog;
 
@@ -167,6 +171,7 @@ public class OrderModeManager {
                             distanceText = leg.getDistance().getText();
                             // TODO: Why is this returning back without *10 to become meters of the the distance text?
                             distanceValue = Integer.parseInt(leg.getDuration().getValue()) * 10;
+                            showEstimatedCost();
                         }
                     }
                 } else {
@@ -271,6 +276,7 @@ public class OrderModeManager {
     public void onExitModeClick() {
         exitOrderMode();
         removeAllPolylines();
+        hideEstimatedCost();
         Toast.makeText(mActivity, "You have cancelled your order", Toast.LENGTH_LONG).show();
     }
 
@@ -399,6 +405,7 @@ public class OrderModeManager {
     public ArrayList<Marker> getDropOffPoints() { return dropOffPoints; }
 
     public void addPickupPoint(LatLng location) {
+        hideEstimatedCost();
         Marker marker = mMap.addMarker(new MarkerOptions().position(location).title("Pickup Point")
                                                           .draggable(true)
                                                           .icon(BitmapDescriptorFactory
@@ -423,8 +430,8 @@ public class OrderModeManager {
             completeVisible = true;
         }
     }
-
     public void addDropOffPoint(LatLng location) {
+        hideEstimatedCost();
         Marker marker = mMap
                 .addMarker(new MarkerOptions().position(location).title("Drop Off Point")
                                               .draggable(true).icon(BitmapDescriptorFactory
@@ -448,10 +455,19 @@ public class OrderModeManager {
         }
     }
 
+    public void hideEstimatedCost() { estimatedCost.setVisibility(View.GONE); }
+
+    public void showEstimatedCost() {
+        estimatedCost.setVisibility(View.VISIBLE);
+        DecimalFormat df = new DecimalFormat("#.##");
+        df.setRoundingMode(RoundingMode.CEILING);
+
+        estimatedCost.setText(String.format("%s £%s", mActivity.getText(R.string.estimated_cost), df.format(calculateCost())));
+    }
+
     public void explainToUserAboutLongPress() {
         // TODO: Explain to the user that long press is available if they were not able to find a location by searching.
     }
-
 
     public LatLngBounds toBounds(LatLng center, double radius) {
         LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);

@@ -159,4 +159,6 @@
     <string name="estimated_price">Estimated Price:</string>
     <string name="drop_off_at">Drop Off At:</string>
     <string name="pickup_from">Pickup From:</string>
+    <string name="estimated_cost">Estimated Cost:</string>
+    <string name="too_late_called_order_for_you">Too late. We cancelled this order.</string>
 </resources>

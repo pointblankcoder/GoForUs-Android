@@ -1,6 +1,7 @@
 package info.goforus.goforus;
 
 import android.content.Context;
+import android.os.CountDownTimer;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +36,7 @@ public class JobsAdapter extends ArrayAdapter<Job> {
         @Bind(R.id.actionIndication) ImageView actionIndication;
         @Bind(R.id.tvJobSummary) TextView jobSummary;
         View view;
+        long timeLeft = -1;
 
         public ViewHolder(View view) {
             ButterKnife.bind(this, view);
@@ -124,7 +126,8 @@ public class JobsAdapter extends ArrayAdapter<Job> {
                                                                } else if (view == showOnMapBtn) {
                                                                    MapFragment mapFragment = mContext
                                                                            .showMapFragment();
-                                                                   mapFragment.setJourneyToShow(order);
+                                                                   mapFragment
+                                                                           .setJourneyToShow(order);
                                                                    dialog.dismiss();
                                                                }
                                                            }
@@ -145,12 +148,41 @@ public class JobsAdapter extends ArrayAdapter<Job> {
 
                     replyDialog.show();
 
-                    TextView dropOffAt = (TextView) replyDialog.getHolderView()
-                                                               .findViewById(R.id.dropOffAt);
-                    TextView pickupFrom = (TextView) replyDialog.getHolderView()
-                                                                .findViewById(R.id.pickupFrom);
+                    final TextView dropOffAt = (TextView) replyDialog.getHolderView()
+                                                                     .findViewById(R.id.dropOffAt);
+                    final TextView pickupFrom = (TextView) replyDialog.getHolderView()
+                                                                      .findViewById(R.id.pickupFrom);
                     TextView estimatedPrice = (TextView) replyDialog.getHolderView()
                                                                     .findViewById(R.id.estimatedPrice);
+
+                    final TextView timerCountdown = (TextView) replyDialog.getHolderView()
+                                                                          .findViewById(R.id.timerCountdown);
+                    final Button acceptBtn = (Button) replyDialog.findViewById(R.id.acceptBtn);
+                    final Button declineBtn = (Button) replyDialog.findViewById(R.id.declineBtn);
+                    final Button messageBtn = (Button) replyDialog.findViewById(R.id.messageBtn);
+
+                    if (!order.respondedTo) {
+                        new CountDownTimer(Job
+                                .findByExternalId(job.externalId).timeRemaining, 1000) {
+                            public void onTick(long millisUntilFinished) {
+                                long totalSeconds = millisUntilFinished / 1000;
+                                long minutes = (totalSeconds % 3600) / 60;
+                                long seconds = totalSeconds % 60;
+                                timerCountdown
+                                        .setText(String.format("%02d:%02d", minutes, seconds));
+                            }
+
+                            public void onFinish() {
+                                if (!order.respondedTo) {
+                                    timerCountdown.setText(R.string.too_late_called_order_for_you);
+                                    acceptBtn.setVisibility(View.GONE);
+                                    declineBtn.setVisibility(View.GONE);
+                                    messageBtn.setVisibility(View.GONE);
+                                }
+                            }
+                        }.start();
+                    }
+
 
                     dropOffAt.setText(String.format("%s\n%s", mContext
                             .getString(R.string.drop_off_at), order.dropOffAddress));

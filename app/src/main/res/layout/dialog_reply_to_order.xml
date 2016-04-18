@@ -8,35 +8,45 @@
               android:orientation="vertical">
 
     <TextView
+        android:id="@+id/timerCountdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@color/accent_material_red_400"
+        android:textSize="22sp"
+        android:text=""
+        tools:text="2:00"/>
+
+    <TextView
         android:id="@+id/pickupFrom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/secondary_text_material_dark"
-        android:text="@string/pickup_from"/>
+        android:text="@string/pickup_from"
+        android:textColor="@color/secondary_text_material_dark"/>
 
 
     <TextView
-        android:layout_marginTop="@dimen/margin_standard_small"
         android:id="@+id/dropOffAt"
         android:layout_width="wrap_content"
-        android:textColor="@color/secondary_text_material_dark"
         android:layout_height="wrap_content"
-        android:text="@string/drop_off_at"/>
+        android:layout_marginTop="@dimen/margin_standard_small"
+        android:text="@string/drop_off_at"
+        android:textColor="@color/secondary_text_material_dark"/>
 
     <TextView
-        android:layout_marginTop="@dimen/margin_standard_small"
         android:id="@+id/estimatedPrice"
         android:layout_width="wrap_content"
-        android:textColor="@color/secondary_text_material_dark"
         android:layout_height="wrap_content"
-        android:text="@string/estimated_price"/>
+        android:layout_marginTop="@dimen/margin_standard_small"
+        android:text="@string/estimated_price"
+        android:textColor="@color/secondary_text_material_dark"/>
 
     <android.support.v7.widget.GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_margin="@dimen/margin_standard_large"
-        app:columnCount="3"
+        app:columnCount="2"
         app:orientation="horizontal"
         app:rowCount="2">
 
@@ -48,7 +58,7 @@
             android:text="DECLINE"
             app:layout_column="0"
             app:layout_columnWeight="1"
-            app:layout_gravity="start"
+            app:layout_gravity="center"
             app:layout_row="0"
             />
 
@@ -72,16 +82,17 @@
             android:padding="8dp"
             android:text="SHOW ON MAP"
             app:layout_column="0"
+            app:layout_gravity="center"
             app:layout_row="1"
             />
 
         <Button
-            android:layout_marginTop="16dp"
-            android:padding="8dp"
             android:id="@+id/messageBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:background="@color/accent_material_dark_1"
+            android:padding="8dp"
             android:text="MESSAGE"
             app:layout_column="1"
             app:layout_columnWeight="1"

@@ -21,6 +21,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import info.goforus.goforus.event_results.AcceptJobResult;
 import info.goforus.goforus.event_results.DeclineJobResult;
+import info.goforus.goforus.event_results.DeclinedOrderResult;
 import info.goforus.goforus.event_results.JobsFromApiResult;
 import info.goforus.goforus.jobs.AcceptJobJob;
 import info.goforus.goforus.jobs.GetJobsJob;
@@ -125,10 +126,25 @@ public class JobsFragment extends Fragment implements SwipeRefreshLayout.OnRefre
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onJobDeclined(DeclineJobResult result) {
+        Logger.i("job has been declined manually");
         final int position = mAdapter.getPosition(result.getJob());
 
         mJobs.remove(position);
         mJobs.add(position, result.getJob());
+        mAdapter.notifyDataSetChanged();
+    }
+
+    // We get this callback from the server if the server has cancelled the
+    // order due to a timeout or a customer cancelling the order so our job becomes
+    // invalid, in turn we cancel this job on the Partners behalf
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onOrderDeclined(DeclinedOrderResult result) {
+        Logger.i("order was declined, declining this job");
+        Job job = Job.findByOrder(result.getOrder());
+
+        final int position = mAdapter.getPosition(job);
+        mJobs.remove(position);
+        mJobs.add(position, job);
         mAdapter.notifyDataSetChanged();
     }
 }
