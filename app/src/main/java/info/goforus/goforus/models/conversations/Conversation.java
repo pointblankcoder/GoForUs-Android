@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import info.goforus.goforus.models.accounts.Account;
+import info.goforus.goforus.models.orders.Order;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
@@ -20,12 +21,10 @@ import us.monoid.json.JSONObject;
 @Parcel(Parcel.Serialization.BEAN)
 @Table(name = "Conversations")
 public class Conversation extends Model {
-    @Column(name = "externalId", index = true, unique = true)
-    public int externalId;
-    @Column(name = "subject")
-    public String subject;
-    @Column(name = "Account", index = true)
-    public long account;
+    @Column(name = "externalId", index = true, unique = true) public int externalId;
+    @Column(name = "partnerId", index = true) public int partnerId;
+    @Column(name = "customerId", index = true) public int customerId;
+    @Column(name = "Account", index = true) public long account;
 
     public Conversation() {
         super();
@@ -36,7 +35,8 @@ public class Conversation extends Model {
 
         try {
             this.externalId = conversation.getInt("id");
-            this.subject = conversation.getString("subject");
+            this.customerId = conversation.getInt("customer_id");
+            this.partnerId = conversation.getInt("partner_id");
             this.account = Account.currentAccount().getId();
         } catch (JSONException e) {
             e.printStackTrace();
@@ -68,8 +68,9 @@ public class Conversation extends Model {
             Logger.e(e.toString());
         }
 
-        Conversation existingConversation =
-                new Select().from(Conversation.class).where("externalId = ?", externalId).executeSingle();
+        Conversation existingConversation = new Select().from(Conversation.class)
+                                                        .where("externalId = ?", externalId)
+                                                        .executeSingle();
         if (existingConversation != null) {
             return existingConversation;
         } else {
@@ -95,11 +96,13 @@ public class Conversation extends Model {
     }
 
     public static Conversation findByExternalId(int externalId) {
-        return new Select().from(Conversation.class).where("externalId = ?", externalId).executeSingle();
+        return new Select().from(Conversation.class).where("externalId = ?", externalId)
+                           .executeSingle();
     }
 
     public List<Message> messages() {
-        return new Select().from(Message.class).where("Conversation = ?", getId()).orderBy("externalId ASC").execute();
+        return new Select().from(Message.class).where("Conversation = ?", getId())
+                           .orderBy("externalId ASC").execute();
     }
 
     public int messagesCount() {
@@ -107,22 +110,47 @@ public class Conversation extends Model {
     }
 
     public Message lastMessage() {
-        return new Select().from(Message.class).where("Conversation = ? AND confirmedReceived = ?", getId(), true).orderBy("externalId DESC").executeSingle();
+        return new Select().from(Message.class)
+                           .where("Conversation = ? AND confirmedReceived = ?", getId(), true)
+                           .orderBy("externalId DESC").executeSingle();
+    }
+
+    public Message firstMessage() {
+        return new Select().from(Message.class)
+                           .where("Conversation = ? AND confirmedReceived = ?", getId(), true)
+                           .orderBy("externalId ASC").executeSingle();
     }
 
     public int unreadMessageCount() {
-        return new Select().from(Message.class).where("Conversation = ? AND readByReceiver = ? AND isMe = ?", getId(), false, false).count();
+        return new Select().from(Message.class)
+                           .where("Conversation = ? AND isRead = ? AND isMe = ?", getId(), false, false)
+                           .count();
     }
 
     public static int totalUnreadMessagesCount() {
         int count = 0;
         for (Conversation c : Account.currentAccount().conversations()) {
             for (Message m : c.messages()) {
-                if (!m.readByReceiver && !m.isMe)
-                    count++;
+                if (!m.isRead && !m.isMe) count++;
             }
         }
         return count;
     }
 
+    public Order getOrder() {
+        return new Select().from(Order.class).where("conversationId = ?", externalId)
+                           .executeSingle();
+    }
+
+    // TODO: Add inProgress check here when in progress work in complete
+    public boolean canReply() {
+        Order order = getOrder();
+        if (order != null && (!order.accepted && !order.declined)) {
+            return true;
+        } else if (order != null && order.respondedTo && order.accepted) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

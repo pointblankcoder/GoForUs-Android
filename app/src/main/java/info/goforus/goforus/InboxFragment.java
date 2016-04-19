@@ -26,6 +26,7 @@ import info.goforus.goforus.jobs.GetConversationsJob;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
+import info.goforus.goforus.models.orders.Order;
 
 public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
     public static final String TAG = "Inbox Activity";
@@ -52,13 +53,18 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
         return view;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        mConversations = Account.currentAccount().conversationsOrderedByRecentMessages();
+    public void setList(){
+        mConversations = Account.currentAccount().conversationsForInbox();
         mAdapter = new ConversationsAdapter(mActivity, mConversations);
         listView.setAdapter(mAdapter);
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        setList();
+    }
+
 
     @Override
     public void onPause() {
@@ -76,6 +82,7 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     public void onHiddenChanged(boolean hidden) {
         if (hidden) {
         } else {
+            setList();
             mAdapter.notifyDataSetChanged();
         }
     }
@@ -97,7 +104,8 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
     public void onConversationsUpdate(ConversationsFromApiResult result) {
         if (result.getConversations().size() > 0) {
             for (Conversation c : result.getConversations()) {
-                if(!mConversations.contains(c)) {
+                Order order = c.getOrder();
+                if(!mConversations.contains(c) && order != null && order.partnerId != Account.currentAccount().externalId) {
                     mAdapter.add(c);
                     mAdapter.notifyDataSetChanged();
                 }
@@ -116,7 +124,7 @@ public class InboxFragment extends Fragment implements SwipeRefreshLayout.OnRefr
 
         if (mConversations.contains(resultConversation) && result.getMessages().size() > 0) {
             for (Message message : result.getMessages()) {
-                if (!message.readByReceiver) {
+                if (!message.isRead && !message.isMe) {
                     final int position = mAdapter.getPosition(resultConversation);
 
                     mConversations.remove(position);

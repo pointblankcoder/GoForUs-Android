@@ -6,16 +6,12 @@ public class MessageSentResult {
     public static int RESULT_FAILURE = 0;
     public static int RESULT_OK = 1;
 
-    public MessageSentResult(int resultCode, String message){
+    public MessageSentResult(int resultCode, String message) {
         mResultCode = resultCode;
         mMessage = message;
     }
 
-    public int getResultCode(){
-        return mResultCode;
-    }
+    public int getResultCode() { return mResultCode; }
 
-    public String getMessage(){
-        return mMessage;
-    }
+    public String getMessage() { return mMessage; }
 }

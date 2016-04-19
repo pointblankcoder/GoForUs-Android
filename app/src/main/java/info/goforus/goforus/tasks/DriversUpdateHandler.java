@@ -34,7 +34,7 @@ public class DriversUpdateHandler {
                 public void run() throws Exception {
                     Account account = Account.currentAccount();
                     if (account != null) {
-                        Utils.LocationApi.getNearbyDrivers(account.lat, account.lng);
+                        Utils.LOCATIONS_API.getNearbyDrivers(account.lat, account.lng);
                     }
                     mHandler.postDelayed(task, REPEAT_TIME);
                 }

@@ -13,6 +13,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.birbit.android.jobqueue.JobManager;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -31,12 +32,13 @@ import info.goforus.goforus.jobs.MarkReadMessageJob;
 import info.goforus.goforus.jobs.PostMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
-import info.goforus.goforus.tasks.MessagesUpdateHandler;
+import info.goforus.goforus.models.orders.Order;
 
 public class MessagesFragment extends Fragment {
     @Bind(R.id.etMessage) EditText etMessage;
     @Bind(R.id.btSend) ImageButton btSend;
     @Bind(R.id.lvChat) ListView lvChat;
+    @Bind(R.id.llSend) View sendWrapper;
     BaseActivity mActivity;
     JobManager mJobManager;
     private MessagesAdapter mAdapter;
@@ -51,7 +53,6 @@ public class MessagesFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        MessagesUpdateHandler.getInstance().stopUpdates();
         super.onDestroy();
     }
 
@@ -86,10 +87,16 @@ public class MessagesFragment extends Fragment {
         mAdapter = new MessagesAdapter(mActivity, mConversation.messages());
         lvChat.setAdapter(mAdapter);
         lvChat.setSelection(mAdapter.getCount() - 1);
+
+        if (mConversation.canReply()){
+            sendWrapper.setVisibility(View.VISIBLE);
+        } else {
+            sendWrapper.setVisibility(View.GONE);
+        }
     }
 
     @OnClick(R.id.btSend)
-    public void onSendClick(){
+    public void onSendClick() {
         String data = etMessage.getText().toString();
 
         if (TextUtils.isEmpty(data) || data.trim().length() <= 2) {
@@ -124,14 +131,12 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        MessagesUpdateHandler.getInstance().startUpdates(mConversation.externalId);
         EventBus.getDefault().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        MessagesUpdateHandler.getInstance().stopUpdates();
         EventBus.getDefault().unregister(this);
     }
 
@@ -140,16 +145,20 @@ public class MessagesFragment extends Fragment {
     // without hooking into the show() hide() methods of the Fragme
     @Override
     public void onHiddenChanged(boolean hidden) {
-        if (hidden) {
-            MessagesUpdateHandler.getInstance().stopUpdates();
-        } else {
-            MessagesUpdateHandler.getInstance().startUpdates(mConversation.externalId);
+        if (!hidden) {
             mAdapter.clear();
             mAdapter.addAll(mConversation.messages());
             mAdapter.notifyDataSetChanged();
 
             // Request focus without starting up the keyboard
             etMessage.requestFocus();
+
+
+            if (mConversation.canReply()){
+                sendWrapper.setVisibility(View.VISIBLE);
+            } else {
+                sendWrapper.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -193,13 +202,13 @@ public class MessagesFragment extends Fragment {
                     }
                 }
 
-                GoForUs.getInstance().getJobManager()
-                       .addJobInBackground(new MarkReadMessageJob(mConversation.externalId, message.externalId));
-                message.confirmedReceived = true;
-                if (isVisible()) {
-                    message.readByReceiver = true;
+                if (isVisible() && !message.isMe) {
+                    message.isRead = true;
+                    GoForUs.getInstance().getJobManager()
+                           .addJobInBackground(new MarkReadMessageJob(mConversation.externalId, message.externalId));
+                    message.confirmedReceived = true;
+                    message.save();
                 }
-                message.save();
             }
 
             mAdapter.notifyDataSetChanged();

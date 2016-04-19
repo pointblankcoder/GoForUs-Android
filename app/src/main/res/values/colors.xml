@@ -13,6 +13,11 @@
     <color name="primary_material_dark_1">#212121</color>
     <color name="accent_material_dark_1">#80cbc4</color>
 
+    <color name="accent_material_red_400">#EF5350</color>
+    <color name="accent_material_teal_400">#26A69A</color>
+    <color name="accent_material_light_green_400">#9CCC65</color>
+
+
 
     <color name="foreground_material_light">#ffffff</color>
     <color name="primary_text_default_material_dark">#ffffff</color>

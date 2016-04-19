@@ -15,7 +15,9 @@
     <dimen name="flexible_space_show_offset">120dp</dimen>
     <dimen name="rating_star_height">50dp</dimen>
     <dimen name="rating_star_width">50dp</dimen>
-    <dimen name="margin_standard">16dp</dimen>
+    <dimen name="margin_standard">8dp</dimen>
+    <dimen name="margin_standard_small">4dp</dimen>
+    <dimen name="margin_standard_large">16dp</dimen>
 
 
 

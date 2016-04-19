@@ -14,21 +14,18 @@ public class MessagesFromApiResult {
     int mConversationId;
     List<Message> mMessages = new ArrayList<>();
 
-    public MessagesFromApiResult(JSONArray json, int conversationId){
+    public MessagesFromApiResult(JSONArray json, int conversationId) {
         mConversationId = conversationId;
-        if(json != null) {
+        if (json != null) {
             mMessages = Message.updateOrCreateAllFromJson(json, conversationId);
             if (mMessages.size() > 0) {
-                EventBus.getDefault().post(new MessagesUpdateServiceResult(conversationId, mMessages));
+                EventBus.getDefault()
+                        .post(new MessagesUpdateServiceResult(conversationId, mMessages));
             }
         }
     }
 
-    public List<Message> getMessages(){
-        return mMessages;
-    }
+    public List<Message> getMessages() { return mMessages; }
 
-    public int getConversationId(){
-        return mConversationId;
-    }
+    public int getConversationId() { return mConversationId; }
 }

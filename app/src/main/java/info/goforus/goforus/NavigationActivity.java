@@ -1,5 +1,7 @@
 package info.goforus.goforus;
 
+import android.accounts.OnAccountsUpdateListener;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -19,14 +21,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
+import com.orhanobut.dialogplus.OnDismissListener;
 import com.orhanobut.dialogplus.ViewHolder;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -34,26 +43,36 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import info.goforus.goforus.event_results.LogoutFromApiResult;
 import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.event_results.NewMessagesResult;
-import info.goforus.goforus.jobs.AttemptLogoutJob;
+import info.goforus.goforus.event_results.UpdatedAccountResult;
+import info.goforus.goforus.jobs.LogoutJob;
+import info.goforus.goforus.jobs.GoOnlineJob;
+import info.goforus.goforus.managers.OrderModeManager;
+import info.goforus.goforus.managers.QuickOrderManager;
 import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.conversations.Conversation;
 
 public class NavigationActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
     ActionBarDrawerToggle mDrawerToggle;
+    InboxFragment inboxFragment;
+    public MapFragment mapFragment;
+    MessagesFragment messagesFragment;
+    JobsFragment jobsFragment;
+    FragmentManager mFragmentManager;
+    DialogPlus mTipDialog;
+    OrderModeManager orderModeManager = OrderModeManager.getInstance();
+
+    @Bind(R.id.exitModeFab) View exitModeFab;
+    @Bind(R.id.quickOrderFab) FloatingActionButton mQuickOrderFab;
     @Bind(R.id.messageFab) FloatingActionButton mMessageFab;
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.drawer_layout) DrawerLayout mDrawer;
-    InboxFragment inboxFragment;
-    MapFragment mapFragment;
-    MessagesFragment messagesFragment;
-    FragmentManager mFragmentManager;
-
-    DialogPlus mTipDialog;
     @Bind(R.id.nav_view) NavigationView mNavigationView;
+    private Switch onlineSwitch;
 
     public NavigationActivity() {
     }
@@ -66,41 +85,30 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
         setSupportActionBar(mToolbar);
 
-        if (mMessageFab != null) {
-            mMessageFab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showInboxFragment();
-                }
-            });
-            updateMessageFAB();
-        }
-
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         mDrawerToggle.syncState();
         mDrawer.addDrawerListener(mDrawerToggle);
         mNavigationView.setNavigationItemSelectedListener(this);
 
 
-        mTipDialog = DialogPlus.newDialog(this)
-                               .setHeader(R.layout.dialog_tips_main_header)
+        mTipDialog = DialogPlus.newDialog(this).setHeader(R.layout.dialog_tips_main_header)
                                .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
                                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
                                .setContentHolder(new ViewHolder(R.layout.dialog_tips_main_body))
-                               .setGravity(Gravity.CENTER)
-                               .setCancelable(true).setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(DialogPlus dialog, View view) {
-                        AppCompatCheckBox checkBox = (AppCompatCheckBox) findViewById(R.id.doNotShowTips);
-                        if (view.equals(findViewById(R.id.dismissTipDialog))) {
-                            mTipDialog.dismiss();
-                        } else if (view.equals(checkBox)) {
-                            Account account = Account.currentAccount();
-                            account.showMapTips = !checkBox.isChecked();
-                            account.save();
-                        }
-                    }
-                }).create();
+                               .setGravity(Gravity.CENTER).setCancelable(true)
+                               .setOnClickListener(new OnClickListener() {
+                                   @Override
+                                   public void onClick(DialogPlus dialog, View view) {
+                                       AppCompatCheckBox checkBox = (AppCompatCheckBox) findViewById(R.id.doNotShowTips);
+                                       if (view.equals(findViewById(R.id.dismissTipDialog))) {
+                                           mTipDialog.dismiss();
+                                       } else if (view.equals(checkBox)) {
+                                           Account account = Account.currentAccount();
+                                           account.showMapTips = !checkBox.isChecked();
+                                           account.save();
+                                       }
+                                   }
+                               }).create();
 
         if (Account.currentAccount().showMapTips) {
             mTipDialog.show();
@@ -109,6 +117,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
             checkBox.setSelected(!Account.currentAccount().showMapTips);
         }
 
+        updateMessageFAB();
 
         // only create fragments if they haven't been instantiated already
         mFragmentManager = getSupportFragmentManager();
@@ -121,35 +130,96 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
             messagesFragment = (MessagesFragment) mFragmentManager
                     .getFragment(savedInstanceState, "Messages");
 
-            if (savedInstanceState.getBoolean("mMessageFabShown")) {
+            if (Account.currentAccount().isPartner()) {
+                jobsFragment = (JobsFragment) mFragmentManager
+                        .getFragment(savedInstanceState, "Jobs");
+            }
+            if (savedInstanceState.getBoolean("showFABs")) {
+                mQuickOrderFab.show();
                 mMessageFab.show();
             } else {
+                mQuickOrderFab.hide();
                 mMessageFab.hide();
             }
         }
         if (mapFragment == null) mapFragment = new MapFragment();
         if (inboxFragment == null) inboxFragment = new InboxFragment();
         if (messagesFragment == null) messagesFragment = new MessagesFragment();
-        if (savedInstanceState == null) showMapFragment();
+
+        if (Account.currentAccount().isPartner()) {
+            if (jobsFragment == null) jobsFragment = new JobsFragment();
+            mNavigationView.getMenu().findItem(R.id.nav_jobs).setVisible(true);
+
+            if (savedInstanceState == null) showJobsFragment();
+        } else {
+            mNavigationView.getMenu().findItem(R.id.nav_jobs).setVisible(false);
+            if (savedInstanceState == null) showMapFragment();
+        }
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == OrderModeManager.FIND_DROP_OFF_LOCATION || requestCode == OrderModeManager.FIND_PICKUP_LOCATION) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlacePicker.getPlace(this, data);
+
+                if (requestCode == OrderModeManager.FIND_PICKUP_LOCATION) {
+                    orderModeManager.addAddress(place.getAddress().toString(), true);
+                    orderModeManager.addPickupPoint(place.getLatLng());
+                }
+
+                if (requestCode == OrderModeManager.FIND_DROP_OFF_LOCATION) {
+                    orderModeManager.addAddress(place.getAddress().toString(), false);
+                    orderModeManager.addDropOffPoint(place.getLatLng());
+                }
+            }
+        }
+        if (resultCode == RESULT_CANCELED) {
+            orderModeManager.explainToUserAboutLongPress();
+            View view = this.getCurrentFocus();
+            if (view != null) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        }
+    }
+
+    @OnClick(R.id.messageFab)
+    public void onMessageFabClick() {
+        showInboxFragment();
+    }
+
+    @OnClick(R.id.quickOrderFab)
+    public void onQuickOrderFabClick() {
+        DialogPlus quickOrderDialog = DialogPlus.newDialog(this)
+                                                .setContentHolder(new ViewHolder(R.layout.dialog_quick_order))
+                                                .setGravity(Gravity.TOP).setCancelable(true)
+                                                .setContentBackgroundResource(R.color.primary_material_dark_1)
+                                                .setOnDismissListener(new OnDismissListener() {
+                                                    @Override
+                                                    public void onDismiss(DialogPlus dialog) {
+                                                        orderModeManager.showTips();
+                                                    }
+                                                }).setOnClickListener(new QuickOrderManager(this))
+                                                .create();
+        quickOrderDialog.show();
     }
 
     @Override
-    public void onDestroy(){
-        mGoForUs.ServicesManager.cancelConversationsUpdateAlarm();
+    public void onDestroy() {
         super.onDestroy();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mGoForUs.ServicesManager.scheduleConversationsUpdateAlarm();
         EventBus.getDefault().register(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        mGoForUs.ServicesManager.cancelConversationsUpdateAlarm();
         EventBus.getDefault().unregister(this);
     }
 
@@ -163,8 +233,11 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
             sfm.putFragment(savedInstanceState, "Inbox", sfm.findFragmentByTag("Inbox"));
         if (messagesFragment.isAdded())
             sfm.putFragment(savedInstanceState, "Messages", sfm.findFragmentByTag("Messages"));
+        if (jobsFragment != null && jobsFragment.isAdded())
+            sfm.putFragment(savedInstanceState, "Jobs", sfm.findFragmentByTag("Jobs"));
 
-        savedInstanceState.putBoolean("mMessageFabShown", mMessageFab.isShown());
+        savedInstanceState
+                .putBoolean("showFABs", (mMessageFab.isShown() || mQuickOrderFab.isShown()));
 
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -176,10 +249,8 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         } else {
             if (messagesFragment.isVisible()) {
                 showInboxFragment();
-
             } else if (inboxFragment.isVisible()) {
                 showMapFragment();
-
             } else if (mapFragment.isVisible()) {
                 super.onBackPressed();
             }
@@ -199,6 +270,30 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         if (accountEmailView != null) {
             accountEmailView.setText(Account.currentAccount().email);
         }
+
+        MenuItem onlineSwitchActionItem = menu.findItem(R.id.action_switch);
+        if (onlineSwitchActionItem != null) {
+
+            if (Account.currentAccount().isPartner()) {
+                onlineSwitchActionItem.setVisible(true);
+
+                onlineSwitch = (Switch) onlineSwitchActionItem.getActionView();
+                onlineSwitch
+                        .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                mGoForUs.getJobManager()
+                                        .addJobInBackground(new GoOnlineJob(isChecked));
+                            }
+                        });
+
+                onlineSwitch.setChecked(Account.currentAccount().available && Account
+                        .currentAccount().online);
+            } else {
+                onlineSwitchActionItem.setVisible(false);
+            }
+        }
+
         return true;
     }
 
@@ -208,7 +303,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
         switch (id) {
             case R.id.action_logout:
-                mGoForUs.getJobManager().addJobInBackground(new AttemptLogoutJob());
+                mGoForUs.getJobManager().addJobInBackground(new LogoutJob());
                 break;
             case R.id.action_tips:
                 mTipDialog.show();
@@ -228,6 +323,8 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
         if (id == R.id.nav_map) {
             showMapFragment();
+        } else if (id == R.id.nav_jobs) {
+            showJobsFragment();
         } else if (id == R.id.nav_inbox) {
             showInboxFragment();
         } else if (id == R.id.nav_settings) {
@@ -268,16 +365,12 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         } else {
             ft.add(R.id.content, inboxFragment, "Inbox");
         }
-        if (messagesFragment.isAdded()) {
-            ft.hide(messagesFragment);
-        }
-        if (mapFragment.isAdded()) {
-            ft.hide(mapFragment);
-        }
 
-        if (mMessageFab.isShown()) {
-            mMessageFab.hide();
-        }
+        if (messagesFragment.isAdded()) ft.hide(messagesFragment);
+        if (mapFragment.isAdded()) ft.hide(mapFragment);
+        if (jobsFragment != null && jobsFragment.isAdded()) ft.hide(jobsFragment);
+        mMessageFab.hide();
+        mQuickOrderFab.hide();
 
         mNavigationView.setCheckedItem(R.id.nav_inbox);
         setTitle("Inbox");
@@ -294,16 +387,11 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
             ft.add(R.id.content, messagesFragment, "Messages");
         }
 
-        if (inboxFragment.isAdded()) {
-            ft.hide(inboxFragment);
-        }
-        if (mapFragment.isAdded()) {
-            ft.hide(mapFragment);
-        }
-
-        if (mMessageFab.isShown()) {
-            mMessageFab.hide();
-        }
+        if (inboxFragment.isAdded()) ft.hide(inboxFragment);
+        if (mapFragment.isAdded()) ft.hide(mapFragment);
+        if (jobsFragment != null && jobsFragment.isAdded()) ft.hide(jobsFragment);
+        mMessageFab.hide();
+        mQuickOrderFab.hide();
 
         mNavigationView.setCheckedItem(R.id.nav_inbox);
         setTitle(getString(R.string.messages_fragment_title));
@@ -311,7 +399,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     }
 
 
-    private void showMapFragment() {
+    public MapFragment showMapFragment() {
         FragmentTransaction ft = mFragmentManager.beginTransaction();
 
         if (mapFragment.isAdded()) {
@@ -319,23 +407,40 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         } else {
             ft.add(R.id.content, mapFragment, "Map");
         }
-        if (inboxFragment.isAdded()) {
-            ft.hide(inboxFragment);
-        }
-        if (messagesFragment.isAdded()) {
-            ft.hide(messagesFragment);
-        }
-
-        if (!mMessageFab.isShown()) {
-            mMessageFab.show();
-        }
+        if (inboxFragment.isAdded()) ft.hide(inboxFragment);
+        if (messagesFragment.isAdded()) ft.hide(messagesFragment);
+        if (jobsFragment != null && jobsFragment.isAdded()) ft.hide(jobsFragment);
+        if (!mMessageFab.isShown()) mMessageFab.show();
+        if (!mQuickOrderFab.isShown() && mapFragment.mapMode != MapFragment.ORDER_MODE)
+            mQuickOrderFab.show();
 
         mNavigationView.setCheckedItem(R.id.nav_map);
         setTitle(getString(R.string.map_fragment_title));
         ft.commit();
+        return mapFragment;
+    }
+
+    private void showJobsFragment() {
+        FragmentTransaction ft = mFragmentManager.beginTransaction();
+
+        if (jobsFragment.isAdded()) {
+            ft.show(jobsFragment);
+        } else {
+            ft.add(R.id.content, jobsFragment, "Jobs");
+        }
+        if (inboxFragment.isAdded()) ft.hide(inboxFragment);
+        if (messagesFragment.isAdded()) ft.hide(messagesFragment);
+        if (mapFragment.isAdded()) ft.hide(mapFragment);
+        mMessageFab.show();
+        mQuickOrderFab.hide();
+
+        mNavigationView.setCheckedItem(R.id.nav_jobs);
+        setTitle(getString(R.string.jobs_fragment_title));
+        ft.commit();
     }
 
     int lastMessageCount = 0;
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void notifyNewMessage(NewMessagesResult result) {
         lastMessageCount = result.getNewMessages().size();
@@ -349,7 +454,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
         finish();
     }
 
-    private void updateMessageFAB(){
+    private void updateMessageFAB() {
         int totalUnreadCount = Conversation.totalUnreadMessagesCount();
         if (totalUnreadCount > 0) {
             mMessageFab.setImageDrawable(ContextCompat
@@ -365,13 +470,30 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     public void onMessagesUpdate(MessagesFromApiResult result) {
         updateMessageFAB();
         int totalUnreadCount = Conversation.totalUnreadMessagesCount();
-        if (result.getMessages().size() > 0 && totalUnreadCount > 0)
-            Toast.makeText(this, String.format("You have %s new message%s", totalUnreadCount, totalUnreadCount == 1 ? "" : "s"), Toast.LENGTH_LONG).show();
-
+        if (result.getMessages().size() > 0 && totalUnreadCount > 0) Toast.makeText(this, String
+                .format("You have %s new message%s", totalUnreadCount, totalUnreadCount == 1 ? "" : "s"), Toast.LENGTH_LONG)
+                                                                          .show();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageRead(MessageMarkReadResult result) {
-        updateMessageFAB();
+    public void onMessageRead(MessageMarkReadResult result) { updateMessageFAB(); }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onAccountUpdate(UpdatedAccountResult result) {
+        Logger.i("received an account update on UI");
+        if (result.getAccount().isPartner() && result.getAccount().externalId
+                .equals(Account.currentAccount().externalId)) {
+
+            if (onlineSwitch != null) {
+                onlineSwitch
+                        .setChecked(result.getAccount().available && result.getAccount().online);
+            }
+        }
     }
+
+    @Override
+    public void onStart() { super.onStart(); }
+
+    @Override
+    public void onStop() { super.onStop(); }
 }

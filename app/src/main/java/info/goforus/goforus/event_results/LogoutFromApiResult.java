@@ -9,8 +9,6 @@ public class LogoutFromApiResult {
         mResponse = response;
     }
 
-    public JSONObject getResponse(){
-        return mResponse;
-    }
+    public JSONObject getResponse() { return mResponse; }
 }
 

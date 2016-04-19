@@ -5,12 +5,15 @@ import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.Toolbar;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AutoCompleteTextView;
@@ -18,12 +21,19 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.OnClickListener;
+import com.orhanobut.dialogplus.ViewHolder;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
-import info.goforus.goforus.tasks.ProcessLogin;
+import icepick.Icepick;
+import icepick.State;
+import info.goforus.goforus.settings.DebugSettings;
 
 public class LoginActivity extends BaseActivity {
 
@@ -33,19 +43,92 @@ public class LoginActivity extends BaseActivity {
     @Bind(R.id.tvLoginStatus) public TextView tvLoginStatus;
     @Bind(R.id.login_progress) View mProgressView;
     @Bind(R.id.progressWrapper) RelativeLayout progressWrapper;
+    @Bind(R.id.toolbar) Toolbar mToolbar;
 
-    private boolean cancelAttempt;
-    private View currentFocusView;
+    @State boolean inProgress = false;
+    @State String statusText = "";
+    boolean cancelAttempt;
+    View currentFocusView;
+    TaskFragment mTaskFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Icepick.restoreInstanceState(this, savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+        if (BuildConfig.DEBUG) {
+            mToolbar.setVisibility(View.VISIBLE);
+            setTitle("DEBUG MENU");
+            setSupportActionBar(mToolbar);
+        }
+        if (savedInstanceState == null) {
+            mTaskFragment = new TaskFragment();
+            getSupportFragmentManager().beginTransaction().add(mTaskFragment, "TaskFragment")
+                                       .commit();
+        } else {
+            mTaskFragment = (TaskFragment) getSupportFragmentManager().findFragmentByTag("TaskFragment");
+        }
+
+        if (inProgress) {
+            showProgress(true);
+            tvLoginStatus.setText(statusText);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        statusText = tvLoginStatus.getText().toString();
+        Icepick.saveInstanceState(this, outState);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.debug_mode, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+
+    // Only used in Debug Mode
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.actionSwitchApi:
+                DialogPlus dialog = DialogPlus.newDialog(this)
+                                              .setContentHolder(new ViewHolder(R.layout.dialog_debug_options))
+                                              .setGravity(Gravity.CENTER).setCancelable(true)
+                                              .setOnClickListener(new OnClickListener() {
+                                                  @Override
+                                                  public void onClick(DialogPlus dialog, View view) {
+                                                      Button submitOptions = (Button) dialog
+                                                              .findViewById(R.id.submit);
+                                                      if (view.equals(submitOptions)) {
+                                                          TextView apiUrlTextView = (TextView) dialog
+                                                                  .findViewById(R.id.apiUrl);
+                                                          DebugSettings.getInstance()
+                                                                       .setApiUrl(apiUrlTextView
+                                                                               .getText()
+                                                                               .toString());
+                                                          Toast.makeText(LoginActivity.this, "Updated settings", Toast.LENGTH_SHORT)
+                                                               .show();
+                                                      }
+                                                  }
+                                              }).create();
+                dialog.show();
+                EditText apiUri = (EditText) dialog.findViewById(R.id.apiUrl);
+                apiUri.setText(DebugSettings.getInstance().getApiUrl());
+                apiUri.requestFocus();
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @OnClick(R.id.signInButton)
-    public void onLoginClick(){
+    public void onLoginClick() {
         final String email = mEmailView.getText().toString();
         final String password = mPasswordView.getText().toString();
         checkValidity(email, password);
@@ -54,7 +137,7 @@ public class LoginActivity extends BaseActivity {
 
 
     @OnClick(R.id.registerButton)
-    public void onRegisterClick(){
+    public void onRegisterClick() {
         final String email = mEmailView.getText().toString();
         final String password = mPasswordView.getText().toString();
         checkValidity(email, password);
@@ -62,7 +145,7 @@ public class LoginActivity extends BaseActivity {
     }
 
     @OnEditorAction(R.id.password)
-    public boolean onPasswordEditorAction(TextView textView, int id, KeyEvent keyEvent){
+    public boolean onPasswordEditorAction(TextView textView, int id, KeyEvent keyEvent) {
         if (id == R.id.login || id == EditorInfo.IME_NULL) {
             final String email = mEmailView.getText().toString();
             final String password = mPasswordView.getText().toString();
@@ -74,25 +157,16 @@ public class LoginActivity extends BaseActivity {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-    }
+    public void onStart() { super.onStart(); }
 
     @Override
-    public void onStop() {
-        super.onStop();
-    }
-
+    public void onStop() { super.onStop(); }
 
     @Override
-    public void onResume() {
-        super.onResume();
-    }
+    public void onResume() { super.onResume(); }
 
     @Override
-    public void onPause() {
-        super.onPause();
-    }
+    public void onPause() { super.onPause(); }
 
 
     // TODO: check text color of the error message
@@ -133,7 +207,9 @@ public class LoginActivity extends BaseActivity {
             currentFocusView.requestFocus();
         } else {
             showProgress(true);
-            new ProcessLogin(this, email, password, false).execute();
+            // TODO call the fragment
+            mTaskFragment.setLoginRequirements(email, password, false);
+            mTaskFragment.startTask();
         }
     }
 
@@ -142,12 +218,15 @@ public class LoginActivity extends BaseActivity {
             currentFocusView.requestFocus();
         } else {
             showProgress(true);
-            new ProcessLogin(this, email, password, true).execute();
+            mTaskFragment.setLoginRequirements(email, password, true);
+            mTaskFragment.startTask();
         }
     }
 
     public void showProgress(final boolean show) {
         View focus = getCurrentFocus();
+        inProgress = true;
+
         if (focus != null) {
             focus.clearFocus();
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -164,27 +243,28 @@ public class LoginActivity extends BaseActivity {
 
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
         mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            }
-        });
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(show ? 0 : 1)
+                      .setListener(new AnimatorListenerAdapter() {
+                          @Override
+                          public void onAnimationEnd(Animator animation) {
+                              mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+                          }
+                      });
 
         mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-        mProgressView.animate().setDuration(shortAnimTime).alpha(
-                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            }
-        });
+        mProgressView.animate().setDuration(shortAnimTime).alpha(show ? 1 : 0)
+                     .setListener(new AnimatorListenerAdapter() {
+                         @Override
+                         public void onAnimationEnd(Animator animation) {
+                             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                         }
+                     });
     }
 
     public void showErrorOn(TextView view, String errorMessage) {
         view.setError(null);
-        ForegroundColorSpan colorSpan = new ForegroundColorSpan(ContextCompat.getColor(this, R.color.accent_material_dark_1));
+        ForegroundColorSpan colorSpan = new ForegroundColorSpan(ContextCompat
+                .getColor(this, R.color.accent_material_dark_1));
         SpannableStringBuilder ssBuilder = new SpannableStringBuilder(errorMessage);
         ssBuilder.setSpan(colorSpan, 0, errorMessage.toString().length(), 0);
         view.setError(ssBuilder);

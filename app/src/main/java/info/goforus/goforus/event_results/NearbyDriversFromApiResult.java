@@ -26,7 +26,7 @@ public class NearbyDriversFromApiResult {
                 }
 
                 if (driverObject != null) {
-                    mDrivers.add(new Driver(driverObject));
+                    mDrivers.add(Driver.updateOrCreateFromJson(driverObject));
                 }
             }
 

@@ -18,6 +18,8 @@ import butterknife.ButterKnife;
 import info.goforus.goforus.jobs.MarkReadMessageJob;
 import info.goforus.goforus.models.conversations.Conversation;
 import info.goforus.goforus.models.conversations.Message;
+import info.goforus.goforus.models.drivers.Driver;
+import info.goforus.goforus.models.orders.Order;
 
 public class ConversationsAdapter extends ArrayAdapter<Conversation> {
     private final NavigationActivity mContext;
@@ -57,20 +59,31 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
             @Override
             public void onClick(View v) {
                 for (Message m : conversation.messages()) {
-                    if(!m.readByReceiver) {
+                    if(!m.isRead) {
                         GoForUs.getInstance().getJobManager().addJobInBackground(new MarkReadMessageJob(conversation.externalId, m.externalId));
-                        m.readByReceiver = true;
+                        m.isRead = true;
                         m.save();
                     }
                 }
+
                 mContext.showMessagesFragment(conversation);
             }
         });
 
-        // Populate the data into the template view using the data object
-        viewHolder.subject.setText(conversation.subject);
+        if(conversation.firstMessage() != null && conversation.firstMessage().isMe)  {
+            Order order = Order.findByConversation(conversation);
+
+            if(order != null) {
+                Driver driver = Driver.findByExternalId(order.partnerId);
+                if (driver != null)
+                    viewHolder.subject.setText(String.format("Order: %s", driver.email));
+            }
+        } else {
+            viewHolder.subject.setText("Job Offer");
+        }
+
         if (conversation.lastMessage() != null) {
-            viewHolder.lastMessageSummary.setText(conversation.lastMessage().body);
+            viewHolder.lastMessageSummary.setText(withoutLineBreaks(conversation.lastMessage().body));
         }
 
         if (conversation.unreadMessageCount() > 0) {
@@ -82,5 +95,10 @@ public class ConversationsAdapter extends ArrayAdapter<Conversation> {
 
         // Return the completed view to render on screen
         return view;
+    }
+
+    private String withoutLineBreaks(String body) {
+        String newBody = body.replaceAll("\r", "..").replaceAll("\n", "..");
+        return newBody;
     }
 }

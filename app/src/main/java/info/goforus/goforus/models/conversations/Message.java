@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import info.goforus.goforus.models.accounts.Account;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
 import us.monoid.json.JSONObject;
@@ -20,22 +21,13 @@ import us.monoid.json.JSONObject;
 @Table(name = "Messages")
 public class Message extends Model {
 
-    @Column(name = "externalId", index = true, unique = true)
-    public int externalId;
-    @Column(name = "isMe", index = true)
-    public boolean isMe;
-    @Column(name = "readByReceiver", index = true)
-    public boolean readByReceiver;
-    @Column(name = "readBySender", index = true)
-    public boolean readBySender;
-    @Column(name = "body")
-    public String body;
-    @Column(name = "Conversation")
-    public Conversation conversation;
-    @Column(name = "notificationSent")
-    public boolean notificationSent = false;
-    @Column(name = "confirmedReceived", index = true)
-    public boolean confirmedReceived = false;
+    @Column(name = "externalId", index = true, unique = true) public int externalId;
+    @Column(name = "isMe", index = true) public boolean isMe;
+    @Column(name = "isRead", index = true) public boolean isRead;
+    @Column(name = "body") public String body;
+    @Column(name = "Conversation") public Conversation conversation;
+    @Column(name = "notificationSent") public boolean notificationSent = false;
+    @Column(name = "confirmedReceived", index = true) public boolean confirmedReceived = false;
 
     public boolean shouldAnimateIn = false;
 
@@ -47,9 +39,8 @@ public class Message extends Model {
         super();
         try {
             this.externalId = message.getInt("id");
-            this.isMe = message.getBoolean("is_me");
-            this.readBySender = message.getBoolean("is_read_by_sender");
-            this.readByReceiver = message.getBoolean("is_read_by_receiver");
+            this.isMe = message.getInt("sender_id") == Account.currentAccount().externalId;
+            this.isRead = message.getBoolean("is_read");
             this.body = message.getString("body");
             this.conversation = conversation;
             this.confirmedReceived = true;
@@ -72,7 +63,7 @@ public class Message extends Model {
 
     // Finds existing Message based on remoteId or creates new user and returns
     public static Message updateOrCreateFromJson(JSONObject json, int conversationId) {
-        Conversation conversation =Conversation.findByExternalId(conversationId);
+        Conversation conversation = Conversation.findByExternalId(conversationId);
 
         String body = "";
         int externalId = 0;
@@ -84,8 +75,9 @@ public class Message extends Model {
             Logger.e(e.toString());
         }
 
-        Message existingMessage =
-                new Select().from(Message.class).where("body = ? AND confirmedReceived = ?", body, false).executeSingle();
+        Message existingMessage = new Select().from(Message.class)
+                                              .where("body = ? AND confirmedReceived = ?", body, false)
+                                              .executeSingle();
         if (existingMessage != null) {
 
             existingMessage.body = body;

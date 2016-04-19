@@ -87,7 +87,7 @@ public class LocationUpdateHandler implements LocationListener {
     private static final int TWO_MINUTES = 1000 * 60 * 2;
 
     /**
-     * Determines whether one Location reading is better than the current Location fix
+     * Determines whether one Locations reading is better than the current Locations fix
      * Gotta love google <3
      */
     protected boolean isBetterLocation(Location location, Location currentBestLocation) {

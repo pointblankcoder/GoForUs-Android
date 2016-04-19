@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="info.goforus.goforus">
+          package="info.goforus.goforus">
 
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="info.goforus.goforus.permission.C2D_MESSAGE"/>
+
+    <permission
+        android:name="info.goforus.goforus.permission.C2D_MESSAGE"
+        android:protectionLevel="signature"/>
+
 
     <application
         android:name=".GoForUs"
@@ -16,20 +23,20 @@
         android:theme="@style/Theme.GoForUs">
         <meta-data
             android:name="AA_DB_NAME"
-            android:value="dev111.db" />
+            android:value="dev111.db"/>
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="1" />
+            android:value="1"/>
 
         <meta-data
             android:name="AA_MODELS"
-            android:value="info.goforus.goforus.models.accounts.Account, info.goforus.goforus.models.conversations.Conversation, info.goforus.goforus.models.conversations.Message, info.goforus.goforus.models.drivers.Driver" />
+            android:value="info.goforus.goforus.models.accounts.Account, info.goforus.goforus.models.conversations.Conversation, info.goforus.goforus.models.conversations.Message, info.goforus.goforus.models.drivers.Driver, info.goforus.goforus.models.drivers.Vehicle, info.goforus.goforus.models.orders.Order, info.goforus.goforus.models.jobs.Job"/>
 
         <activity android:name=".BrandExposure">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
@@ -37,13 +44,13 @@
             android:label="@string/title_activity_login"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
             </intent-filter>
         </activity>
         <activity
             android:name=".NavigationActivity"
             android:label="@string/title_activity_navigation"
-            android:windowSoftInputMode="stateHidden" />
+            android:windowSoftInputMode="stateHidden"/>
 
         <activity
             android:name=".DriverDetailsActivity"
@@ -51,41 +58,57 @@
             android:parentActivityName=".NavigationActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="info.goforus.goforus.NavigationActivity" />
+                android:value="info.goforus.goforus.NavigationActivity"/>
         </activity>
 
         <!-- Services -->
         <!-- TODO: Enable this once notifications are working as intended -->
-        <receiver
-            android:name=".services.receivers.NotificationsUpdateReceiver"
-            android:exported="false" />
-        <service
-            android:name=".services.NotificationsUpdateService"
-            android:exported="false" />
 
-        <receiver android:name=".services.receivers.ConversationsUpdateReceiver" />
-        <service
-            android:name=".services.ConversationsUpdateService"
-            android:exported="false" />
-
-        <receiver android:name=".services.receivers.LocationUpdateReceiver" />
+        <receiver android:name=".services.receivers.LocationUpdateReceiver"/>
         <service
             android:name=".services.LocationUpdateService"
-            android:exported="false" />
+            android:exported="false"/>
 
-        <receiver android:name=".services.receivers.DriversUpdateReceiver" />
+        <receiver android:name=".services.receivers.DriversUpdateReceiver"/>
         <service
             android:name=".services.DriversUpdateService"
-            android:exported="false" />
+            android:exported="false"/>
 
 
         <!-- Google Related -->
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
+            android:value="@integer/google_play_services_version"/>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key" />
+            android:value="@string/google_maps_key"/>
+
+
+        <receiver
+            android:name="com.google.android.gms.gcm.GcmReceiver"
+            android:exported="true"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+                <category android:name="info.goforus.goforus"/>
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".services.GCMListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name=".services.GCMInstanceIDListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.iid.InstanceID"/>
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

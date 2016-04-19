@@ -6,7 +6,12 @@
             android:id="@+id/nav_map"
             android:checked="true"
             android:icon="@drawable/map_black_36dp"
-            android:title="Map" />
+            android:title="Live Map" />
+
+        <item
+            android:id="@+id/nav_jobs"
+            android:icon="@drawable/ic_attach_money_black_36dp"
+            android:title="My Jobs" />
 
         <item
             android:id="@+id/nav_inbox"

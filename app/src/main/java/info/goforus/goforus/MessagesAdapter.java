@@ -31,8 +31,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         @Bind(R.id.tvStatus) ImageView status;
         View view;
         boolean isMe;
-        boolean readBySender;
-        boolean readByReceiver;
+        public boolean isRead;
 
         public ViewHolder(View view) {
             ButterKnife.bind(this, view);
@@ -88,8 +87,7 @@ public class MessagesAdapter extends ArrayAdapter<Message> {
         }
 
         viewHolder.isMe = message.isMe;
-        viewHolder.readByReceiver = message.readByReceiver;
-        viewHolder.readBySender = message.readBySender;
+        viewHolder.isRead = message.isRead;
         viewHolder.body.setText(message.body);
 
         if (message.shouldAnimateIn) {

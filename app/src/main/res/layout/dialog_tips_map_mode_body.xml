@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/primary_material_dark_1"
+            android:theme="@style/Theme.GoForUs">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp">
+
+        <android.support.v7.widget.AppCompatCheckBox
+            android:id="@+id/doNotShowTips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
+
+        <CheckedTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/doNotShowTips"
+            android:layout_gravity="center"
+            android:layout_toEndOf="@+id/doNotShowTips"
+            android:layout_toRightOf="@+id/doNotShowTips"
+            android:text="@string/dont_show_this_again"
+            android:textColor="@color/secondary_text_material_dark"/>
+    </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/driverIndicatorTipIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_fingerprint_black_48dp"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/driverIndicatorTipIcon"
+                android:layout_toRightOf="@+id/driverIndicatorTipIcon"
+                android:text="Pressing and holding on the map will first drop down a Pickup point, this is where your driver will go to collect your order. Then the second press and hold will drop down the pickup point. This is where the driver will deliver your order."
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/driverTipIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_nature_black_36dp"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/driverTipIcon"
+                android:layout_toRightOf="@+id/driverTipIcon"
+                android:text="This icon represents your Pickup location on the map. You are able to press and hold this icon and drag it to a new location."
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/pickupPin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_person_pin_circle_black_36dp"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/pickupPin"
+                android:layout_toRightOf="@+id/pickupPin"
+                android:text="This icon represents your Drop Off location on the map. You are able to press and hold this icon and drag it to a new location."
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/findPickupBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/margin_standard_small"
+                android:background="@color/accent_material_dark_1"
+                android:padding="@dimen/margin_standard_small"
+                android:text="Find Pickup"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/findPickupBtn"
+                android:layout_toRightOf="@+id/findPickupBtn"
+                android:text="This button will open up a search bar where you can search for the location/address of your Pickup Location"
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/findDropOffBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/margin_standard_small"
+                android:background="@color/accent_material_dark_1"
+                android:padding="@dimen/margin_standard_small"
+                android:text="Find DropOff"/>
+
+            <android.support.v7.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@+id/findDropOffBtn"
+                android:layout_toRightOf="@+id/findDropOffBtn"
+                android:text="This button will open up a search bar where you can search for the location/address of your Drop Off location"
+                android:textColor="@color/secondary_text_material_dark"/>
+        </RelativeLayout>
+    </LinearLayout>
+</ScrollView>
