@@ -145,12 +145,14 @@ public class ContactDriverManager implements OnDismissListener {
 
                         @Override
                         public void run() {
+                            DriversOnMapManager.getInstance().getSelectedDriver().goToWithInfoWindow(1000);
                             if (waitingForReplyDialog != null) waitingForReplyDialog.dismiss();
                             OrderModeManager.getInstance().exitOrderMode();
                             Toast.makeText(mActivity, "Keep an on your inbox in case the driver has any complications or questions!", Toast.LENGTH_LONG)
                                  .show();
                             Toast.makeText(mActivity, "You can also contact the driver by heading to your inbox!", Toast.LENGTH_LONG)
                                  .show();
+
                         }
                     }, 2000);
                 }
