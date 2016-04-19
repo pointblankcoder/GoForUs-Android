@@ -38,6 +38,8 @@ import info.goforus.goforus.event_results.DeclinedOrderResult;
 import info.goforus.goforus.event_results.JobsFromApiResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.event_results.OrdersFromApiResult;
+import info.goforus.goforus.event_results.UpdatedAccountResult;
+import info.goforus.goforus.models.accounts.Account;
 import info.goforus.goforus.models.orders.Order;
 import us.monoid.json.JSONArray;
 import us.monoid.json.JSONException;
@@ -54,6 +56,7 @@ public class GCMListenerService extends GcmListenerService {
     private static final String UPDATED_ORDER = "Updated Order";
     private static final String ACCEPTED_ORDER = "Accepted Order";
     private static final String DECLINED_ORDER = "Declined Order";
+    private static final String UPDATED_ACCOUNT = "Updated Account";
 
     /**
      * Called when message is received.
@@ -169,6 +172,19 @@ public class GCMListenerService extends GcmListenerService {
                             Logger.e(e.toString());
                         }
                         break;
+                    case UPDATED_ACCOUNT:
+                        try {
+                            Logger.i("Received an updated account");
+                            JSONObject accountJSON = new JSONObject(data.getString("account"));
+                            Account account = Account.findByExternalId(accountJSON.getInt("id"));
+                            if (account != null) {
+                                account.updateFromApi(accountJSON);
+                                EventBus.getDefault().post(new UpdatedAccountResult(account));
+                            }
+                        } catch (JSONException e) {
+                            Logger.e(e.toString());
+                        }
+
                 }
             }
         }

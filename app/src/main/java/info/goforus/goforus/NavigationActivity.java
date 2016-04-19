@@ -1,5 +1,6 @@
 package info.goforus.goforus;
 
+import android.accounts.OnAccountsUpdateListener;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -34,6 +35,7 @@ import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnDismissListener;
 import com.orhanobut.dialogplus.ViewHolder;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -46,6 +48,7 @@ import info.goforus.goforus.event_results.LogoutFromApiResult;
 import info.goforus.goforus.event_results.MessageMarkReadResult;
 import info.goforus.goforus.event_results.MessagesFromApiResult;
 import info.goforus.goforus.event_results.NewMessagesResult;
+import info.goforus.goforus.event_results.UpdatedAccountResult;
 import info.goforus.goforus.jobs.LogoutJob;
 import info.goforus.goforus.jobs.GoOnlineJob;
 import info.goforus.goforus.managers.OrderModeManager;
@@ -69,6 +72,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
     @Bind(R.id.toolbar) Toolbar mToolbar;
     @Bind(R.id.drawer_layout) DrawerLayout mDrawer;
     @Bind(R.id.nav_view) NavigationView mNavigationView;
+    private Switch onlineSwitch;
 
     public NavigationActivity() {
     }
@@ -273,7 +277,7 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
             if (Account.currentAccount().isPartner()) {
                 onlineSwitchActionItem.setVisible(true);
 
-                Switch onlineSwitch = (Switch) onlineSwitchActionItem.getActionView();
+                onlineSwitch = (Switch) onlineSwitchActionItem.getActionView();
                 onlineSwitch
                         .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                             @Override
@@ -473,6 +477,19 @@ public class NavigationActivity extends BaseActivity implements NavigationView.O
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageRead(MessageMarkReadResult result) { updateMessageFAB(); }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onAccountUpdate(UpdatedAccountResult result) {
+        Logger.i("received an account update on UI");
+        if (result.getAccount().isPartner() && result.getAccount().externalId
+                .equals(Account.currentAccount().externalId)) {
+
+            if (onlineSwitch != null) {
+                onlineSwitch
+                        .setChecked(result.getAccount().available && result.getAccount().online);
+            }
+        }
+    }
 
     @Override
     public void onStart() { super.onStart(); }

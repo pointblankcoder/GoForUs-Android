@@ -161,4 +161,7 @@
     <string name="pickup_from">Pickup From:</string>
     <string name="estimated_cost">Estimated Cost:</string>
     <string name="too_late_called_order_for_you">Too late. We cancelled this order.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

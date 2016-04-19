@@ -113,6 +113,7 @@ public class Account extends Model {
         this.type = json.getString("user_type");
         this.online = json.getBoolean("online");
         this.available = json.getBoolean("available");
+        save();
     }
 
     // TODO: move this to the conversations model

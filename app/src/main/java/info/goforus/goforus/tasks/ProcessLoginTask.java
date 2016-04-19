@@ -1,5 +1,6 @@
 package info.goforus.goforus.tasks;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 
@@ -28,22 +29,22 @@ import info.goforus.goforus.managers.GCMTokenManager;
 import info.goforus.goforus.models.accounts.Account;
 import us.monoid.json.JSONException;
 
-public class ProcessLogin extends AsyncTask<Object, String, Void> {
+public class ProcessLoginTask extends AsyncTask<Object, String, Void> {
     private static final String[] TOPICS = {"global", "conversations", "messages", "jobs"};
 
-    private final LoginActivity mLoginActivity;
+    private LoginActivity mLoginActivity;
     private final String mEmail;
     private final String mPassword;
     private final boolean mRegistering;
-    private final ProcessLogin me;
+    private final ProcessLoginTask me;
     private boolean loggedIn = false;
     private boolean collectMessagesComplete = false;
     private boolean collectOrdersComplete = false;
     private boolean collectJobsComplete = false;
     private boolean hasGpsLocation = false;
 
-    public ProcessLogin(LoginActivity activity, String email, String password, boolean registering) {
-        this.mLoginActivity = activity;
+    public ProcessLoginTask(LoginActivity activity, String email, String password, boolean registering) {
+        onAttach(activity);
         this.mEmail = email;
         this.mPassword = password;
         this.mRegistering = registering;
@@ -210,5 +211,13 @@ public class ProcessLogin extends AsyncTask<Object, String, Void> {
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onConversationsUpdate(ConversationsFromApiResult result) {
         collectMessagesComplete = true;
+    }
+
+    public void onAttach(Activity activity) {
+        mLoginActivity = (LoginActivity) activity;
+    }
+
+    public void onDetach() {
+        mLoginActivity = null;
     }
 }

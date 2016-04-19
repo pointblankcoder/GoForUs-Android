@@ -31,8 +31,9 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnEditorAction;
+import icepick.Icepick;
+import icepick.State;
 import info.goforus.goforus.settings.DebugSettings;
-import info.goforus.goforus.tasks.ProcessLogin;
 
 public class LoginActivity extends BaseActivity {
 
@@ -44,12 +45,16 @@ public class LoginActivity extends BaseActivity {
     @Bind(R.id.progressWrapper) RelativeLayout progressWrapper;
     @Bind(R.id.toolbar) Toolbar mToolbar;
 
-    private boolean cancelAttempt;
-    private View currentFocusView;
+    @State boolean inProgress = false;
+    @State String statusText = "";
+    boolean cancelAttempt;
+    View currentFocusView;
+    TaskFragment mTaskFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Icepick.restoreInstanceState(this, savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
         if (BuildConfig.DEBUG) {
@@ -57,6 +62,25 @@ public class LoginActivity extends BaseActivity {
             setTitle("DEBUG MENU");
             setSupportActionBar(mToolbar);
         }
+        if (savedInstanceState == null) {
+            mTaskFragment = new TaskFragment();
+            getSupportFragmentManager().beginTransaction().add(mTaskFragment, "TaskFragment")
+                                       .commit();
+        } else {
+            mTaskFragment = (TaskFragment) getSupportFragmentManager().findFragmentByTag("TaskFragment");
+        }
+
+        if (inProgress) {
+            showProgress(true);
+            tvLoginStatus.setText(statusText);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        statusText = tvLoginStatus.getText().toString();
+        Icepick.saveInstanceState(this, outState);
     }
 
     @Override
@@ -85,8 +109,11 @@ public class LoginActivity extends BaseActivity {
                                                           TextView apiUrlTextView = (TextView) dialog
                                                                   .findViewById(R.id.apiUrl);
                                                           DebugSettings.getInstance()
-                                                                       .setApiUrl(apiUrlTextView.getText().toString());
-                                                          Toast.makeText(LoginActivity.this, "Updated settings", Toast.LENGTH_SHORT).show();
+                                                                       .setApiUrl(apiUrlTextView
+                                                                               .getText()
+                                                                               .toString());
+                                                          Toast.makeText(LoginActivity.this, "Updated settings", Toast.LENGTH_SHORT)
+                                                               .show();
                                                       }
                                                   }
                                               }).create();
@@ -180,7 +207,9 @@ public class LoginActivity extends BaseActivity {
             currentFocusView.requestFocus();
         } else {
             showProgress(true);
-            new ProcessLogin(this, email, password, false).execute();
+            // TODO call the fragment
+            mTaskFragment.setLoginRequirements(email, password, false);
+            mTaskFragment.startTask();
         }
     }
 
@@ -189,12 +218,15 @@ public class LoginActivity extends BaseActivity {
             currentFocusView.requestFocus();
         } else {
             showProgress(true);
-            new ProcessLogin(this, email, password, true).execute();
+            mTaskFragment.setLoginRequirements(email, password, true);
+            mTaskFragment.startTask();
         }
     }
 
     public void showProgress(final boolean show) {
         View focus = getCurrentFocus();
+        inProgress = true;
+
         if (focus != null) {
             focus.clearFocus();
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
